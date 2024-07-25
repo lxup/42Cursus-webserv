@@ -1,0 +1,7 @@
+*.a
+*.o
+*.d
+*.out
+webserv
+.DS_Store
+.obj
