@@ -6,7 +6,7 @@
 #    By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 15:29:09 by lquehec           #+#    #+#              #
-#    Updated: 2024/07/25 14:33:27 by lquehec          ###   ########.fr        #
+#    Updated: 2024/07/25 22:14:22 by lquehec          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -66,19 +66,10 @@ CXXFLAGS		+=	-I$(INC_PATH)
 #                                   SOURCES                                    #
 # **************************************************************************** #
 
-# HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
-# 					Webserv \
-# 					))
-
 SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					main \
 					Logger \
 					))
-
-# SYSTEM
-# SRCS 			+=	$(addprefix $(SRC_PATH)/system/, $(addsuffix .c, \
-# 					example \
-# 					)
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)
 
@@ -90,11 +81,11 @@ DEPS			=	$(OBJS:.o=.d)
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(HEADERS)
+$(NAME): $(OBJS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 	@echo "\n${GREEN}> $(NAME) was successfuly compiled 🎉${END}"
 
-$(OBJ_PATH)/%.o: %.cpp $(HEADERS)
+$(OBJ_PATH)/%.o: %.cpp
 			@mkdir -p $(dir $@)
 			@printf "${BLUE}>Generating $(NAME) objects... %-33.33s\r${END}" $@
 			@$(CXX) $(CXXFLAGS) -c $< -o $@

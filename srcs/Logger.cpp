@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:54:55 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/25 14:58:52 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/25 20:36:25 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,6 +163,8 @@ void	Logger::_writeLogInFile(Logger::LogLevel level, const char *msg, std::strin
 	// TODO: Handle file error
 	std::string	log = Logger::_formater(level, msg, time, false);
 	write(file, log.c_str(), log.size());
+	write(file, "\n", 1);
+	close(file);
 	
 }
 
@@ -189,7 +191,7 @@ void	Logger::log(Logger::LogLevel level, const char *msg, ...)
 
 	va_list	args;
 	va_start(args, msg);
-	int		size = vsnprintf(buffer.data(), buffer.size(), msg, args);
+	int	size = vsnprintf(buffer.data(), buffer.size(), msg, args);
 	va_end(args);
 
 	// Handling error
