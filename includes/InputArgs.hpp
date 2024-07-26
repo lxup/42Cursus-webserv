@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 22:50:42 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:47:42 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:57:38 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,29 @@ class InputArgs
 
 		/* GETTERS */
 		int							getState(void) const;
+
+		/* EXCEPTIONS */
+		// class InvalidOption : public std::exception
+		// {
+		// 	private:
+		// 		std::string _message;
+		// 	public:
+		// 		InvalidOption(void) {}
+		// 		InvalidOption(std::string option) : _message(option.empty() ? "illegal option" : "illegal option -- " + option) {}
+		// 		virtual ~InvalidOption(void) throw() {}
+		// 		virtual const char* what() const throw();
+		// };
+
+		// class InvalidArgument : public std::exception
+		// {
+		// 	private:
+		// 		std::string _message;
+		// 	public:
+		// 		InvalidArgument(void) {}
+		// 		InvalidArgument(std::string argument) : _message(argument.empty() ? "invalid argument" : "invalid argument -- " + argument) {}
+		// 		virtual ~InvalidArgument(void) throw() {}
+		// 		virtual const char* what() const throw();
+		// };
 };
 
 #endif // INPUTARGS_HPP

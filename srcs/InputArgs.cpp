@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 22:55:52 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:47:30 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:57:44 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,3 +222,27 @@ int	InputArgs::getState(void) const
 {
 	return (_state);
 }
+
+/* ************************************************************************** */
+/* ------------------------------ EXCEPTIONS ------------------------------- */
+/* ************************************************************************** */
+
+// /*
+// * @brief Get the message
+// *
+// * @return const char* : The message
+// */
+// const char* InputArgs::InvalidOption::what() const throw()
+// {
+//     return (_message.c_str());
+// }
+
+// /*
+// * @brief Get the message
+// *
+// * @return const char* : The message
+// */
+// const char* InputArgs::InvalidArgument::what() const throw()
+// {
+// 	return (_message.c_str());
+// }
