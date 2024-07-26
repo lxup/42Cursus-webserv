@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   InputArgs.cpp                                      :+:      :+:    :+:   */
+/*   ArgsManager.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 22:55:52 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:57:44 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 12:07:17 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "InputArgs.hpp"
+#include "ArgsManager.hpp"
 
 /*
 * @brief Constructor by default
@@ -18,7 +18,7 @@
 * @param argc : number of arguments
 * @param argv : arguments
 */
-InputArgs::InputArgs(int ac, char **av) : _ac(ac), _av(av), _configFilePath(DEFAULT_CONFIG_FILE_PATH), _options(_generateOptions()), _state(EXIT_SUCCESS)
+ArgsManager::ArgsManager(int ac, char **av) : _ac(ac), _av(av), _configFilePath(DEFAULT_CONFIG_FILE_PATH), _options(_generateOptions()), _state(EXIT_SUCCESS)
 {
 	_parse();
 	if (isOption("--quiet"))
@@ -32,7 +32,7 @@ InputArgs::InputArgs(int ac, char **av) : _ac(ac), _av(av), _configFilePath(DEFA
 /*
 * @brief Destructor by default
 */
-InputArgs::~InputArgs(void) {}
+ArgsManager::~ArgsManager(void) {}
 
 /* ************************************************************************** */
 /* ---------------------------------- UTILS --------------------------------- */
@@ -43,7 +43,7 @@ InputArgs::~InputArgs(void) {}
 *
 * @return std::map<std::string, bool> : The generated options map
 */
-std::map<std::string, bool>	InputArgs::_generateOptions(void)
+std::map<std::string, bool>	ArgsManager::_generateOptions(void)
 {
 	std::map<std::string, bool>	options;
 
@@ -66,7 +66,7 @@ std::map<std::string, bool>	InputArgs::_generateOptions(void)
 *
 * @return std::string : The long option
 */
-std::string	InputArgs::_convertToLongOption(std::string option)
+std::string	ArgsManager::_convertToLongOption(std::string option)
 {
 	if (option == "-h")
 		return ("--help");
@@ -86,7 +86,7 @@ std::string	InputArgs::_convertToLongOption(std::string option)
 *
 * @return std::string : The short option
 */
-std::string	InputArgs::_convertToShortOption(std::string option)
+std::string	ArgsManager::_convertToShortOption(std::string option)
 {
 	if (option == "--help")
 		return ("-h");
@@ -105,7 +105,7 @@ std::string	InputArgs::_convertToShortOption(std::string option)
 /*
 * @brief Parse the arguments
 */
-void	InputArgs::_parse(void)
+void	ArgsManager::_parse(void)
 {	
 	try
 	{		
@@ -124,14 +124,17 @@ void	InputArgs::_parse(void)
 				else if (arg == "-d" || arg == "--debug")
 					_options["--debug"] = true;
 				else
-					throw std::invalid_argument("illegal option -- " + arg.substr(2));
+					throw WebservException(0, "illegal option -- %s", arg.substr(2).c_str());
+					// throw std::invalid_argument("illegal option -- " + arg.substr(2));
 			}
 			else
 			{
 				if (_configFilePath == "./config/default.conf")
 					_configFilePath = arg;
 				else
-					throw std::invalid_argument("invalid argument -- " + arg);
+					throw WebservException(0, "invalid argument -- %s (config file already set: \"%s\")", arg.c_str(), _configFilePath.c_str());
+					// throw WebservException(0, "invalid argument -- %s", arg.c_str());
+					// throw std::invalid_argument("invalid argument -- " + arg);
 			}
 		}
 	}
@@ -151,7 +154,7 @@ void	InputArgs::_parse(void)
 *
 * @return bool : True if the option is enabled, false otherwise
 */
-bool	InputArgs::isOption(std::string option)
+bool	ArgsManager::isOption(std::string option)
 {
 	std::string	opt = _convertToLongOption(option);
 	
@@ -164,7 +167,7 @@ bool	InputArgs::isOption(std::string option)
 /*
 * @brief Display the help
 */
-void	InputArgs::help(void)
+void	ArgsManager::help(void)
 {
 	/*
 	std::string	help;
@@ -198,7 +201,7 @@ void	InputArgs::help(void)
 /*
 * @brief Display the summary
 */
-void	InputArgs::summary(void)
+void	ArgsManager::summary(void)
 {
 	std::cout << "Summary:" << std::endl;
 	std::cout << "  - Config file path: " << _configFilePath << std::endl;
@@ -218,31 +221,7 @@ void	InputArgs::summary(void)
 *
 * @return int : The state
 */
-int	InputArgs::getState(void) const
+int	ArgsManager::getState(void) const
 {
 	return (_state);
 }
-
-/* ************************************************************************** */
-/* ------------------------------ EXCEPTIONS ------------------------------- */
-/* ************************************************************************** */
-
-// /*
-// * @brief Get the message
-// *
-// * @return const char* : The message
-// */
-// const char* InputArgs::InvalidOption::what() const throw()
-// {
-//     return (_message.c_str());
-// }
-
-// /*
-// * @brief Get the message
-// *
-// * @return const char* : The message
-// */
-// const char* InputArgs::InvalidArgument::what() const throw()
-// {
-// 	return (_message.c_str());
-// }

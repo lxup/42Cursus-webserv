@@ -6,14 +6,20 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:28:49 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:45:37 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 14:32:06 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LOGGER_HPP
 # define LOGGER_HPP
 
-# include "Webserv.hpp"
+# include "Defines.hpp"
+# include <map>
+# include <string>
+# include <iostream>
+# include <sys/stat.h>
+# include <unistd.h>
+# include <fcntl.h>
 
 /* DEFAULT PARAMETERS */
 # define DEFAULT_LOG_STATE true
@@ -28,11 +34,9 @@ class Logger
 		{
 			FATAL = 0,
 			ERROR,
-			ALERT,
 			WARNING,
 			INFO,
 			DEBUG,
-			TRACE
 		};
 
 		/* MAIN */

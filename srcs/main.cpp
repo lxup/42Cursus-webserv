@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:47:49 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 14:36:58 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,24 @@
 
 int	main(int ac, char **av)
 {
-	InputArgs args(ac, av);
+	ArgsManager args(ac, av);
 
 	if (args.isOption("--help"))
 		return (args.help(), args.getState());
 	
-	Logger::log(Logger::DEBUG, "Webserv is starting...");
+	Logger::log(Logger::INFO, "Webserv is starting...");
 
-	args.summary();
+	try
+	{
+		throw WebservException(Logger::FATAL, "This is an error");
+	}
+	catch (const WebservException &e)
+	{
+		Logger::log(e.getLogLevel(), e.what());
+		return (EXIT_FAILURE);
+	}
+
+	// args.summary();
 
 	return (EXIT_SUCCESS);
 }
