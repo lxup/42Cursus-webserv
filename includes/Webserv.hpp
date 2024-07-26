@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 14:35:23 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 17:00:47 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 # define WEBSERV_HPP
 
 // /* LIBRARIES */
+# include <cstdlib>
 // # include <iostream>
 // # include <string>
-// # include <unistd.h>
 // # include <fcntl.h>
 // # include <exception>
 // # include <cerrno>
@@ -41,5 +41,6 @@
 # include "Logger.hpp"
 # include "ArgsManager.hpp"
 # include "Utils.hpp"
+# include "ConfigParser.hpp"
 
 #endif // WEBSERV_HPP

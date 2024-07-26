@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 11:50:11 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 14:36:13 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 16:53:21 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 # define UTILS_HPP
 
 # include "Logger.hpp"
+# include <vector>
+# include <cstdio>
+# include <cstring>
+
 
 /* WEBSERV EXCEPTION */
 class WebservException : public std::exception

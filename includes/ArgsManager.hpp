@@ -45,6 +45,7 @@ class ArgsManager
 
 		/* GETTERS */
 		int							getState(void) const;
+		std::string					getConfigFilePath(void) const;
 };
 
 #endif // ARGSMANAGER_HPP

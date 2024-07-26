@@ -225,3 +225,13 @@ int	ArgsManager::getState(void) const
 {
 	return (_state);
 }
+
+/*
+* @brief Get the config file path
+*
+* @return std::string : The config file path
+*/
+std::string	ArgsManager::getConfigFilePath(void) const
+{
+	return (_configFilePath);
+}

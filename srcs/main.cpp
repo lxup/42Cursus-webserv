@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 14:36:58 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 17:01:52 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ int	main(int ac, char **av)
 
 	try
 	{
-		throw WebservException(Logger::FATAL, "This is an error");
+		ConfigParser	configParser(args.getConfigFilePath());
+		// throw WebservException(Logger::FATAL, "This is an error");
 	}
 	catch (const WebservException &e)
 	{

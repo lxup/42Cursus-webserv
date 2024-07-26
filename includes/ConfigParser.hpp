@@ -6,14 +6,14 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 12:28:03 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 14:37:49 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 19:07:08 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIGPARSER_HPP
 # define CONFIGPARSER_HPP
 
-// # include "Webserv.hpp"
+# include "Logger.hpp"
 
 # include <iostream>
 
@@ -27,7 +27,7 @@ class ConfigParser
 		std::string		_filename;
 
 		/* MAIN */
-		void			parse(void);
+		void			_parse(void);
 };
 
 

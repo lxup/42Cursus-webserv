@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:28:49 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 14:32:06 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 16:55:39 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,12 @@
 # include <sys/stat.h>
 # include <unistd.h>
 # include <fcntl.h>
+# include <ctime>
+# include <vector>
+# include <cstdio>
+# include <cerrno>
+# include <cstring>
+# include <cstdlib>
 
 /* DEFAULT PARAMETERS */
 # define DEFAULT_LOG_STATE true
