@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:28:49 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:26:07 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:45:37 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,11 @@
 # define LOGGER_HPP
 
 # include "Webserv.hpp"
+
+/* DEFAULT PARAMETERS */
+# define DEFAULT_LOG_STATE true
+# define DEFAULT_LOG_FILE_STATE false
+# define DEFAULT_LOG_DEBUG_STATE false
 
 class Logger
 {

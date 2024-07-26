@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 22:55:52 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:42:23 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:47:30 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 * @param argc : number of arguments
 * @param argv : arguments
 */
-InputArgs::InputArgs(int ac, char **av) : _ac(ac), _av(av), _configFilePath("./config/default.conf"), _options(_generateOptions()), _state(EXIT_SUCCESS)
+InputArgs::InputArgs(int ac, char **av) : _ac(ac), _av(av), _configFilePath(DEFAULT_CONFIG_FILE_PATH), _options(_generateOptions()), _state(EXIT_SUCCESS)
 {
 	_parse();
 	if (isOption("--quiet"))

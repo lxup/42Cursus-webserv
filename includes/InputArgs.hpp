@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 22:50:42 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 02:36:05 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:47:42 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,7 @@
 # include "Webserv.hpp"
 
 /* DEFAULT PARAMETERS */
-# define DEFAULT_LOG_STATE true
-# define DEFAULT_LOG_FILE_STATE false
-# define DEFAULT_LOG_DEBUG_STATE false
+# define DEFAULT_CONFIG_FILE_PATH	"./config/default.conf"
 
 class InputArgs
 {
