@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/25 14:55:34 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:16:27 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <string>
 # include <unistd.h>
 # include <fcntl.h>
+# include <exception>
 
 /* SYSTEM */
 # include <sys/stat.h>
@@ -31,5 +32,9 @@
 /* CUSTOM */
 # include "Defines.hpp"
 # include "Logger.hpp"
+# include "InputArgs.hpp"
 
-#endif
+/* UTILS */
+void	printMsg(std::ostream &os, const char *msg, ...);
+
+#endif // WEBSERV_HPP

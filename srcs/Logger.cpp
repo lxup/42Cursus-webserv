@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:54:55 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/25 20:36:25 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:34:07 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,15 @@ bool	Logger::_logState = DEFAULT_LOG_STATE;
 * false : The logger doesn't save the logs in a file
 */
 bool	Logger::_logFileState = DEFAULT_LOG_FILE_STATE;
+
+/*
+* @brief The state of the debug logger
+*
+* true : The logger save the debug logs
+*
+* false : The logger doesn't save the debug logs
+*/
+bool	Logger::_logDebugState = DEFAULT_LOG_DEBUG_STATE;
 
 /*
 * @brief The file name
@@ -182,7 +191,7 @@ void	Logger::_writeLogInFile(Logger::LogLevel level, const char *msg, std::strin
 void	Logger::log(Logger::LogLevel level, const char *msg, ...)
 {
 	// Check if the logger is on
-	if (Logger::getLogState() == false)
+	if (Logger::getLogState() == false || (level == Logger::DEBUG && Logger::getLogDebugState() == false))
 		return ;
 
 	// Create a buffer
@@ -216,6 +225,7 @@ void	Logger::log(Logger::LogLevel level, const char *msg, ...)
 	std::strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
 	
 	// Print the log
+	
 	Logger::_printLog(level, buffer.data(), timeBuffer);
 	if (Logger::getLogFileState() == true)
 		Logger::_writeLogInFile(level, buffer.data(), timeBuffer);
@@ -246,6 +256,16 @@ void	Logger::setLogFileState(bool state)
 	Logger::_logFileState = state;
 }
 
+/*
+* @brief Set the state of the debug logger
+*
+* @param state The state of the debug logger
+*/
+void	Logger::setLogDebugState(bool state)
+{
+	Logger::_logDebugState = state;
+}
+
 /* ************************************************************************** */
 /* --------------------------------- GETTERS -------------------------------- */
 /* ************************************************************************** */
@@ -268,6 +288,16 @@ bool	Logger::getLogState(void)
 bool	Logger::getLogFileState(void)
 {
 	return (Logger::_logFileState);
+}
+
+/*
+* @brief Get the current state of the debug logger
+*
+* @return bool : The current state of the debug logger
+*/
+bool	Logger::getLogDebugState(void)
+{
+	return (Logger::_logDebugState);
 }
 
 /*

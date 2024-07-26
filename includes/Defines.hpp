@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:18:59 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/25 14:26:27 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:26:52 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,6 @@
 # elif defined(__APPLE__)
 #  define MAC 1
 # endif
-
-/* DEFAULT PARAMETERS */
-# define DEFAULT_LOG_STATE true
-# define DEFAULT_LOG_FILE_STATE false
 
 /* COLORS */
 # define C_BLACK "\001\033[30m\002" /* - Black color */
@@ -49,4 +45,4 @@
 # define BG_WHITE "\001\033[47m\002" /* - White background */
 # define BG_TRANSPARENT "\001\033[49m\002" /* - Transparent background */
 
-#endif
+#endif // DEFINE_HPP

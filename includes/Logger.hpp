@@ -6,7 +6,7 @@
 /*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:28:49 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/25 14:57:48 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/07/26 02:26:07 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,10 +36,12 @@ class Logger
 		/* SETTERS */
 		static void			setLogState(bool state);
 		static void			setLogFileState(bool state);
+		static void			setLogDebugState(bool state);
 
 		/* GETTERS */
 		static bool			getLogState(void);
 		static bool			getLogFileState(void);
+		static bool			getLogDebugState(void);
 		static std::string	getLogFileName(void);
 		static std::string	getLogLevelStr(LogLevel level);
 		static std::string	getLogLevelColor(LogLevel level);
@@ -47,6 +49,7 @@ class Logger
 	private:
 		static bool										_logState;
 		static bool										_logFileState;
+		static bool										_logDebugState;
 		static std::string								_logFileName;
 		static std::map<Logger::LogLevel, std::string>	_logLevelStr;
 		static std::map<Logger::LogLevel, std::string>	_logLevelColor;
