@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
+/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 17:00:47 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/08/02 14:12:56 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,5 +42,6 @@
 # include "ArgsManager.hpp"
 # include "Utils.hpp"
 # include "ConfigParser.hpp"
+# include "SimpleServer.hpp"
 
 #endif // WEBSERV_HPP

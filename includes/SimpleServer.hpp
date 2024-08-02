@@ -1,39 +1,55 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   SimpleServer.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/02 16:51:57 by rgiraud          ###   ########.fr       */
+/*   Created: 2024/08/02 14:09:48 by rgiraud           #+#    #+#             */
+/*   Updated: 2024/08/02 16:53:21 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Webserv.hpp"
+#ifndef SIMPLESERVER_HPP
+# define SIMPLESERVER_HPP
+
+#include "Logger.hpp"
+#include "Defines.hpp"
 #include <sys/socket.h> // For socket functions
 #include <netinet/in.h> // For sockaddr_in
 #include <cstdlib>		// For exit() and EXIT_FAILURE
 #include <iostream>		// For cout
 #include <unistd.h>		// For read
 #include <arpa/inet.h>  // pour inet_ntop
+#include <string>
 
-#define PORT 4321
-#define MAX_CONNECTIONS 10000
+#define BUFFER_SIZE 4096
 
-int main(int ac, char **av)
+
+class SimpleServer
 {
-	ArgsManager args(ac, av);
-
-	if (args.isOption("--help"))
-		return (args.help(), args.getState());
-
-	// Setup a simple server on port PORT, with a maximum of MAX_CONNECTIONS connections
-	SimpleServer server(PORT, MAX_CONNECTIONS);
 	
-	server.setupServer();
-	server.run();
+private:
+	const int _port;
+	const int _maxConnection;
+	sockaddr_in _server_address;
+	int _server_socket;
+	int _client_socket;
+	int _addr_size;
+	
+	int check(int ret, std::string msg);
+	int acceptConnection(void);
+	void handleConnection();
+	void showIpClient(void);
+	
+public:
+	SimpleServer(int port, int maxConnection);
+	~SimpleServer();
 
-	return (EXIT_SUCCESS);
+	void setupServer(void);
+	int getServersocket(void) const;
+	void run(void);
+	
+};
 
-}
+#endif
