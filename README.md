@@ -13,7 +13,7 @@
 
 - [x]  faire un script qui simule x connection au server (avec x un argument qui represente le nombre de client) afin de voir a quel point notre server est efficace
     
-    ⇒ done, ce script s’appelle [tester.py](http://tester.py)
+    ⇒ done, ce script s’appelle manyConnections.py
     
 - [ ]  voir la fonction fcntl() ce qu’elle fait et si elle peut etre utile sur linux ? ou alors c’est que pour mac ?
 
