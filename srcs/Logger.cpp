@@ -146,7 +146,6 @@ std::string	Logger::_formater(Logger::LogLevel level, const char *msg, std::stri
 void	Logger::_printLog(Logger::LogLevel level, const char *msg, std::string time)
 {
 	std::cout << Logger::_formater(level, msg, time) << std::endl;
-	
 }
 
 /*
