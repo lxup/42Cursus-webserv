@@ -3,20 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
+/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 17:01:52 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/08/05 15:32:45 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Webserv.hpp"
-#include <sys/socket.h> // For socket functions
-#include <netinet/in.h> // For sockaddr_in
-#include <cstdlib>		// For exit() and EXIT_FAILURE
-#include <iostream>		// For cout
-#include <unistd.h>		// For read
-#include <arpa/inet.h>  // pour inet_ntop
 
 int main(int ac, char **av)
 {
