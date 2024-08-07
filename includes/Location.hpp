@@ -37,6 +37,7 @@ class Location
 		// Methods
 		void incrementCounter(const std::string& key) { _counter[key]++; }
 		void checkDoubleLine();
+		bool checkValue();
 
 		// Adders
 		void addAllowedMethods(std::string &token);

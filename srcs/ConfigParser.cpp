@@ -102,7 +102,6 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 }
 
 
-
 Server ConfigParser::getServerConfig(std::ifstream &configFile)
 {
 	Server server;

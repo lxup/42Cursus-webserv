@@ -28,6 +28,11 @@ void Location::addAllowedMethods(std::string &token)
 	_allowedMethods.push_back(met);
 }
 
+/*bool Location::checkValue()
+{
+
+}*/
+
 void Location::printLocation(void) const
 {
 	std::cout << "Location: " << _location << std::endl;
@@ -46,7 +51,7 @@ void Location::printLocation(void) const
 			std::cout << "POST" << std::endl;
 		else if (*it == DELETE)
 			std::cout << "DELETE" << std::endl;
-		// std::cout << *it << std::endl;
+		// std::cout << *it << std::endl; 
 	}
 
 	if (_autoindex == TRUE)

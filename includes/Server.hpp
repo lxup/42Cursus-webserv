@@ -28,6 +28,7 @@ public:
 	void checkDoubleLine();
 	bool	fileExist(const std::string& name);
 	bool fileExistMap();
+	bool checkLocation();
 
 	// Getters
 	unsigned int getPort() const { return _port; }

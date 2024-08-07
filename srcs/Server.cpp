@@ -13,22 +13,29 @@ Server::~Server()
 {
 }
 
-void	Server::checkAttribut()
+void Server::checkAttribut()
 {
 	if (_port == 0 || fileExist(_root) || fileExistMap())
 		throw WebservException(Logger::FATAL, "Invalid value");
 }
 
-bool	Server::fileExist(const std::string& name)
+bool Server::fileExist(const std::string &name)
 {
 	std::ifstream file(name.c_str());
 	return (file.good());
 }
 
+/*bool Server::checkLocation()
+{
+	//std::vector<Location>::iterator itLoc = _locations.begin();
+
+
+}*/
+
 bool Server::fileExistMap()
 {
 	std::map<unsigned int, std::string>::const_iterator it;
-	
+
 	for (it = getErrorPages().begin(); it != getErrorPages().end(); ++it)
 		if (!fileExist(it->second))
 			return (false);
@@ -56,13 +63,15 @@ void Server::printServer(void) const
 	}
 }
 
-void Server::checkDoubleLine(){
+void Server::checkDoubleLine()
+{
 
 	std::map<std::string, int>::iterator it;
 
 	for (it = _counter.begin(); it != _counter.end(); ++it)
 	{
-		if (it->second > 1){
+		if (it->second > 1)
+		{
 			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
 		}
 	}
