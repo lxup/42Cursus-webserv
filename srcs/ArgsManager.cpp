@@ -13,11 +13,11 @@
 #include "ArgsManager.hpp"
 
 /*
-* @brief Constructor by default
-*
-* @param argc : number of arguments
-* @param argv : arguments
-*/
+ * @brief Constructor by default
+ *
+ * @param argc : number of arguments
+ * @param argv : arguments
+ */
 ArgsManager::ArgsManager(int ac, char **av) : _ac(ac), _av(av), _configFilePath(DEFAULT_CONFIG_FILE_PATH), _options(_generateOptions()), _state(EXIT_SUCCESS)
 {
 	_parse();
@@ -30,8 +30,8 @@ ArgsManager::ArgsManager(int ac, char **av) : _ac(ac), _av(av), _configFilePath(
 }
 
 /*
-* @brief Destructor by default
-*/
+ * @brief Destructor by default
+ */
 ArgsManager::~ArgsManager(void) {}
 
 /* ************************************************************************** */
@@ -39,13 +39,13 @@ ArgsManager::~ArgsManager(void) {}
 /* ************************************************************************** */
 
 /*
-* @brief Generate the options map
-*
-* @return std::map<std::string, bool> : The generated options map
-*/
-std::map<std::string, bool>	ArgsManager::_generateOptions(void)
+ * @brief Generate the options map
+ *
+ * @return std::map<std::string, bool> : The generated options map
+ */
+std::map<std::string, bool> ArgsManager::_generateOptions(void)
 {
-	std::map<std::string, bool>	options;
+	std::map<std::string, bool> options;
 
 	// Help
 	options["--help"] = false;
@@ -60,13 +60,13 @@ std::map<std::string, bool>	ArgsManager::_generateOptions(void)
 }
 
 /*
-* @brief Get the long option
-*
-* @param option : The option to get
-*
-* @return std::string : The long option
-*/
-std::string	ArgsManager::_convertToLongOption(std::string option)
+ * @brief Get the long option
+ *
+ * @param option : The option to get
+ *
+ * @return std::string : The long option
+ */
+std::string ArgsManager::_convertToLongOption(std::string option)
 {
 	if (option == "-h")
 		return ("--help");
@@ -80,13 +80,13 @@ std::string	ArgsManager::_convertToLongOption(std::string option)
 }
 
 /*
-* @brief Get the short option
-*
-* @param option : The option to get
-*
-* @return std::string : The short option
-*/
-std::string	ArgsManager::_convertToShortOption(std::string option)
+ * @brief Get the short option
+ *
+ * @param option : The option to get
+ *
+ * @return std::string : The short option
+ */
+std::string ArgsManager::_convertToShortOption(std::string option)
 {
 	if (option == "--help")
 		return ("-h");
@@ -103,16 +103,16 @@ std::string	ArgsManager::_convertToShortOption(std::string option)
 /* ************************************************************************** */
 
 /*
-* @brief Parse the arguments
-*/
-void	ArgsManager::_parse(void)
-{	
+ * @brief Parse the arguments
+ */
+void ArgsManager::_parse(void)
+{
 	try
-	{		
+	{
 		for (int i = 1; i < _ac; i++)
 		{
 			std::string arg = _av[i];
-			
+
 			if ((arg.size() == 2 && arg[0] == '-') || (arg.size() > 2 && arg.substr(0, 2) == "--"))
 			{
 				if (arg == "-h" || arg == "--help")
@@ -125,7 +125,7 @@ void	ArgsManager::_parse(void)
 					_options["--debug"] = true;
 				else
 					throw WebservException(0, "illegal option -- %s", arg.substr(2).c_str());
-					// throw std::invalid_argument("illegal option -- " + arg.substr(2));
+				// throw std::invalid_argument("illegal option -- " + arg.substr(2));
 			}
 			else
 			{
@@ -133,8 +133,8 @@ void	ArgsManager::_parse(void)
 					_configFilePath = arg;
 				else
 					throw WebservException(0, "invalid argument -- %s (config file already set: \"%s\")", arg.c_str(), _configFilePath.c_str());
-					// throw WebservException(0, "invalid argument -- %s", arg.c_str());
-					// throw std::invalid_argument("invalid argument -- " + arg);
+				// throw WebservException(0, "invalid argument -- %s", arg.c_str());
+				// throw std::invalid_argument("invalid argument -- " + arg);
 			}
 		}
 	}
@@ -148,16 +148,16 @@ void	ArgsManager::_parse(void)
 }
 
 /*
-* @brief Check if the option is enabled
-*
-* @param option : The option to check
-*
-* @return bool : True if the option is enabled, false otherwise
-*/
-bool	ArgsManager::isOption(std::string option)
+ * @brief Check if the option is enabled
+ *
+ * @param option : The option to check
+ *
+ * @return bool : True if the option is enabled, false otherwise
+ */
+bool ArgsManager::isOption(std::string option)
 {
-	std::string	opt = _convertToLongOption(option);
-	
+	std::string opt = _convertToLongOption(option);
+
 	if (_options.find(opt) != _options.end() && _options[opt] == true)
 		return (true);
 
@@ -165,9 +165,9 @@ bool	ArgsManager::isOption(std::string option)
 }
 
 /*
-* @brief Display the help
-*/
-void	ArgsManager::help(void)
+ * @brief Display the help
+ */
+void ArgsManager::help(void)
 {
 	/*
 	std::string	help;
@@ -185,23 +185,24 @@ void	ArgsManager::help(void)
 		"    The path to the configuration file\n"
 		"    Default: ./config/default.conf\n";
 	*/
-	
-	std::cout << "Usage: " << _av[0] << " [options] [config_file]" << std::endl << std::endl \
-		<< "  Options:" << std::endl \
-		<< "    -h, --help\t\tDisplay this information" << std::endl \
-		<< "    -q, --quiet\t\tDisable the logs in the console" << std::endl \
-		<< "    -l, --log\t\tEnable the logs in a file" << std::endl \
-		<< "    -d, --debug\t\tEnable the debug mode" << std::endl \
-		<< std::endl \
-		<< "  Config file:" << std::endl \
-		<< "    The path to the configuration file" << std::endl \
-		<< "    Default: ./config/default.conf" << std::endl;
+
+	std::cout << "Usage: " << _av[0] << " [options] [config_file]" << std::endl
+			  << std::endl
+			  << "  Options:" << std::endl
+			  << "    -h, --help\t\tDisplay this information" << std::endl
+			  << "    -q, --quiet\t\tDisable the logs in the console" << std::endl
+			  << "    -l, --log\t\tEnable the logs in a file" << std::endl
+			  << "    -d, --debug\t\tEnable the debug mode" << std::endl
+			  << std::endl
+			  << "  Config file:" << std::endl
+			  << "    The path to the configuration file" << std::endl
+			  << "    Default: ./config/default.conf" << std::endl;
 }
 
 /*
-* @brief Display the summary
-*/
-void	ArgsManager::summary(void)
+ * @brief Display the summary
+ */
+void ArgsManager::summary(void)
 {
 	std::cout << "Summary:" << std::endl;
 	std::cout << "  - Config file path: " << _configFilePath << std::endl;
@@ -217,21 +218,21 @@ void	ArgsManager::summary(void)
 /* ************************************************************************** */
 
 /*
-* @brief Get the state
-*
-* @return int : The state
-*/
-int	ArgsManager::getState(void) const
+ * @brief Get the state
+ *
+ * @return int : The state
+ */
+int ArgsManager::getState(void) const
 {
 	return (_state);
 }
 
 /*
-* @brief Get the config file path
-*
-* @return std::string : The config file path
-*/
-std::string	ArgsManager::getConfigFilePath(void) const
+ * @brief Get the config file path
+ *
+ * @return std::string : The config file path
+ */
+std::string ArgsManager::getConfigFilePath(void) const
 {
 	return (_configFilePath);
 }

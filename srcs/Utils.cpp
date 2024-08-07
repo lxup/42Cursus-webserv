@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
+/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 11:50:34 by lquehec           #+#    #+#             */
-/*   Updated: 2024/07/26 14:36:21 by lquehec          ###   ########.fr       */
+/*   Updated: 2024/08/07 12:24:29 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,14 +73,14 @@ WebservException::WebservException(Logger::LogLevel logLevel, const char *msg, .
 		}
 	}
 	_msg = buff;
-}		
+}
 
 /* UTILS */
-void	printMsg(std::ostream &os, const char *msg, ...)
+void printMsg(std::ostream &os, const char *msg, ...)
 {
-	const int	initialBufferSize = 1024;
-	std::vector<char>	buffer(initialBufferSize);
-	
+	const int initialBufferSize = 1024;
+	std::vector<char> buffer(initialBufferSize);
+
 	va_list args;
 	va_start(args, msg);
 	int size = vsnprintf(buffer.data(), initialBufferSize, msg, args);
@@ -90,7 +90,7 @@ void	printMsg(std::ostream &os, const char *msg, ...)
 	if (size < 0)
 	{
 		// TODO: Handle error
-		return ;
+		return;
 	}
 
 	// Resize the buffer if needed
@@ -103,5 +103,4 @@ void	printMsg(std::ostream &os, const char *msg, ...)
 	}
 
 	os << buffer.data() << std::endl;
-	
 }

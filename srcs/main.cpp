@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/06 09:48:09 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/07 12:24:29 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,5 +33,4 @@ int main(int ac, char **av)
 	// args.summary();
 
 	return (EXIT_SUCCESS);
-
 }

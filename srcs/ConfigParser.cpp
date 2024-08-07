@@ -66,16 +66,6 @@ std::vector<std::string> split(std::string s, std::string delimiter)
 	return (result);
 }
 
-// std::vector<std::string> &addFile(std::vector<std::string> &token)
-// {
-// 	int	i = 0;
-// 	std::vector<std::string> str;
-
-// 	while (!token[i].empty())
-// 		str[i] = token[i];
-// 	return (str);
-// }
-
 Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string &path)
 {
 	Location location;
@@ -83,9 +73,7 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 	std::vector<std::string> tokens;
 	std::string key;
 
-	// todo parser le path parametre
-	(void)path;
-
+	location.setLocation(path);
 	while (std::getline(configFile, line))
 	{
 		line = trimLine(line);
@@ -93,24 +81,27 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
+		if (key == "}")
+			break;
 		if (key == "root" && !tokens[1].empty())
 			location.setRoot(tokens[1]);
 		else if (key == "autoindex" && !tokens[1].empty())
 			location.setAutoIndex(strToBool(tokens[1]));
 		else if (key == "rewrite" && !tokens[1].empty())
 			location.setRewrite(tokens[1]);
-		else if (key == "allowedMethods" && !tokens[1].empty()){
+		else if (key == "allowedMethods" && !tokens[1].empty())
+		{
 			for (size_t i = 1; i < tokens.size(); i++)
 				location.addAllowedMethods(tokens[i]);
 		}
-		else if (key == "index" && !key.empty()){
+		else if (key == "index" && !key.empty())
+		{
 			for (size_t i = 1; i < tokens.size(); i++)
 				location.addFile(tokens[i]);
 		}
 	}
 	return (location);
 }
-
 
 Server ConfigParser::getServerConfig(std::ifstream &configFile)
 {
@@ -126,9 +117,11 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
+		if (key == "}")
+			break;
 		if (key.empty())
-			continue ;
-		if (tokens.size() == 3 && key == "location" && tokens[2] == "{" )
+			continue;
+		if (tokens.size() == 3 && key == "location" && tokens[2] == "{")
 			server.addLocation(getLocationConfig(configFile, tokens[1]));
 		else if (key == "listen")
 			server.setPort(std::atoi(tokens[1].c_str()));
@@ -144,7 +137,6 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 
 	return (server);
 }
-
 
 void ConfigParser::_parse(void)
 {
@@ -177,12 +169,10 @@ void ConfigParser::_parse(void)
 
 	configFile.close();
 
-	printf("Servers:\n");
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
-		printf("Server %lu:\n", i);
-		for (size_t i = 0; i < _servers.size(); i++)
-			_servers[i].printServer();
+		std::cout << "============ SERVER " << i << " ===========\n"
+				  << std::endl;
+		_servers[i].printServer();
 	}
-
 }

@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/06 10:53:36 by lbehr             #+#    #+#             */
-/*   Updated: 2024/08/06 20:16:05 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/07 12:24:29 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ Location::~Location()
 void Location::addAllowedMethods(std::string &token)
 {
 	e_Methods met;
-	
+
 	if (token == "GET")
 		met = GET;
 	else if (token == "POST")
@@ -42,7 +42,8 @@ void Location::addAllowedMethods(std::string &token)
 	_allowedMethods.push_back(met);
 }
 
-void Location::printLocation(void) const{
+void Location::printLocation(void) const
+{
 	std::cout << "Location: " << _location << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Rewrite: " << _rewrite << std::endl;
@@ -52,6 +53,18 @@ void Location::printLocation(void) const{
 		std::cout << *it << std::endl;
 	std::cout << "Allowed methods: " << std::endl;
 	for (std::vector<e_Methods>::const_iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); ++it)
-		std::cout << *it << std::endl;
-	std::cout << "Autoindex: " << _autoindex << std::endl;
+	{
+		if (*it == GET)
+			std::cout << "GET" << std::endl;
+		else if (*it == POST)
+			std::cout << "POST" << std::endl;
+		else if (*it == DELETE)
+			std::cout << "DELETE" << std::endl;
+		// std::cout << *it << std::endl;
+	}
+
+	if (_autoindex == TRUE)
+		std::cout << "Autoindex: TRUE" << std::endl;
+	else
+		std::cout << "Autoindex: FALSE" << std::endl;
 }
