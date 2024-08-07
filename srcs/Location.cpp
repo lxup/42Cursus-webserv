@@ -1,31 +1,17 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Location.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/06 10:53:36 by lbehr             #+#    #+#             */
-/*   Updated: 2024/08/07 12:25:55 by rgiraud          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Location.hpp"
 
-Location::Location() : _location(""), _root(""), _rewrite(""), _alias(""), _allowedMethods(BAD), _autoindex(FALSE)
+Location::Location() : _location(""), _root(""), _rewrite(""), _alias(""), _allowedMethods(GET), _autoindex(FALSE)
 {
-	(void)_location;
-	(void)_root;
-	(void)_rewrite;
-	(void)_alias;
-	(void)_files;
-	(void)_allowedMethods;
-	(void)_autoindex;
+	_counter["location"] = 0;
+	_counter["root"] = 0;
+	_counter["rewrite"] = 0;
+	_counter["alias"] = 0;
+	_counter["files"] = 0;
+	_counter["allowedMethods"] = 0;
+	_counter["autoindex"] = 0;
 }
 
-Location::~Location()
-{
-}
+Location::~Location() {}
 
 void Location::addAllowedMethods(std::string &token)
 {
@@ -67,4 +53,16 @@ void Location::printLocation(void) const
 		std::cout << "Autoindex: TRUE" << std::endl;
 	else
 		std::cout << "Autoindex: FALSE" << std::endl;
+}
+
+void Location::checkDoubleLine(){
+
+	std::map<std::string, int>::iterator it;
+
+	for (it = _counter.begin(); it != _counter.end(); ++it)
+	{
+		if (it->second > 1){
+			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
+		}
+	}
 }

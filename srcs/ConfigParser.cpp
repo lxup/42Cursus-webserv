@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ConfigParser.cpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: lbehr <lbehrgiraud@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/06 11:46:55 by rgiraud           #+#    #+#             */
-/*   Updated: 2024/08/06 16:28:25 by lbehr            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ConfigParser.hpp"
 
 ConfigParser::ConfigParser(const std::string &filename)
@@ -18,9 +6,7 @@ ConfigParser::ConfigParser(const std::string &filename)
 	_parse();
 }
 
-ConfigParser::~ConfigParser(void)
-{
-}
+ConfigParser::~ConfigParser(void) {}
 
 e_boolMod strToBool(std::string &str)
 {
@@ -72,6 +58,7 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 	std::string line;
 	std::vector<std::string> tokens;
 	std::string key;
+	bool isCloseLocation = false;
 
 	location.setLocation(path);
 	while (std::getline(configFile, line))
@@ -81,27 +68,40 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
-		if (key == "}")
+		if (key == "}"){
+			isCloseLocation = true;
 			break;
-		if (key == "root" && !tokens[1].empty())
+		}
+		else if (key == "root" && !tokens[1].empty())
 			location.setRoot(tokens[1]);
 		else if (key == "autoindex" && !tokens[1].empty())
+
 			location.setAutoIndex(strToBool(tokens[1]));
 		else if (key == "rewrite" && !tokens[1].empty())
 			location.setRewrite(tokens[1]);
+		else if (key == "alias" && !tokens[1].empty())
+			location.setAlias(tokens[1]);
 		else if (key == "allowedMethods" && !tokens[1].empty())
 		{
+			location.incrementCounter("allowedMethods");
 			for (size_t i = 1; i < tokens.size(); i++)
 				location.addAllowedMethods(tokens[i]);
 		}
 		else if (key == "index" && !key.empty())
 		{
+			location.incrementCounter("files");
 			for (size_t i = 1; i < tokens.size(); i++)
 				location.addFile(tokens[i]);
-		}
+		}else
+			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 	}
+	if (!isCloseLocation)
+		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
+
 	return (location);
 }
+
+
 
 Server ConfigParser::getServerConfig(std::ifstream &configFile)
 {
@@ -109,6 +109,7 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 	std::string line;
 	std::vector<std::string> tokens;
 	std::string key;
+	bool isCloseServer = false;
 
 	while (std::getline(configFile, line))
 	{
@@ -117,12 +118,17 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
-		if (key == "}")
+		if (key == "}"){
+			isCloseServer = true;
 			break;
+		}
 		if (key.empty())
 			continue;
-		if (tokens.size() == 3 && key == "location" && tokens[2] == "{")
-			server.addLocation(getLocationConfig(configFile, tokens[1]));
+		if (tokens.size() == 3 && key == "location" && tokens[2] == "{"){
+			Location location = getLocationConfig(configFile, tokens[1]);
+			location.checkDoubleLine();
+			server.addLocation(location);
+		}
 		else if (key == "listen")
 			server.setPort(std::atoi(tokens[1].c_str()));
 		else if (key == "server_name")
@@ -131,9 +137,15 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 			server.setRoot(tokens[1]);
 		else if (key == "client_max_body_size")
 			server.setClientMaxBodySize(std::atoi(tokens[1].c_str()));
-		else if (key == "error_page")
+		else if (key == "error_page"){
+			server.incrementCounter(tokens[1]);
 			server.addErrorPages(std::atoi(tokens[1].c_str()), tokens[2]);
+		}
+		else
+			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 	}
+	if (isCloseServer == false)
+		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
 
 	return (server);
 }
@@ -160,10 +172,12 @@ void ConfigParser::_parse(void)
 		tokens = split(line, " ");
 		if (tokens[0] == "server" && tokens[1] == "{")
 		{
-			if (!context.empty())
-				throw WebservException(0, "Invalid line: %s", line.c_str());
 			context.push(SERVER);
-			_servers.push_back(getServerConfig(configFile));
+			Server server = getServerConfig(configFile);
+			server.checkDoubleLine();
+			_servers.push_back(server);
+		}else{
+			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 		}
 	}
 

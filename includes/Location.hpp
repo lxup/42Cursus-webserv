@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Location.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/06 10:53:25 by lbehr             #+#    #+#             */
-/*   Updated: 2024/08/06 20:15:42 by rgiraud          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
@@ -40,22 +28,29 @@ class Location
 		std::vector<std::string> _files;
 		std::vector<e_Methods> _allowedMethods;
 		e_boolMod _autoindex;
+		std::map<std::string, int> _counter;
 
 	public:
 		Location();
 		~Location();
 
+		// Methods
+		void incrementCounter(const std::string& key) { _counter[key]++; }
+		void checkDoubleLine();
+
+		// Adders
 		void addAllowedMethods(std::string &token);
 		void addFile(std::string &file) { _files.push_back(file); }
 
+
 		// Setters
-		void setLocation(const std::string &location) { _location = location; }
-		void setRoot(const std::string &root) { _root = root; }
-		void setRewrite(const std::string &rewrite) { _rewrite = rewrite; }
-		void setAlias(const std::string &alias) { _alias = alias; }
-		void setFiles(const std::vector<std::string> &files) { _files = files; }
-		void setAllowedMethods(const std::vector<e_Methods> &allowedMethods) { _allowedMethods = allowedMethods; }
-		void setAutoIndex(e_boolMod autoindex) { _autoindex = autoindex; }
+		void setLocation(const std::string &location) { _location = location; _counter["location"]++; }
+		void setRoot(const std::string &root) { _root = root;   _counter["root"]++;}
+		void setRewrite(const std::string &rewrite) { _rewrite = rewrite;  _counter["rewrite"]++;}
+		void setAlias(const std::string &alias) { _alias = alias;  _counter["alias"]++;}
+		void setFiles(const std::vector<std::string> &files) { _files = files;  _counter["files"]++;}
+		void setAllowedMethods(const std::vector<e_Methods> &allowedMethods) { _allowedMethods = allowedMethods;  _counter["allowedMethods"]++;}
+		void setAutoIndex(e_boolMod autoindex) { _autoindex = autoindex;  _counter["autoindex"]++;}
 
 		// Getters
 		const std::string &getLocation() const { return _location; }
@@ -69,5 +64,7 @@ class Location
 		// Print
 		void printLocation(void) const;
 };
+
+bool	fileExist(std::string name);
 
 #endif
