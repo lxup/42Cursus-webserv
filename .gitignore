@@ -5,3 +5,4 @@
 webserv
 .DS_Store
 .obj
+.vscode/
