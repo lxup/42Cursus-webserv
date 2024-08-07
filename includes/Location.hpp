@@ -38,11 +38,12 @@ class Location
 		void incrementCounter(const std::string& key) { _counter[key]++; }
 		void checkDoubleLine();
 		bool checkValue();
+		bool fileExistVector();
+		bool methodsExist();
 
 		// Adders
 		void addAllowedMethods(std::string &token);
 		void addFile(std::string &file) { _files.push_back(file); }
-
 
 		// Setters
 		void setLocation(const std::string &location) { _location = location; _counter["location"]++; }
@@ -65,7 +66,5 @@ class Location
 		// Print
 		void printLocation(void) const;
 };
-
-bool	fileExist(std::string name);
 
 #endif

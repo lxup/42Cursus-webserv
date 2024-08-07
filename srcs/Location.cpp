@@ -28,10 +28,42 @@ void Location::addAllowedMethods(std::string &token)
 	_allowedMethods.push_back(met);
 }
 
-/*bool Location::checkValue()
+bool Location::fileExistVector()
 {
+	std::vector<std::string>::const_iterator it;
 
-}*/
+	for (it = _files.begin(); it != _files.end(); ++it)
+		if (!fileExist(*it))
+			return (false);
+	return (true);
+}
+
+bool Location::methodsExist()
+{
+	std::vector<e_Methods>::const_iterator it = _allowedMethods.begin();
+
+	if (!(*it))
+		return (true);
+	for (; it != _allowedMethods.end(); ++it)
+		if (*it == BAD_MET)
+			return (false);
+	return (true);
+}
+
+bool Location::checkValue()
+{
+	if (!directoryExist(_location.c_str()))
+		std::cout << "loc ";
+	if (!directoryExist(_root.c_str()) && !_root.empty())
+		std::cout << "[root loc]";
+	if (!directoryExist(_alias.c_str()) && !_alias.empty())
+		std::cout << "alias";
+	if (!fileExistVector())
+		std::cout << "file";
+	if (!methodsExist())
+		std::cout << "method";
+	return (true);
+}
 
 void Location::printLocation(void) const
 {

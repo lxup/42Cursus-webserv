@@ -15,22 +15,27 @@ Server::~Server()
 
 void Server::checkAttribut()
 {
-	if (_port == 0 || fileExist(_root) || fileExistMap())
-		throw WebservException(Logger::FATAL, "Invalid value");
+	if (getPort() == 0)
+		throw WebservException(Logger::FATAL, "Invalid Port value");
+	if (!directoryExist(_root.c_str()))
+		throw WebservException(Logger::FATAL, "Invalid Root value");
+	if (!fileExistMap())
+		throw WebservException(Logger::FATAL, "Invalid Error value");
+	checkLocation();
 }
 
-bool Server::fileExist(const std::string &name)
+void Server::checkLocation()
 {
-	std::ifstream file(name.c_str());
-	return (file.good());
+	std::vector<Location>::iterator itLoc;
+	int i = 0;
+
+	for (itLoc = _locations.begin(); itLoc != _locations.end(); itLoc++)
+	{
+		std::cout << i++ << std::endl;
+		if (!(*itLoc).checkValue())
+			throw WebservException(Logger::FATAL, "Invalid Location value");
+	}
 }
-
-/*bool Server::checkLocation()
-{
-	//std::vector<Location>::iterator itLoc = _locations.begin();
-
-
-}*/
 
 bool Server::fileExistMap()
 {

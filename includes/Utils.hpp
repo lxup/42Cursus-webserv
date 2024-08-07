@@ -1,10 +1,7 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "Logger.hpp"
-#include <vector>
-#include <cstdio>
-#include <cstring>
+#include "Webserv.hpp"
 
 /* WEBSERV EXCEPTION */
 class WebservException : public std::exception
@@ -24,5 +21,7 @@ public:
 
 /* UTILS */
 void printMsg(std::ostream &os, const char *msg, ...);
+bool directoryExist(const char *path);
+bool fileExist(const std::string &name);
 
 #endif // UTILS_HPP

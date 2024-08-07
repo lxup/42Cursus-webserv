@@ -92,3 +92,19 @@ void printMsg(std::ostream &os, const char *msg, ...)
 
 	os << buffer.data() << std::endl;
 }
+
+bool directoryExist(const char *path)
+{
+	struct stat info;
+	if (stat(path, &info) != 0)
+	{
+		return false;
+	}
+	return (info.st_mode & S_IFDIR) != 0;
+}
+
+bool fileExist(const std::string &name)
+{
+	std::ifstream file(name.c_str());
+	return (file.good());
+}

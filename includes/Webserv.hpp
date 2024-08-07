@@ -5,6 +5,7 @@
 // /* LIBRARIES */
 #include <cstdlib>
 #include <fstream> // read file
+#include <sys/stat.h>
 // # include <iostream>
 // # include <string>
 // # include <fcntl.h>

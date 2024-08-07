@@ -179,7 +179,7 @@ void ConfigParser::_parse(void)
 			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 		}
 	}
-
+	checkAttribut();
 	configFile.close();
 
 	for (size_t i = 0; i < _servers.size(); i++)
@@ -188,4 +188,12 @@ void ConfigParser::_parse(void)
 				  << std::endl;
 		_servers[i].printServer();
 	}
+}
+
+void ConfigParser::checkAttribut()
+{
+	std::vector<Server>::iterator it;
+
+	for (it = _servers.begin(); it != _servers.end(); it++)
+		(*it).checkAttribut();
 }

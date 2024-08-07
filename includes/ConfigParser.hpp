@@ -19,6 +19,7 @@ public:
 	Server getServerConfig(std::ifstream &file_config);
 	Location getLocationConfig(std::ifstream &configFile, std::string &path);
 	~ConfigParser(void);
+	void checkAttribut();
 
 private:
 	std::string _filename;

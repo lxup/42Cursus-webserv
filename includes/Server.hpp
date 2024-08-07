@@ -1,9 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "Logger.hpp"
 #include "Webserv.hpp"
-#include "Location.hpp"
 
 class Location;
 
@@ -26,9 +24,8 @@ public:
 	void checkAttribut();
 	void incrementCounter(const std::string &key) { _counter[key]++; }
 	void checkDoubleLine();
-	bool	fileExist(const std::string& name);
 	bool fileExistMap();
-	bool checkLocation();
+	void checkLocation();
 
 	// Getters
 	unsigned int getPort() const { return _port; }
