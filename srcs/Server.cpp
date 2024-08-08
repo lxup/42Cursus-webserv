@@ -15,8 +15,8 @@ Server::~Server()
 
 void Server::checkAttribut()
 {
-	if (getPort() == 0)
-		throw WebservException(Logger::FATAL, "Invalid Port value");
+	if (!checkIp())
+		throw WebservException(Logger::FATAL, "Invalid Ip/Port value");
 	if (!directoryExist(_root.c_str()))
 		throw WebservException(Logger::FATAL, "Invalid Root value");
 	if (!fileExistMap())
@@ -46,15 +46,40 @@ bool Server::fileExistMap()
 	return (true);
 }
 
+bool Server::checkIp()
+{
+	int	i = 0;
+	int	j = 0;
+	std::string str = _ip + ":" + unsignedIntToString(_port);
+
+	std::cout << str;
+
+	for (int p = 0; p < 3; p++)
+	{
+		while (isdigit(str[i + j]))
+		i++;
+		if (i == 0 || i > 3 || str[j + i++] != '.')
+			return (false);
+		j += i;
+		i = 0;
+	}
+	while (isdigit(str[i + j]))
+		i++;
+	if (i == 0 || i > 3 || str[j + i++] != ':')
+		return (false);
+	if (_port > 65535)
+		return (false);
+	return (true);
+}
+
 void Server::printServer(void) const
 {
 	std::cout << "Server name: " << _serverName << std::endl;
+	std::cout << "Ip: " << _ip << std::endl;
 	std::cout << "Port: " << _port << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Client max body size: " << _clientMaxBodySize << std::endl;
-	std::cout << "Error pages: " << std::endl
-
-		;
+	std::cout << "Error pages: " << std::endl;
 	for (std::map<unsigned int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); ++it)
 		std::cout << it->first << " => " << it->second << std::endl;
 	std::cout << std::endl;
@@ -69,14 +94,9 @@ void Server::printServer(void) const
 
 void Server::checkDoubleLine()
 {
-
 	std::map<std::string, int>::iterator it;
 
 	for (it = _counter.begin(); it != _counter.end(); ++it)
-	{
 		if (it->second > 1)
-		{
 			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
-		}
-	}
 }

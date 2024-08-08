@@ -105,7 +105,11 @@ bool ConfigParser::isValidLineServer(Server& server, std::vector<std::string>& t
 		server.addLocation(location);
 	}
 	else if (key == "listen")
-		server.setPort(std::atoi(tokens[1].c_str()));
+	{
+		std::vector<std::string> ip = split(tokens[1], ":");
+		server.setIp(ip[0]);
+		server.setPort(std::atoi(ip[1].c_str()));
+	}
 	else if (key == "server_name")
 		server.setServerName(tokens[1]);
 	else if (key == "root")

@@ -25,5 +25,6 @@ bool directoryExist(const char *path);
 bool fileExist(const std::string &name);
 std::string trimLine(std::string &line);
 std::vector<std::string> split(std::string s, std::string delimiter);
+std::string unsignedIntToString(unsigned int value);
 
 #endif // UTILS_HPP

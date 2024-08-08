@@ -65,7 +65,6 @@ WebservException::WebservException(Logger::LogLevel logLevel, const char *msg, .
 
 /* UTILS */
 
-
 void printMsg(std::ostream &os, const char *msg, ...)
 {
 	const int initialBufferSize = 1024;
@@ -116,8 +115,8 @@ bool fileExist(const std::string &name)
  * 	example:
  * 		 string => "   bonjour   "
  * 		return : "bonjour"
- * @param line 
- * @return std::string 
+ * @param line
+ * @return std::string
  */
 std::string trimLine(std::string &line)
 {
@@ -136,7 +135,6 @@ std::string trimLine(std::string &line)
 
 	return (result);
 }
-
 
 /**
  * @brief Splits a string into multiple substrings based on a delimiter.
@@ -161,4 +159,11 @@ std::vector<std::string> split(std::string s, std::string delimiter)
 	}
 	result.push_back(s);
 	return (result);
+}
+
+std::string unsignedIntToString(unsigned int value)
+{
+	std::ostringstream oss;
+	oss << value;
+	return oss.str();
 }

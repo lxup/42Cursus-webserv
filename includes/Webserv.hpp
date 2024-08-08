@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <fstream> // read file
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <sstream>
+//#include <cstdlib>
 // # include <iostream>
 // # include <string>
 // # include <fcntl.h>
@@ -15,7 +18,6 @@
 // # include <cstdarg>
 // # include <cstring>
 // # include <cstdio>
-// # include <cstdlib>
 
 // /* SYSTEM */
 // # include <sys/stat.h>

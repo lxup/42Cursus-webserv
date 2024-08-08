@@ -8,6 +8,7 @@ class Location;
 class Server
 {
 private:
+	std::string _ip;
 	unsigned int _port;
 	std::string _serverName;
 	std::string _root;
@@ -16,18 +17,22 @@ private:
 	std::map<unsigned int, std::string> _errorPages;
 	std::map<std::string, int> _counter;
 
+	// Methods
+	bool fileExistMap();
+	void checkLocation();
+	bool checkIp();
+
 public:
 	Server();
 	~Server();
 
 	// Methods
 	void checkAttribut();
-	void incrementCounter(const std::string &key) { _counter[key]++; }
 	void checkDoubleLine();
-	bool fileExistMap();
-	void checkLocation();
+	void incrementCounter(const std::string &key) { _counter[key]++; }
 
 	// Getters
+	const std::string &getIp() const { return _ip; }
 	unsigned int getPort() const { return _port; }
 	const std::map<unsigned int, std::string> &getErrorPages() const { return _errorPages; }
 	const std::string &getServerName() const { return _serverName; }
@@ -36,6 +41,8 @@ public:
 	unsigned int getClientMaxBodySize() const { return _clientMaxBodySize; }
 
 	// Setters
+
+	void setIp(const std::string &ip) { _ip = ip; }
 	void setClientMaxBodySize(unsigned int clientMaxBodySize)
 	{
 		_clientMaxBodySize = clientMaxBodySize;
