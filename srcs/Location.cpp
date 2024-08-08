@@ -50,11 +50,18 @@ bool Location::methodsExist()
 	return (true);
 }
 
-bool Location::checkValue()
+void Location::checkValue()
 {
-	if (!directoryExist(_location.c_str()) || (!directoryExist(_root.c_str()) && !_root.empty()) || (!directoryExist(_alias.c_str()) && !_alias.empty()) || !fileExistVector() || !methodsExist())
-		return (false);
-	return (true);
+	if (!directoryExist(_location.c_str()))
+		throw WebservException(Logger::FATAL, "Invalid path value");
+	if (!directoryExist(_root.c_str()) && !_root.empty())
+		throw WebservException(Logger::FATAL, "Invalid root location value");
+	if (!directoryExist(_alias.c_str()) && !_alias.empty())
+		throw WebservException(Logger::FATAL, "Invalid alias value");
+	if (!fileExistVector())
+		throw WebservException(Logger::FATAL, "Invalid file value");
+	if (!methodsExist())
+		throw WebservException(Logger::FATAL, "Invalid methods value");
 }
 
 void Location::printLocation(void) const

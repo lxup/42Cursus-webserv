@@ -32,8 +32,7 @@ void Server::checkLocation()
 	for (itLoc = _locations.begin(); itLoc != _locations.end(); itLoc++)
 	{
 		std::cout << i++ << std::endl;
-		if (!(*itLoc).checkValue())
-			throw WebservException(Logger::FATAL, "Invalid Location value");
+		(*itLoc).checkValue();
 	}
 }
 

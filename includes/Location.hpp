@@ -37,7 +37,7 @@ class Location
 		// Methods
 		void incrementCounter(const std::string& key) { _counter[key]++; }
 		void checkDoubleLine();
-		bool checkValue();
+		void checkValue();
 		bool fileExistVector();
 		bool methodsExist();
 
