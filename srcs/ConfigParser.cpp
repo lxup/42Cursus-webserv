@@ -68,7 +68,8 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
-		if (key == "}"){
+		if (key == "}")
+		{
 			isCloseLocation = true;
 			break;
 		}
@@ -92,15 +93,14 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 			location.incrementCounter("files");
 			for (size_t i = 1; i < tokens.size(); i++)
 				location.addFile(tokens[i]);
-		}else
+		}
+		else
 			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 	}
 	if (!isCloseLocation)
 		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
-
 	return (location);
 }
-
 
 Server ConfigParser::getServerConfig(std::ifstream &configFile)
 {
@@ -117,13 +117,15 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
-		if (key == "}"){
+		if (key == "}")
+		{
 			isCloseServer = true;
 			break;
 		}
 		if (key.empty())
 			continue;
-		if (tokens.size() == 3 && key == "location" && tokens[2] == "{"){
+		if (tokens.size() == 3 && key == "location" && tokens[2] == "{")
+		{
 			Location location = getLocationConfig(configFile, tokens[1]);
 			location.checkDoubleLine();
 			server.addLocation(location);
@@ -136,7 +138,8 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 			server.setRoot(tokens[1]);
 		else if (key == "client_max_body_size")
 			server.setClientMaxBodySize(std::atoi(tokens[1].c_str()));
-		else if (key == "error_page"){
+		else if (key == "error_page")
+		{
 			server.incrementCounter(tokens[1]);
 			server.addErrorPages(std::atoi(tokens[1].c_str()), tokens[2]);
 		}
@@ -145,7 +148,6 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 	}
 	if (isCloseServer == false)
 		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
-
 	return (server);
 }
 
@@ -175,7 +177,9 @@ void ConfigParser::_parse(void)
 			Server server = getServerConfig(configFile);
 			server.checkDoubleLine();
 			_servers.push_back(server);
-		}else{
+		}
+		else
+		{
 			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 		}
 	}

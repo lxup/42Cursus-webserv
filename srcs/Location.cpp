@@ -52,16 +52,8 @@ bool Location::methodsExist()
 
 bool Location::checkValue()
 {
-	if (!directoryExist(_location.c_str()))
-		std::cout << "loc ";
-	if (!directoryExist(_root.c_str()) && !_root.empty())
-		std::cout << "[root loc]";
-	if (!directoryExist(_alias.c_str()) && !_alias.empty())
-		std::cout << "alias";
-	if (!fileExistVector())
-		std::cout << "file";
-	if (!methodsExist())
-		std::cout << "method";
+	if (!directoryExist(_location.c_str()) || (!directoryExist(_root.c_str()) && !_root.empty()) || (!directoryExist(_alias.c_str()) && !_alias.empty()) || !fileExistVector() || !methodsExist())
+		return (false);
 	return (true);
 }
 
@@ -83,7 +75,7 @@ void Location::printLocation(void) const
 			std::cout << "POST" << std::endl;
 		else if (*it == DELETE)
 			std::cout << "DELETE" << std::endl;
-		// std::cout << *it << std::endl; 
+		// std::cout << *it << std::endl;
 	}
 
 	if (_autoindex == TRUE)
@@ -92,13 +84,15 @@ void Location::printLocation(void) const
 		std::cout << "Autoindex: FALSE" << std::endl;
 }
 
-void Location::checkDoubleLine(){
+void Location::checkDoubleLine()
+{
 
 	std::map<std::string, int>::iterator it;
 
 	for (it = _counter.begin(); it != _counter.end(); ++it)
 	{
-		if (it->second > 1){
+		if (it->second > 1)
+		{
 			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
 		}
 	}
