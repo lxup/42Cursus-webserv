@@ -10,7 +10,7 @@ int main(int ac, char **av)
 	try
 	{
 		ConfigParser configParser(args.getConfigFilePath());
-		// throw WebservException(Logger::FATAL, "This is an error");
+		configParser.printServers();
 	}
 	catch (const WebservException &e)
 	{

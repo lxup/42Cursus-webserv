@@ -26,6 +26,7 @@
 #include <list>
 #include <iterator>
 #include <stack>
+#include <algorithm>
 /* CUSTOM */
 #include "Defines.hpp"
 #include "Logger.hpp"

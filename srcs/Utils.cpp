@@ -64,6 +64,8 @@ WebservException::WebservException(Logger::LogLevel logLevel, const char *msg, .
 }
 
 /* UTILS */
+
+
 void printMsg(std::ostream &os, const char *msg, ...)
 {
 	const int initialBufferSize = 1024;
@@ -107,4 +109,56 @@ bool fileExist(const std::string &name)
 {
 	std::ifstream file(name.c_str());
 	return (file.good());
+}
+
+/**
+ * @brief take string and return trimed line
+ * 	example:
+ * 		 string => "   bonjour   "
+ * 		return : "bonjour"
+ * @param line 
+ * @return std::string 
+ */
+std::string trimLine(std::string &line)
+{
+	const std::string white_chars = " \t\n\r\f\v";
+	std::string result;
+
+	int start = 0;
+	while (white_chars.find(line[start]) != std::string::npos)
+		start++;
+	int end = line.size() - 1;
+	while (end >= 0 && white_chars.find(line[end]) != std::string::npos)
+		end--;
+
+	for (int i = start; i <= end; i++)
+		result.push_back(line[i]);
+
+	return (result);
+}
+
+
+/**
+ * @brief Splits a string into multiple substrings based on a delimiter.
+ *
+ * @example
+ * std::string input = "Hello,World,!";
+ * std::string delimiter = ",";
+ * // result will contain {"Hello", "World", "!"}
+ */
+std::vector<std::string> split(std::string s, std::string delimiter)
+{
+	size_t pos = 0;
+	std::string token;
+	std::vector<std::string> result;
+	s = trimLine(s);
+	while ((pos = s.find(delimiter)) != std::string::npos)
+	{
+		token = s.substr(0, pos);
+		result.push_back(token);
+		s.erase(0, pos + delimiter.length());
+		s = trimLine(s);
+	}
+	result.push_back(s);
+	return (result);
 }

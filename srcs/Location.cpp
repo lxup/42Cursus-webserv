@@ -26,6 +26,8 @@ void Location::addAllowedMethods(std::string &token)
 		met = DELETE;
 	else
 		met = BAD_MET;
+	if (std::find(_allowedMethods.begin(), _allowedMethods.end(), met) != _allowedMethods.end())
+		return ;
 	_allowedMethods.push_back(met);
 }
 
