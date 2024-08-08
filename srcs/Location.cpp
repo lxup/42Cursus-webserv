@@ -1,7 +1,8 @@
 #include "Location.hpp"
 
-Location::Location() : _location(""), _root(""), _rewrite(""), _alias(""), _allowedMethods(GET), _autoindex(FALSE)
+Location::Location() : _location(""), _root(""), _rewrite(""), _alias(""), _autoindex(FALSE)
 {
+	_allowedMethods.push_back(GET);
 	_counter["location"] = 0;
 	_counter["root"] = 0;
 	_counter["rewrite"] = 0;

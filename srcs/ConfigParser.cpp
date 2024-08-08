@@ -82,7 +82,7 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 			location.setRewrite(tokens[1]);
 		else if (key == "alias" && !tokens[1].empty())
 			location.setAlias(tokens[1]);
-		else if (key == "allowedMethods" && !tokens[1].empty())
+		else if (key == "allowed_methods" && !tokens[1].empty())
 		{
 			location.incrementCounter("allowedMethods");
 			for (size_t i = 1; i < tokens.size(); i++)
