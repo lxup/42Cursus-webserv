@@ -6,12 +6,6 @@
 class Server;
 class Location;
 
-enum e_context
-{
-	SERVER,
-	LOCATION
-};
-
 class ConfigParser
 {
 public:
