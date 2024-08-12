@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Webserv.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
+/*   Updated: 2024/08/12 17:08:15 by rgiraud          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
@@ -37,5 +49,6 @@
 #include "ConfigParser.hpp"
 #include "Location.hpp"
 #include "Server.hpp"
+# include "SimpleServer.hpp"
 
 #endif // WEBSERV_HPP
