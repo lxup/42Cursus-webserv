@@ -27,13 +27,9 @@ void Server::checkAttribut()
 void Server::checkLocation()
 {
 	std::vector<Location>::iterator itLoc;
-	int i = 0;
 
 	for (itLoc = _locations.begin(); itLoc != _locations.end(); itLoc++)
-	{
-		std::cout << i++ << std::endl;
 		(*itLoc).checkValue();
-	}
 }
 
 bool Server::fileExistMap()
@@ -51,8 +47,6 @@ bool Server::checkIp()
 	int	i = 0;
 	int	j = 0;
 	std::string str = _ip + ":" + unsignedIntToString(_port);
-
-	std::cout << str;
 
 	for (int p = 0; p < 3; p++)
 	{
