@@ -19,19 +19,22 @@
 
 ## Parsing
 
-- [ ]  Parser le fichier de configuration pour recup les infos necessaire (hotes, port, path)
-- [ ]  Faire un systeme de verification des erreurs de syntaxe et de logique.
-- [ ]  Si error, ne pas lancer le server (logique batard)
+- [x]  Parser le fichier de configuration pour recup les infos necessaire (hotes, port, path)
+- [x]  Faire un systeme de verification des erreurs de syntaxe et de logique.
+- [x]  Si error, ne pas lancer le server (logique batard)
+- [ ]  reste le cgi a gerer
+- [ ]  reste le bloc server par default a gerer
 
 ## Initialisation et lancement du Server
 
-- [ ]  Pour chaque bloc `server` creer un socket en le liant a l’adresse ip
+- [ ]  Pour chaque groupe de bloc `server` (pair ip/port) creer un socket en le liant a l’adresse ip
+    - [ ] Avec socket(), bind(), listen()
 - [ ]  Rendres les socket en mode non-bloquants
 - [ ]  Ecouter les connexions avec listen() ?
 
 ## Gerer les requetes entrantes
 
-- [ ]  faire une boucle avec epoll() pour gerer les evenement
+- [ ]  faire une boucle avec epoll() pour gerer les evenement (on surveille les sockets) a la fois les socket d'ecoute ip:port et a la fois les socket de conexion client
     - [ ]  epoll_wait()
     - [ ]  accept()
     - [ ]  quand les sockets clients sont pret en lecture, parser la requete http
