@@ -74,9 +74,9 @@ HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					Logger \
 					ArgsManager \
 					ConfigParser \
+					BlocServer \
+					BlocLocation \
 					Server \
-					Location \
-					SimpleServer \
 					))
 
 SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
@@ -85,9 +85,9 @@ SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					Logger \
 					ArgsManager \
 					ConfigParser \
+					BlocServer \
+					BlocLocation \
 					Server \
-					Location \
-					SimpleServer \
 					))
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)

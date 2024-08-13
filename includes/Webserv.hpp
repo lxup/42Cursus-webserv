@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/12 17:08:15 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/13 11:18:38 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,14 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <sstream>
+#include <sys/epoll.h> // pour epoll API
+#include <sys/socket.h> // For socket functions
+#include <netinet/in.h> // For sockaddr_in
+#include <iostream>		// For cout
+#include <unistd.h>		// For read
+#include <arpa/inet.h>  // pour inet_ntop
+
+
 //#include <cstdlib>
 // # include <iostream>
 // # include <string>
@@ -41,14 +49,16 @@
 #include <iterator>
 #include <stack>
 #include <algorithm>
+
+
 /* CUSTOM */
 #include "Defines.hpp"
 #include "Logger.hpp"
 #include "ArgsManager.hpp"
 #include "Utils.hpp"
 #include "ConfigParser.hpp"
-#include "Location.hpp"
+#include "BlocLocation.hpp"
+#include "BlocServer.hpp"
 #include "Server.hpp"
-# include "SimpleServer.hpp"
 
 #endif // WEBSERV_HPP

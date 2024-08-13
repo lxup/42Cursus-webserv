@@ -1,9 +1,7 @@
 #include "ConfigParser.hpp"
 
 ConfigParser::ConfigParser(const std::string &filename)
-	: _filename(filename)
-{
-	_parse();
+	: _filename(filename){
 }
 
 ConfigParser::~ConfigParser(void) {}
@@ -19,14 +17,14 @@ e_boolMod strToBool(std::string &str)
 
 
 /**
- * @brief This function checks if a line in the configuration file is a good directive in Location bloc (autoindex par ex)
+ * @brief This function checks if a line in the configuration file is a good directive in BlocLocation bloc (autoindex par ex)
  * It updates the location object with the corresponding values if the line is valid.
  * 
- * @param location  The Location object to update.
+ * @param location  The BlocLocation object to update.
  * @param tokens  A vector of strings containing the tokens of the line.
  * @param key The key of the line. (the first token)
  */
-bool ConfigParser::isValidLineLocation(Location& location, std::vector<std::string>& tokens, std::string& key)
+bool ConfigParser::isValidLineLocation(BlocLocation& location, std::vector<std::string>& tokens, std::string& key)
 {
 	if (key == "root" && !tokens[1].empty())
 		location.setRoot(tokens[1]);
@@ -55,12 +53,12 @@ bool ConfigParser::isValidLineLocation(Location& location, std::vector<std::stri
 
 
 /**
- * @brief parse a Location bloc
+ * @brief parse a BlocLocation bloc
  * 
  */
-Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string &path)
+BlocLocation ConfigParser::getLocationConfig(std::ifstream &configFile, std::string &path)
 {
-	Location location;
+	BlocLocation location;
 	std::string line;
 	std::vector<std::string> tokens;
 	std::string key;
@@ -92,15 +90,15 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 
 
 /**
- * @brief This function checks if a line in the configuration file is a good directive in Server bloc (server_name par ex)
+ * @brief This function checks if a line in the configuration file is a good directive in BlocServer bloc (server_name par ex)
  * It updates the server object with the corresponding values if the line is valid.
  * 
  * @param tokens  A vector of strings containing the tokens of the line.
  * @param key The key of the line. (the first token)
  */
-bool ConfigParser::isValidLineServer(Server& server, std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile){
+bool ConfigParser::isValidLineServer(BlocServer& server, std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile){
 	if (tokens.size() == 3 && key == "location" && tokens[2] == "{"){
-		Location location = getLocationConfig(configFile, tokens[1]);
+		BlocLocation location = getLocationConfig(configFile, tokens[1]);
 		location.checkDoubleLine();
 		server.addLocation(location);
 	}
@@ -130,11 +128,11 @@ bool ConfigParser::isValidLineServer(Server& server, std::vector<std::string>& t
  * @brief parse a server bloc and if encounter a location bloc, it call getLocationConfig() to parse it
  * 
  * @param configFile 
- * @return Server 
+ * @return BlocServer 
  */
-Server ConfigParser::getServerConfig(std::ifstream &configFile)
+BlocServer ConfigParser::getServerConfig(std::ifstream &configFile)
 {
-	Server server;
+	BlocServer server;
 	std::string line;
 	std::vector<std::string> tokens;
 	std::string key;
@@ -167,7 +165,7 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
  * add it to _servers vector
  * 
  */
-void ConfigParser::_parse(void)
+void ConfigParser::parse(void)
 {
 	Logger::log(Logger::DEBUG, "Parsing config file: %s", _filename.c_str());
 	std::ifstream configFile(_filename.c_str());
@@ -184,7 +182,7 @@ void ConfigParser::_parse(void)
 			continue;
 		tokens = split(line, " ");
 		if (tokens[0] == "server" && tokens[1] == "{"){
-			Server server = getServerConfig(configFile);
+			BlocServer server = getServerConfig(configFile);
 			server.checkDoubleLine();
 			_servers.push_back(server);
 		}
@@ -199,7 +197,7 @@ void ConfigParser::_parse(void)
 
 void ConfigParser::checkAttribut()
 {
-	std::vector<Server>::iterator it;
+	std::vector<BlocServer>::iterator it;
 
 	for (it = _servers.begin(); it != _servers.end(); it++)
 		(*it).checkAttribut();

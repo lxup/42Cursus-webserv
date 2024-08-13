@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/12 17:33:37 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/13 11:00:57 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,17 @@ int main(int ac, char **av)
 	if (args.isOption("--help"))
 		return (args.help(), args.getState());
 
+	ConfigParser configs(args.getConfigFilePath());
+	Server server;
+
 	try{
 		// 1- Parsing
-		ConfigParser configParser(args.getConfigFilePath());
-		configParser.printServers();
+		configs.parse();
+		configs.printServers();
 
-		// 2- Set up and launch of Server
-		// Manager manager(configParser);
-		// manager.run();
+		// 2- Initialisation et lancement du Server
+		server.init(configs.getServersConfig());
+		server.run();
 	}
 	catch (const WebservException &e){
 		Logger::log(e.getLogLevel(), e.what());

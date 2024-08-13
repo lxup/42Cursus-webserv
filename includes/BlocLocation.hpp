@@ -18,7 +18,7 @@ enum e_boolMod
 	BAD
 };
 
-class Location
+class BlocLocation
 {
 	private:
 		std::string _location;
@@ -31,8 +31,8 @@ class Location
 		std::map<std::string, int> _counter;
 
 	public:
-		Location();
-		~Location();
+		BlocLocation();
+		~BlocLocation();
 
 		// Methods
 		void incrementCounter(const std::string& key) { _counter[key]++; }

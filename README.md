@@ -23,7 +23,7 @@
 - [ ]  Faire un systeme de verification des erreurs de syntaxe et de logique.
 - [ ]  Si error, ne pas lancer le server (logique batard)
 
-## Initialisation et lancement du Server
+## Initialisation et lancement du BlocServer
 
 - [ ]  Pour chaque bloc `server` creer un socket en le liant a l’adresse ip
 - [ ]  Rendres les socket en mode non-bloquants

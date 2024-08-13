@@ -167,3 +167,10 @@ std::string unsignedIntToString(unsigned int value)
 	oss << value;
 	return oss.str();
 }
+
+std::string intToString(int value)
+{
+	std::ostringstream oss;
+	oss << value;
+	return oss.str();
+}
