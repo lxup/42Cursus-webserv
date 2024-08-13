@@ -25,7 +25,7 @@
 - [ ]  reste le cgi a gerer
 - [ ]  reste le bloc server par default a gerer
 
-## Initialisation et lancement du Server
+## Initialisation et lancement du BlocServer
 
 - [ ]  Pour chaque groupe de bloc `server` (pair ip/port) creer un socket en le liant a l’adresse ip
     - [ ] Avec socket(), bind(), listen()

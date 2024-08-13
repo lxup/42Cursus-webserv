@@ -1,6 +1,6 @@
-#include "Location.hpp"
+#include "BlocLocation.hpp"
 
-Location::Location() : _location(""), _root(""), _rewrite(""), _alias(""), _autoindex(FALSE)
+BlocLocation::BlocLocation() : _location(""), _root(""), _rewrite(""), _alias(""), _autoindex(FALSE)
 {
 	_allowedMethods.push_back(GET);
 	_counter["location"] = 0;
@@ -12,9 +12,9 @@ Location::Location() : _location(""), _root(""), _rewrite(""), _alias(""), _auto
 	_counter["autoindex"] = 0;
 }
 
-Location::~Location() {}
+BlocLocation::~BlocLocation() {}
 
-void Location::addAllowedMethods(std::string &token)
+void BlocLocation::addAllowedMethods(std::string &token)
 {
 	e_Methods met;
 
@@ -31,7 +31,7 @@ void Location::addAllowedMethods(std::string &token)
 	_allowedMethods.push_back(met);
 }
 
-bool Location::fileExistVector()
+bool BlocLocation::fileExistVector()
 {
 	std::vector<std::string>::const_iterator it;
 
@@ -41,7 +41,7 @@ bool Location::fileExistVector()
 	return (true);
 }
 
-bool Location::methodsExist()
+bool BlocLocation::methodsExist()
 {
 	std::vector<e_Methods>::const_iterator it = _allowedMethods.begin();
 
@@ -53,7 +53,7 @@ bool Location::methodsExist()
 	return (true);
 }
 
-void Location::checkValue()
+void BlocLocation::checkValue()
 {
 	if (!directoryExist(_location.c_str()))
 		throw WebservException(Logger::FATAL, "Invalid path value");
@@ -67,9 +67,9 @@ void Location::checkValue()
 		throw WebservException(Logger::FATAL, "Invalid methods value");
 }
 
-void Location::printLocation(void) const
+void BlocLocation::printLocation(void) const
 {
-	std::cout << "Location: " << _location << std::endl;
+	std::cout << "BlocLocation: " << _location << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Rewrite: " << _rewrite << std::endl;
 	std::cout << "Alias: " << _alias << std::endl;
@@ -94,7 +94,7 @@ void Location::printLocation(void) const
 		std::cout << "Autoindex: FALSE" << std::endl;
 }
 
-void Location::checkDoubleLine()
+void BlocLocation::checkDoubleLine()
 {
 
 	std::map<std::string, int>::iterator it;

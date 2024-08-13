@@ -33,4 +33,8 @@
 #define BG_WHITE "\001\033[47m\002"		  /* - White background */
 #define BG_TRANSPARENT "\001\033[49m\002" /* - Transparent background */
 
+// todo a modifier
+#define BUFFER_SIZE 4096
+
+
 #endif // DEFINE_HPP
