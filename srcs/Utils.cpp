@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include <stdarg.h>
 
 /* WEBSERV EXCEPTION */
 WebservException::WebservException(int errnoNum, const char *msg, ...)

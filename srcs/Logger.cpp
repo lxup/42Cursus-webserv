@@ -1,4 +1,5 @@
 #include "Logger.hpp"
+#include <stdarg.h>
 
 /*  */
 /* ---------------------------- STATIC VARIABLE ---------------------------- */
