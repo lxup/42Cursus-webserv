@@ -1,73 +1,38 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef SERVER_HPP
+# define SERVER_HPP
 
 #include "Webserv.hpp"
 
-class Location;
-
 class Server
 {
-private:
-	unsigned int _port;
-	std::string _serverName;
-	std::string _root;
-	unsigned int _clientMaxBodySize;
-	std::vector<Location> _locations;
-	std::map<unsigned int, std::string> _errorPages;
-	std::map<std::string, int> _counter;
+	private:
+		int _epollFD;
+		std::vector<BlocServer> _serversConfig;
+		std::map<std::string, int> _listeningSockets;
 
-public:
-	Server();
-	~Server();
 
-	// Methods
-	void checkAttribut();
-	void incrementCounter(const std::string &key) { _counter[key]++; }
-	void checkDoubleLine();
-	bool fileExistMap();
-	void checkLocation();
+		int check(int ret, std::string msg);
+		void cleanSetup( void );
+		void addSocketEpoll(int sockFD, uint32_t flags);
+		
+		
+		void showIpClient(int clientFD);
+		void handleConnection(int clientFD);
 
-	// Getters
-	unsigned int getPort() const { return _port; }
-	const std::map<unsigned int, std::string> &getErrorPages() const { return _errorPages; }
-	const std::string &getServerName() const { return _serverName; }
-	const std::vector<Location> &getLocations() const { return _locations; }
-	const std::string &getRoot() const { return _root; }
-	unsigned int getClientMaxBodySize() const { return _clientMaxBodySize; }
 
-	// Setters
-	void setClientMaxBodySize(unsigned int clientMaxBodySize)
-	{
-		_clientMaxBodySize = clientMaxBodySize;
-		_counter["clientMaxBodySize"]++;
-	}
-	void setRoot(const std::string &root)
-	{
-		_root = root;
-		_counter["root"]++;
-	}
-	void setLocations(const std::vector<Location> &locations) { _locations = locations; }
-	void setPort(unsigned int port)
-	{
-		_port = port;
-		_counter["port"]++;
-	}
-	void setServerName(const std::string &serverName)
-	{
-		_serverName = serverName;
-		_counter["serverName"]++;
-	}
-	void setErrorPages(const std::map<unsigned int, std::string> &errorPage)
-	{
-		_errorPages = errorPage;
-		_counter["errorPage"]++;
-	}
 
-	// Adders
-	void addErrorPages(unsigned int errorCode, std::string file) { _errorPages[errorCode] = file; }
-	void addLocation(const Location &locations) { _locations.push_back(locations); }
 
-	void printServer(void) const;
+
+
+	public:
+
+		Server();
+		~Server();
+
+		void init(std::vector<BlocServer> serversConfig);
+		void run( void );
 };
 
-#endif
+std::ostream &			operator<<( std::ostream & o, Server const & i );
+
+#endif /* ********************************************************** SERVER_H */

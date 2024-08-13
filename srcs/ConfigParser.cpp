@@ -1,9 +1,7 @@
 #include "ConfigParser.hpp"
 
 ConfigParser::ConfigParser(const std::string &filename)
-	: _filename(filename)
-{
-	_parse();
+	: _filename(filename){
 }
 
 ConfigParser::~ConfigParser(void) {}
@@ -17,44 +15,50 @@ e_boolMod strToBool(std::string &str)
 	return (BAD);
 }
 
-std::string trimLine(std::string &line)
+
+/**
+ * @brief This function checks if a line in the configuration file is a good directive in BlocLocation bloc (autoindex par ex)
+ * It updates the location object with the corresponding values if the line is valid.
+ * 
+ * @param location  The BlocLocation object to update.
+ * @param tokens  A vector of strings containing the tokens of the line.
+ * @param key The key of the line. (the first token)
+ */
+bool ConfigParser::isValidLineLocation(BlocLocation& location, std::vector<std::string>& tokens, std::string& key)
 {
-	const std::string white_chars = " \t\n\r\f\v";
-	std::string result;
-
-	int start = 0;
-	while (white_chars.find(line[start]) != std::string::npos)
-		start++;
-	int end = line.size() - 1;
-	while (end >= 0 && white_chars.find(line[end]) != std::string::npos)
-		end--;
-
-	for (int i = start; i <= end; i++)
-		result.push_back(line[i]);
-
-	return (result);
-}
-
-std::vector<std::string> split(std::string s, std::string delimiter)
-{
-	size_t pos = 0;
-	std::string token;
-	std::vector<std::string> result;
-	s = trimLine(s);
-	while ((pos = s.find(delimiter)) != std::string::npos)
+	if (key == "root" && !tokens[1].empty())
+		location.setRoot(tokens[1]);
+	else if (key == "autoindex" && !tokens[1].empty())
+		location.setAutoIndex(strToBool(tokens[1]));
+	else if (key == "rewrite" && !tokens[1].empty())
+		location.setRewrite(tokens[1]);
+	else if (key == "alias" && !tokens[1].empty())
+		location.setAlias(tokens[1]);
+	else if (key == "allowed_methods" && !tokens[1].empty())
 	{
-		token = s.substr(0, pos);
-		result.push_back(token);
-		s.erase(0, pos + delimiter.length());
-		s = trimLine(s);
+		location.incrementCounter("allowedMethods");
+		for (size_t i = 1; i < tokens.size(); i++)
+			location.addAllowedMethods(tokens[i]);
 	}
-	result.push_back(s);
-	return (result);
+	else if (key == "index" && !key.empty())
+	{
+		location.incrementCounter("files");
+		for (size_t i = 1; i < tokens.size(); i++)
+			location.addFile(tokens[i]);
+	}
+	else
+		return false;
+	return true;
 }
 
-Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string &path)
+
+/**
+ * @brief parse a BlocLocation bloc
+ * 
+ */
+BlocLocation ConfigParser::getLocationConfig(std::ifstream &configFile, std::string &path)
 {
-	Location location;
+	BlocLocation location;
 	std::string line;
 	std::vector<std::string> tokens;
 	std::string key;
@@ -73,38 +77,62 @@ Location ConfigParser::getLocationConfig(std::ifstream &configFile, std::string 
 			isCloseLocation = true;
 			break;
 		}
-		else if (key == "root" && !tokens[1].empty())
-			location.setRoot(tokens[1]);
-		else if (key == "autoindex" && !tokens[1].empty())
-
-			location.setAutoIndex(strToBool(tokens[1]));
-		else if (key == "rewrite" && !tokens[1].empty())
-			location.setRewrite(tokens[1]);
-		else if (key == "alias" && !tokens[1].empty())
-			location.setAlias(tokens[1]);
-		else if (key == "allowed_methods" && !tokens[1].empty())
-		{
-			location.incrementCounter("allowedMethods");
-			for (size_t i = 1; i < tokens.size(); i++)
-				location.addAllowedMethods(tokens[i]);
-		}
-		else if (key == "index" && !key.empty())
-		{
-			location.incrementCounter("files");
-			for (size_t i = 1; i < tokens.size(); i++)
-				location.addFile(tokens[i]);
-		}
+		if (isValidLineLocation(location, tokens, key))
+			continue;
 		else
 			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 	}
 	if (!isCloseLocation)
 		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
-	return (location);
+	
+	return location;
 }
 
-Server ConfigParser::getServerConfig(std::ifstream &configFile)
+
+/**
+ * @brief This function checks if a line in the configuration file is a good directive in BlocServer bloc (server_name par ex)
+ * It updates the server object with the corresponding values if the line is valid.
+ * 
+ * @param tokens  A vector of strings containing the tokens of the line.
+ * @param key The key of the line. (the first token)
+ */
+bool ConfigParser::isValidLineServer(BlocServer& server, std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile){
+	if (tokens.size() == 3 && key == "location" && tokens[2] == "{"){
+		BlocLocation location = getLocationConfig(configFile, tokens[1]);
+		location.checkDoubleLine();
+		server.addLocation(location);
+	}
+	else if (key == "listen")
+	{
+		std::vector<std::string> ip = split(tokens[1], ":");
+		server.setIp(ip[0]);
+		server.setPort(std::atoi(ip[1].c_str()));
+	}
+	else if (key == "server_name")
+		server.setServerName(tokens[1]);
+	else if (key == "root")
+		server.setRoot(tokens[1]);
+	else if (key == "client_max_body_size")
+		server.setClientMaxBodySize(std::atoi(tokens[1].c_str()));
+	else if (key == "error_page")
+	{
+		server.incrementCounter(tokens[1]);
+		server.addErrorPages(std::atoi(tokens[1].c_str()), tokens[2]);
+	}else
+		return (false);
+	return (true);
+}
+
+
+/**
+ * @brief parse a server bloc and if encounter a location bloc, it call getLocationConfig() to parse it
+ * 
+ * @param configFile 
+ * @return BlocServer 
+ */
+BlocServer ConfigParser::getServerConfig(std::ifstream &configFile)
 {
-	Server server;
+	BlocServer server;
 	std::string line;
 	std::vector<std::string> tokens;
 	std::string key;
@@ -117,32 +145,12 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
-		if (key == "}")
-		{
+		if (key == "}"){
 			isCloseServer = true;
 			break;
 		}
-		if (key.empty())
-			continue;
-		if (tokens.size() == 3 && key == "location" && tokens[2] == "{")
-		{
-			Location location = getLocationConfig(configFile, tokens[1]);
-			location.checkDoubleLine();
-			server.addLocation(location);
-		}
-		else if (key == "listen")
-			server.setPort(std::atoi(tokens[1].c_str()));
-		else if (key == "server_name")
-			server.setServerName(tokens[1]);
-		else if (key == "root")
-			server.setRoot(tokens[1]);
-		else if (key == "client_max_body_size")
-			server.setClientMaxBodySize(std::atoi(tokens[1].c_str()));
-		else if (key == "error_page")
-		{
-			server.incrementCounter(tokens[1]);
-			server.addErrorPages(std::atoi(tokens[1].c_str()), tokens[2]);
-		}
+		else if (isValidLineServer(server, tokens, key, configFile))
+			continue ;
 		else
 			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 	}
@@ -151,19 +159,21 @@ Server ConfigParser::getServerConfig(std::ifstream &configFile)
 	return (server);
 }
 
-void ConfigParser::_parse(void)
+/**
+ * @brief main function to parse the config file
+ * if encounter server bloc, call the getServerConfig function and 
+ * add it to _servers vector
+ * 
+ */
+void ConfigParser::parse(void)
 {
 	Logger::log(Logger::DEBUG, "Parsing config file: %s", _filename.c_str());
 	std::ifstream configFile(_filename.c_str());
 	std::vector<std::string> tokens;
 	std::string line;
-	std::stack<e_context> context;
 
 	if (!configFile.is_open())
-	{
-		Logger::log(Logger::ERROR, "The config file can't be open");
-		exit(EXIT_FAILURE); // A MODIFIER
-	}
+		throw WebservException(Logger::FATAL, "File %s can't be opened or doesn't exist", _filename.c_str());
 
 	while (std::getline(configFile, line))
 	{
@@ -171,33 +181,34 @@ void ConfigParser::_parse(void)
 		if (line.empty() || line[0] == '#')
 			continue;
 		tokens = split(line, " ");
-		if (tokens[0] == "server" && tokens[1] == "{")
-		{
-			context.push(SERVER);
-			Server server = getServerConfig(configFile);
+		if (tokens[0] == "server" && tokens[1] == "{"){
+			BlocServer server = getServerConfig(configFile);
 			server.checkDoubleLine();
 			_servers.push_back(server);
 		}
-		else
-		{
+		else{
 			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
 		}
 	}
 	checkAttribut();
 	configFile.close();
+}
 
+
+void ConfigParser::checkAttribut()
+{
+	std::vector<BlocServer>::iterator it;
+
+	for (it = _servers.begin(); it != _servers.end(); it++)
+		(*it).checkAttribut();
+}
+
+
+void ConfigParser::printServers(void){
 	for (size_t i = 0; i < _servers.size(); i++)
 	{
 		std::cout << "============ SERVER " << i << " ===========\n"
 				  << std::endl;
 		_servers[i].printServer();
 	}
-}
-
-void ConfigParser::checkAttribut()
-{
-	std::vector<Server>::iterator it;
-
-	for (it = _servers.begin(); it != _servers.end(); it++)
-		(*it).checkAttribut();
 }

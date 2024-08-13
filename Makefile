@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: lbehr <lbehr@student.42.fr>                +#+  +:+       +#+         #
+#    By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/05/13 15:29:09 by lquehec           #+#    #+#              #
-#    Updated: 2024/08/06 15:10:06 by lbehr            ###   ########.fr        #
+#    Updated: 2024/08/02 15:33:31 by rgiraud          ###   ########.fr        #
 #                                                                              #
 # ** #
 
@@ -74,8 +74,9 @@ HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					Logger \
 					ArgsManager \
 					ConfigParser \
+					BlocServer \
+					BlocLocation \
 					Server \
-					Location \
 					))
 
 SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
@@ -84,8 +85,9 @@ SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					Logger \
 					ArgsManager \
 					ConfigParser \
+					BlocServer \
+					BlocLocation \
 					Server \
-					Location \
 					))
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)

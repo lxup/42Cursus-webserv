@@ -23,5 +23,10 @@ public:
 void printMsg(std::ostream &os, const char *msg, ...);
 bool directoryExist(const char *path);
 bool fileExist(const std::string &name);
+std::string trimLine(std::string &line);
+std::vector<std::string> split(std::string s, std::string delimiter);
+std::string unsignedIntToString(unsigned int value);
+std::string intToString(int value);
+
 
 #endif // UTILS_HPP
