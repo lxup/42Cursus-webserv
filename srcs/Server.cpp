@@ -4,7 +4,7 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Server::Server() : _isRunning(true)
+Server::Server() : _isRunning(true), _epollFD(-1)
 {
 }
 
@@ -12,8 +12,18 @@ Server::Server() : _isRunning(true)
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
+/**
+ * @brief Destroy the Server:: Server object
+ * 
+ * - close the epoll instance
+ */
 Server::~Server(){
-	cleanSetup();
+	if (_epollFD != -1)
+		close(_epollFD);
+	for (std::map<std::string, int>::iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it) {
+		if (it->second != -1)
+			close(it->second);
+	}
 }
 
 /*
@@ -22,18 +32,6 @@ Server::~Server(){
 
 void Server::stop( void ) {
    _isRunning = false;
-}
-
-/**
- * @brief close les fd socket ouvert
- */
-void Server::cleanSetup(void)
-{
-	// todo : close les fd socket ouvert
-	close(_epollFD);
-	for (std::map<std::string, int>::iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it) {
-		close(it->second);
-	}
 }
 
 
@@ -45,7 +43,6 @@ void Server::cleanSetup(void)
 int Server::check(int ret, std::string msg)
 {
 	if (ret < 0){
-		cleanSetup();
 		throw WebservException(Logger::FATAL, msg.c_str());
 	}
 	return ret;

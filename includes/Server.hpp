@@ -14,7 +14,6 @@ class Server
 
 
 		int check(int ret, std::string msg);
-		void cleanSetup( void );
 		void addSocketEpoll(int sockFD, uint32_t flags);
 		
 		
