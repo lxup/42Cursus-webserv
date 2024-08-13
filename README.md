@@ -27,16 +27,16 @@
 
 ## Initialisation et lancement du BlocServer
 
-- [ ]  Pour chaque groupe de bloc `server` (pair ip/port) creer un socket en le liant a l’adresse ip
-    - [ ] Avec socket(), bind(), listen()
-- [ ]  Rendres les socket en mode non-bloquants
-- [ ]  Ecouter les connexions avec listen() ?
+- [x]  Pour chaque groupe de bloc `server` (pair ip/port) creer un socket en le liant a l’adresse ip
+    - [x] Avec socket(), bind(), listen()
+- [x]  Rendres les socket en mode non-bloquants
+- [x]  Ecouter les connexions avec listen() ?
 
 ## Gerer les requetes entrantes
 
-- [ ]  faire une boucle avec epoll() pour gerer les evenement (on surveille les sockets) a la fois les socket d'ecoute ip:port et a la fois les socket de conexion client
-    - [ ]  epoll_wait()
-    - [ ]  accept()
+- [x]  faire une boucle avec epoll() pour gerer les evenement (on surveille les sockets) a la fois les socket d'ecoute ip:port et a la fois les socket de conexion client
+    - [ ]  epoll_wait() -> voir le retour de cette fonction
+    - [x]  accept()
     - [ ]  quand les sockets clients sont pret en lecture, parser la requete http
     - [ ]  gerer les erreurs, 404, methode non prise en charge, …
 

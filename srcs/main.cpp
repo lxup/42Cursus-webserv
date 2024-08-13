@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/13 14:00:54 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/13 15:58:28 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ void signalHandler(int signum) {
 int main(int ac, char **av)
 {
 	ArgsManager args(ac, av);
-
 	if (args.isOption("--help"))
 		return (args.help(), args.getState());
 

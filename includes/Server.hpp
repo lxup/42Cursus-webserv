@@ -12,7 +12,6 @@ class Server
 		// ip:port map to the server socket
 		std::map<std::string, int> _listeningSockets;
 
-
 		int check(int ret, std::string msg);
 		void cleanSetup( void );
 		void addSocketEpoll(int sockFD, uint32_t flags);

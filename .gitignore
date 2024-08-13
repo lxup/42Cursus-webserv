@@ -8,3 +8,4 @@ webserv
 .obj
 .vscode/
 bash.sh
+logs
