@@ -4,7 +4,7 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Server::Server()
+Server::Server() : _isRunning(true)
 {
 }
 
@@ -12,14 +12,21 @@ Server::Server()
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-Server::~Server()
-{
+Server::~Server(){
+	cleanSetup();
 }
 
 /*
 ** -------------------------------- METHODS --------------------------------
 */
 
+void Server::stop( void ) {
+   _isRunning = false;
+}
+
+/**
+ * @brief close les fd socket ouvert
+ */
 void Server::cleanSetup(void)
 {
 	// todo : close les fd socket ouvert
@@ -29,25 +36,41 @@ void Server::cleanSetup(void)
 	}
 }
 
+
+/**
+ * @param ret return code of function to test
+ * @param msg message in case of error
+ * @return the return code of the function if >= 0
+ */
 int Server::check(int ret, std::string msg)
 {
-	if (ret < 0)
-	{
+	if (ret < 0){
 		cleanSetup();
 		throw WebservException(Logger::FATAL, msg.c_str());
 	}
 	return ret;
 }
 
+
+
 void Server::addSocketEpoll(int sockFD, uint32_t flags)
 {
-	// Add to epoll
 	epoll_event ev;
 	ev.events = flags;
 	ev.data.fd = sockFD;
 	check(epoll_ctl(_epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function");
 }
 
+
+/**
+ * @brief Initializes the server with the given server configurations.
+ * 
+ * This function sets up the server by creating and binding listening sockets for 
+ * each GROUP of CORRESPONDING IP:PORT 
+ * create the epoll instance and add all the listening socket to the epoll
+ * 
+ * @param serversConfig A vector of BlocServer objects representing the server configurations.
+ */
 void Server::init(std::vector<BlocServer> serversConfig)
 {
 	_serversConfig = serversConfig;
@@ -67,24 +90,22 @@ void Server::init(std::vector<BlocServer> serversConfig)
 			addr.sin_addr.s_addr = inet_addr(blocServer.getIp().c_str());
 			addr.sin_port = htons(blocServer.getPort());
 
+			int optval = 1;
+			check(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)), "Error with setsockopt SO_REUSEADDR");
+
 			check(bind(sockFD, (const sockaddr *)(&addr), sizeof(addr)), "Error with function bind");
 
 			check(fcntl(sockFD, F_SETFL, O_NONBLOCK), "Error with function fcntl");
 
-			// todo changer maxConnexion avec ce qui ya dans le fichier de conf
-			int maxconexion = 1000;
-			check(listen(sockFD, maxconexion), "Error with function listen");
+			check(listen(sockFD, BACKLOGS), "Error with function listen");
 
 			_listeningSockets[ipPort] = sockFD;
-
+ 
 			addSocketEpoll(sockFD, EPOLLIN);
-		}
-		else
-		{
-			// std::cout << "deja la le socket!" << std::endl;
 		}
 	}
 }
+
 
 void Server::showIpClient(int clientFD){
 	// todo a modifier
@@ -98,6 +119,12 @@ void Server::showIpClient(int clientFD){
 
 }
 
+/**
+ * @brief fonction temporaire pour affichier la requete 
+ * et direct renvoyer une reponse fait a la mains
+ * 
+ * @param clientFD 
+ */
 void Server::handleConnection(int clientFD){
 	
 	char buffer[BUFFER_SIZE];
@@ -123,30 +150,61 @@ void Server::handleConnection(int clientFD){
 	clientFD = -1;
 }
 
+
+/**
+ * 
+ * This function searches through all the listening sockets and checks if the file descriptor
+ * corresponds to any of the values in the listeningSockets map. If it corresponds, it means
+ * that it is a new connection. Otherwise, it is a known client.
+ * 
+ * @param fd The file descriptor to check.
+ * @return True if it is a new connection, false otherwise.
+ */
+bool Server::isNewConnection(int fd){
+	std::map<std::string, int>::iterator it;
+	for (it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it){
+		if (it->second == fd)
+			return true;
+	}
+	return false;
+}
+
+/**
+ * @brief Main loop of Webserv
+ * listen with epoll_wait an event and then handle it
+ * either it's a new connection either it's already a knowned client	
+ * 
+ */
 void Server::run( void ){
 
 	// todo: a modifier
 	const int MAX_EVENTS = 10;
 	epoll_event events[MAX_EVENTS];
 
-	while (true)
+	while (_isRunning)
 	{
 		Logger::log(Logger::INFO, "Waiting for connections...");
 		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
+		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
 		for (int i = 0; i < nfds; i++)
 		{
 			if (events[i].events & EPOLLIN){
 				int fd = events[i].data.fd;
-				// todo a changer 
-				if (fd == _listeningSockets[_serversConfig[0].getIpPortJoin()]){
+	
+				if (isNewConnection(fd)){
+					Logger::log(Logger::DEBUG, "New connection to the epoll, LISTENING SOCKET: %d", fd);
+
 					// nouvelle connexion, faut l'ajouter a epoll
 					//todo a checker les parametre
 					int connSock = check(accept(fd, NULL, NULL), "Error with accept function");
 					check(fcntl(connSock, F_SETFL, O_NONBLOCK), "Error with function fcntl");
+					Logger::log(Logger::DEBUG, "Accept connection with new Client, SOCKET CLIENT: %d", connSock);
 
 					// todo flags a changer
 					addSocketEpoll(connSock, EPOLLIN | EPOLLOUT);
 				}else {
+					// client qu'on connait deja
+					Logger::log(Logger::DEBUG, "Known client, CLIENT SOCKET: %d", fd);
 					handleConnection(fd);
 				}
 			}

@@ -6,8 +6,10 @@
 class Server
 {
 	private:
+		bool _isRunning;
 		int _epollFD;
 		std::vector<BlocServer> _serversConfig;
+		// ip:port map to the server socket
 		std::map<std::string, int> _listeningSockets;
 
 
@@ -18,6 +20,8 @@ class Server
 		
 		void showIpClient(int clientFD);
 		void handleConnection(int clientFD);
+
+		bool isNewConnection(int fd);
 
 
 
@@ -31,6 +35,7 @@ class Server
 
 		void init(std::vector<BlocServer> serversConfig);
 		void run( void );
+		void stop( void );
 };
 
 std::ostream &			operator<<( std::ostream & o, Server const & i );

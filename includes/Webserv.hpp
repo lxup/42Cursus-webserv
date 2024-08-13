@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/13 11:18:38 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/13 14:02:56 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include <iostream>		// For cout
 #include <unistd.h>		// For read
 #include <arpa/inet.h>  // pour inet_ntop
+#include <csignal> // pour signal
 
 
 //#include <cstdlib>

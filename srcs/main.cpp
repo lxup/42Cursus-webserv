@@ -6,14 +6,18 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/13 11:00:57 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/13 14:00:54 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Webserv.hpp"
 
-#define PORT 4321
-#define MAX_CONNECTIONS 10000
+Server* serverInstance = NULL;
+
+void signalHandler(int signum) {
+	Logger::log(Logger::INFO, "interrupt signal (%d) received.", signum);
+   serverInstance->stop();
+}
 
 int main(int ac, char **av)
 {
@@ -24,7 +28,10 @@ int main(int ac, char **av)
 
 	ConfigParser configs(args.getConfigFilePath());
 	Server server;
-
+	serverInstance = &server;
+	
+	signal(SIGINT, signalHandler);
+	
 	try{
 		// 1- Parsing
 		configs.parse();

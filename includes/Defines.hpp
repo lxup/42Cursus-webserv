@@ -35,6 +35,7 @@
 
 // todo a modifier
 #define BUFFER_SIZE 4096
+#define BACKLOGS 128
 
 
 #endif // DEFINE_HPP
