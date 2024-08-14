@@ -1,0 +1,11 @@
+version: '2'
+services:
+ nginx:
+  container_name: nginx
+  image: nginx
+  ports:
+  - "8080:80"
+  volumes:
+  - ./nginx-data/site-data/test:/var/www/test
+  - ./nginx-data/sites-available:/etc/nginx/sites-available
+  - ./nginx-data/conf/nginx.conf:/etc/nginx/nginx.conf
