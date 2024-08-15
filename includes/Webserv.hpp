@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/13 12:16:20 by marvin           ###   ########.fr       */
+/*   Updated: 2024/08/15 17:50:28 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@
 
 /* CUSTOM */
 #include "Defines.hpp"
+#include "Request.hpp"
 #include "Logger.hpp"
 #include "ArgsManager.hpp"
 #include "Utils.hpp"

@@ -108,7 +108,11 @@ void Server::handleConnection(int clientFD){
 	while ((bytesRead = read(clientFD, buffer, BUFFER_SIZE - 1)) > 0)
 	{
 		Logger::log(Logger::INFO, "Le message fait: %d characteres", bytesRead);
-		Logger::log(Logger::INFO, buffer);
+		
+		Request req;
+		req.storageValue(buffer, bytesRead);
+		//std::cout << buffer;
+		//Logger::log(Logger::INFO, buffer);
 		if (buffer[bytesRead - 1] == '\n')
 			break;
 		memset(&buffer, 0, BUFFER_SIZE);

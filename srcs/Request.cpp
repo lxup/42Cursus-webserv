@@ -10,3 +10,12 @@ Request::~Request()
 {
 	std::cout << "Destructor of Request called\n";
 }
+
+void Request::storageValue(char *cha, unsigned int bytes)
+{
+	std::string str = cha;
+	_nbChar = bytes;
+	std::vector<std::string> ve = split(cha);
+
+	ve[0]
+}

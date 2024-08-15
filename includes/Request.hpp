@@ -3,6 +3,8 @@
 # include <iostream>
 # include <string>
 # include <Webserv.hpp>
+#include "BlocLocation.hpp"
+
 
 class Request
 {
@@ -16,5 +18,6 @@ class Request
 	public:
 		Request();
 		~Request();
+		void storageValue(char *str, unsigned int bytes);
 };
 #endif
