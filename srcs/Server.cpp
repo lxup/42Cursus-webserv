@@ -87,8 +87,8 @@ void Server::init(std::vector<BlocServer> serversConfig)
 			addr.sin_addr.s_addr = inet_addr(blocServer.getIp().c_str());
 			addr.sin_port = htons(blocServer.getPort());
 
-			int optval = 1;
-			check(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)), "Error with setsockopt SO_REUSEADDR");
+			//int optval = 1;
+			//check(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)), "Error with setsockopt SO_REUSEADDR");
 
 			check(bind(sockFD, (const sockaddr *)(&addr), sizeof(addr)), "Error with function bind");
 
@@ -104,16 +104,14 @@ void Server::init(std::vector<BlocServer> serversConfig)
 }
 
 
-void Server::showIpClient(int clientFD){
-	// todo a modifier
-	int bufferSize = 1000;
-	char client_adress[INET_ADDRSTRLEN];
+void Server::showIpPortClient(int clientFD){
+	char clientAdress[INET_ADDRSTRLEN];
 	struct sockaddr_in addr;
 	socklen_t addr_len = sizeof(addr);
 	getpeername(clientFD, (struct sockaddr*)&addr, &addr_len);
-	inet_ntop(AF_INET, &(addr.sin_addr), client_adress, bufferSize);
-	Logger::log(Logger::INFO, "Ip du client: %s", client_adress);
-
+	inet_ntop(AF_INET, &(addr.sin_addr), clientAdress, INET6_ADDRSTRLEN);
+	uint16_t clientPort = ntohs(addr.sin_port);
+	Logger::log(Logger::DEBUG, "New connection from %s:%u, SOCKET CLIENT %d", clientAdress, clientPort, clientFD);
 }
 
 /**
@@ -124,27 +122,33 @@ void Server::showIpClient(int clientFD){
  */
 void Server::handleConnection(int clientFD){
 	
-	char buffer[BUFFER_SIZE];
-	showIpClient(clientFD);
-	ssize_t bytesRead;
-	memset(&buffer, 0, BUFFER_SIZE);
+	//char buffer[BUFFER_SIZE];
+	//ssize_t bytesRead;
+	//memset(&buffer, 0, BUFFER_SIZE);
 
-	while ((bytesRead = read(clientFD, buffer, BUFFER_SIZE - 1)) > 0)
-	{
-		Logger::log(Logger::INFO, "Le message fait: %d characteres", bytesRead);
-		Logger::log(Logger::INFO, buffer);
-		if (buffer[bytesRead - 1] == '\n')
-			break;
-		memset(&buffer, 0, BUFFER_SIZE);
-	}
+	//while ((bytesRead = read(clientFD, buffer, BUFFER_SIZE - 1)) > 0)
+	//{
+	//	Logger::log(Logger::INFO, "Le message fait: %d characteres", bytesRead);
+	//	Logger::log(Logger::INFO, buffer);
+	//	if (buffer[bytesRead - 1] == '\n')
+	//		break;
+	//	memset(&buffer, 0, BUFFER_SIZE);
+	//}
 
-	// std::string response = "Salut du mini BlocServer de Raf\n";
-	std::string body = "<h1>Hello, World bonjour louis!</h1>";
-	std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
+	//// std::string response = "Salut du mini BlocServer de Raf\n";
+	//std::string body = "<h1>Hello, World bonjour louis!</h1>";
+	//std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
 
-	check((send(clientFD, response.c_str(), response.size(), 0)), "Error with function send");
-	close(clientFD);
-	clientFD = -1;
+	//check((send(clientFD, response.c_str(), response.size(), 0)), "Error with function send");
+
+	// parse ta requete
+	// tu genere ta response
+	// tu check que tu puisse ecrire avec EPOLLOUT sur le socket 
+	// tu envois ta reponse
+
+	
+	//close(clientFD);
+	//clientFD = -1;
 }
 
 
@@ -192,13 +196,11 @@ void Server::run( void ){
 					Logger::log(Logger::DEBUG, "New connection to the epoll, LISTENING SOCKET: %d", fd);
 
 					// nouvelle connexion, faut l'ajouter a epoll
-					//todo a checker les parametre
 					int connSock = check(accept(fd, NULL, NULL), "Error with accept function");
 					check(fcntl(connSock, F_SETFL, O_NONBLOCK), "Error with function fcntl");
-					Logger::log(Logger::DEBUG, "Accept connection with new Client, SOCKET CLIENT: %d", connSock);
+					showIpPortClient(connSock);
 
-					// todo flags a changer
-					addSocketEpoll(connSock, EPOLLIN | EPOLLOUT);
+					addSocketEpoll(connSock, EPOLLIN);
 				}else {
 					// client qu'on connait deja
 					Logger::log(Logger::DEBUG, "Known client, CLIENT SOCKET: %d", fd);

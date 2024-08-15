@@ -16,7 +16,7 @@ class Server
 		void addSocketEpoll(int sockFD, uint32_t flags);
 		
 		
-		void showIpClient(int clientFD);
+		void showIpPortClient(int clientFD);
 		void handleConnection(int clientFD);
 
 		bool isNewConnection(int fd);
