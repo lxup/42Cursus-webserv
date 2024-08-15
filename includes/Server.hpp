@@ -11,10 +11,13 @@ class Server
 		std::vector<BlocServer> _serversConfig;
 		// ip:port map to the server socket
 		std::map<std::string, int> _listeningSockets;
+		// TODO : format Reponse instead of string
+		std::map<int, std::queue<std::string> > _clientRequests;
 
 		int check(int ret, std::string msg);
 		void addSocketEpoll(int sockFD, uint32_t flags);
-		
+		void modifySocketEpoll(int sockFD, uint32_t flags);
+		void deleteSocketEpoll(int sockFD, uint32_t flags);
 		
 		void showIpPortClient(int clientFD);
 		void handleConnection(int clientFD);

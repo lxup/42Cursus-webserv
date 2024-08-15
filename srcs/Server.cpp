@@ -58,6 +58,22 @@ void Server::addSocketEpoll(int sockFD, uint32_t flags)
 	check(epoll_ctl(_epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function");
 }
 
+void Server::modifySocketEpoll(int sockFD, uint32_t flags)
+{
+	epoll_event ev;
+	ev.events = flags;
+	ev.data.fd = sockFD;
+	check(epoll_ctl(_epollFD, EPOLL_CTL_MOD, sockFD, &ev), "Error with epoll_ctl function");
+}
+
+void Server::deleteSocketEpoll(int sockFD, uint32_t flags)
+{
+	epoll_event ev;
+	ev.events = flags;
+	ev.data.fd = sockFD;
+	check(epoll_ctl(_epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
+}
+
 
 /**
  * @brief Initializes the server with the given server configurations.
@@ -122,27 +138,35 @@ void Server::showIpPortClient(int clientFD){
  */
 void Server::handleConnection(int clientFD){
 	
-	//char buffer[BUFFER_SIZE];
-	//ssize_t bytesRead;
-	//memset(&buffer, 0, BUFFER_SIZE);
+	char buffer[BUFFER_SIZE];
+	ssize_t bytesRead;
+	memset(&buffer, 0, BUFFER_SIZE);
+	bool isEnter = false;
+	
+	while ((bytesRead = read(clientFD, buffer, BUFFER_SIZE - 1)) > 0)
+	{
+		isEnter = true;
+		Logger::log(Logger::INFO, "Le message fait: %d characteres", bytesRead);
+		Logger::log(Logger::INFO, buffer);
+		if (buffer[bytesRead - 1] == '\n')
+			break;
+		memset(&buffer, 0, BUFFER_SIZE);
+	}
 
-	//while ((bytesRead = read(clientFD, buffer, BUFFER_SIZE - 1)) > 0)
-	//{
-	//	Logger::log(Logger::INFO, "Le message fait: %d characteres", bytesRead);
-	//	Logger::log(Logger::INFO, buffer);
-	//	if (buffer[bytesRead - 1] == '\n')
-	//		break;
-	//	memset(&buffer, 0, BUFFER_SIZE);
-	//}
+	if (!isEnter){
+		Logger::log(Logger::DEBUG, "Le client se barre, ce batard");
+		close(clientFD);
+		return ;
+	}
 
-	//// std::string response = "Salut du mini BlocServer de Raf\n";
-	//std::string body = "<h1>Hello, World bonjour louis!</h1>";
-	//std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
+	// std::string response = "Salut du mini BlocServer de Raf\n";
 
-	//check((send(clientFD, response.c_str(), response.size(), 0)), "Error with function send");
+	//addSocketEpoll(clientFD, EPOLLOUT);
+	modifySocketEpoll(clientFD, EPOLLOUT | EPOLLIN | EPOLLRDHUP);
 
 	// parse ta requete
 	// tu genere ta response
+
 	// tu check que tu puisse ecrire avec EPOLLOUT sur le socket 
 	// tu envois ta reponse
 
@@ -189,8 +213,9 @@ void Server::run( void ){
 		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
 		for (int i = 0; i < nfds; i++)
 		{
+			Logger::log(Logger::DEBUG, "ON A UN NOUEAU EVENT lettsggoooo");
+			int fd = events[i].data.fd;
 			if (events[i].events & EPOLLIN){
-				int fd = events[i].data.fd;
 	
 				if (isNewConnection(fd)){
 					Logger::log(Logger::DEBUG, "New connection to the epoll, LISTENING SOCKET: %d", fd);
@@ -200,12 +225,25 @@ void Server::run( void ){
 					check(fcntl(connSock, F_SETFL, O_NONBLOCK), "Error with function fcntl");
 					showIpPortClient(connSock);
 
-					addSocketEpoll(connSock, EPOLLIN);
+					addSocketEpoll(connSock, EPOLLIN | EPOLLRDHUP);
 				}else {
 					// client qu'on connait deja
 					Logger::log(Logger::DEBUG, "Known client, CLIENT SOCKET: %d", fd);
 					handleConnection(fd);
 				}
+			} else if (events[i].events & EPOLLOUT) {
+				Logger::log(Logger::DEBUG, "EPOLLOUT DE FDP");
+				std::string body = "<h1>Hello, World bonjour louis!</h1>";
+				std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
+
+				check((send(events[i].data.fd, response.c_str(), response.size(), 0)), "Error with function send");
+				modifySocketEpoll(fd, EPOLLIN | EPOLLRDHUP);
+			} else if (events[i].events & EPOLLRDHUP){
+				Logger::log(Logger::FATAL, "Le client vient de se barrer mon pote");
+				exit(EXIT_FAILURE);
+			} else {
+				Logger::log(Logger::DEBUG, "Un autre truc personne sait");
+				exit(EXIT_FAILURE);
 			}
 		}
 		

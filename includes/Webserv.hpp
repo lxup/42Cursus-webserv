@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/15 15:54:18 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/15 19:35:20 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@
 #include <iterator>
 #include <stack>
 #include <algorithm>
+#include <queue>
 
 
 /* CUSTOM */
