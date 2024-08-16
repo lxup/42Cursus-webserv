@@ -1,11 +1,11 @@
 #pragma once
-#ifndef SERVERDIRECTIVE_HPP
-# define SERVERDIRECTIVE_HPP
+#ifndef SERVERDIRECTIVEPARSER_HPP
+# define SERVERDIRECTIVEPARSER_HPP
 
 #include <iostream>
 #include <vector>
 
-class ServerDirective
+class ServerDirectiveParser
 {
 	private:
 		int							_numArg;
@@ -13,8 +13,8 @@ class ServerDirective
 		bool						_isBlock;
 		bool						(*_checkArgs)(void);
 	public:
-		ServerDirective(int numArg, bool isDuplicatedAllowed, bool isBlock, bool (*checkArgs)(void));
-		~ServerDirective(void);
+		ServerDirectiveParser(int numArg, bool isDuplicatedAllowed, bool isBlock, bool (*checkArgs)(void));
+		~ServerDirectiveParser(void);
 
 		/* GETTERS */
 		int getNumArg(void) const;
@@ -28,4 +28,4 @@ class ServerDirective
 };
 
 
-#endif // SERVERDIRECTIVE_HPP
+#endif // SERVERDIRECTIVEPARSER_HPP
