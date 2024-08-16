@@ -5,7 +5,7 @@
 
 #include "ServerDirective.hpp"
 
-// class BlocServer;
+class BlocServer;
 class BlocLocation;
 
 class ConfigParser
@@ -20,7 +20,7 @@ public:
 
 
 private:
-	static std::map<std::string, ServerDirective> _serverDirectives;
+	std::map<std::string, ServerDirective> _serverDirectives;
 	std::string _filename;
 	
 	std::vector<BlocServer> _servers;
@@ -30,8 +30,7 @@ private:
 	void checkAttribut();
 
 	// Method init
-	std::map<std::string, ServerDirective> _generateServerDirectives(void);
-	
+
 	// Method utils
 	bool isValidLineLocation(BlocLocation& location, std::vector<std::string>& tokens, std::string& key);
 	bool isValidLineServer(BlocServer& server, std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile);

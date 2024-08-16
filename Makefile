@@ -46,7 +46,8 @@ NAME			=	webserv
 
 CXX				=	c++
 RM				=	rm -rf
-CXXFLAGS		+=	-Wall -Wextra -Werror -std=c++98 -g3
+CXXFLAGS		=	-Wall -std=c++98
+# CXXFLAGS		+=	-Wall -Wextra -Werror -std=c++98 -g3
 
 # ** #
 #                                    PATHS                                     #

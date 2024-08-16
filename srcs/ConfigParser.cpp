@@ -161,7 +161,7 @@ BlocServer ConfigParser::getServerConfig(std::ifstream &configFile)
 }
 
 /**
- * @brief main function to parse the config file
+ * @brief main function to parse the config file_generateServerDirectives
  * if encounter server bloc, call the getServerConfig function and 
  * add it to _servers vector
  * 
@@ -192,7 +192,7 @@ void ConfigParser::parse(void)
 		if (line.empty() || line[0] == '#')
 			continue;
 		tokens = split(line, " ");
-		if (tokens[0] == "server" && tokens[1] == "{" || tokens[0] == "server{"){
+		if ((tokens[0] == "server" && tokens[1] == "{") || tokens[0] == "server{"){
 			BlocServer server = getServerConfig(configFile);
 			server.checkDoubleLine();
 			_servers.push_back(server);
@@ -229,16 +229,3 @@ void ConfigParser::printServers(void){
 /*  */
 /* --------------------------------- METHODS --------------------------------- */
 /*  */
-
-// Init
-std::map<std::string, ServerDirective> ConfigParser::_generateServerDirectives(void)
-{
-	std::map<std::string, ServerDirective> serverDirectives;
-
-	serverDirectives["server"] = ServerDirective(0, false, 1, 0);
-	serverDirectives["listen"] = ServerDirective(1, false, 0, 0);
-	serverDirectives["server_name"] = ServerDirective(1, false, 0, 0);
-	serverDirectives["location"] = ServerDirective(0, false, 1, 0);
-
-	return serverDirectives;
-}
