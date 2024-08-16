@@ -3,7 +3,9 @@
 
 #include "Webserv.hpp"
 
-class BlocServer;
+#include "ServerDirective.hpp"
+
+// class BlocServer;
 class BlocLocation;
 
 class ConfigParser
@@ -18,13 +20,17 @@ public:
 
 
 private:
+	static std::map<std::string, ServerDirective> _serverDirectives;
 	std::string _filename;
+	
 	std::vector<BlocServer> _servers;
 	
 	BlocServer getServerConfig(std::ifstream &file_config);
 	BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
 	void checkAttribut();
 
+	// Method init
+	std::map<std::string, ServerDirective> _generateServerDirectives(void);
 	
 	// Method utils
 	bool isValidLineLocation(BlocLocation& location, std::vector<std::string>& tokens, std::string& key);

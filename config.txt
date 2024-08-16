@@ -1,0 +1,50 @@
+Fichier de configuration du serveur.
+
+
+========= BLOCS =========
+
+- server {
+	...
+}
+
+- location {
+	...
+}
+
+========= LISTES DES DIRECTIVES =========
+
+DIRECTIVE: Is bloc ? (TRUE, FALSE) | Peut etre duppliqué (DUP, NODUP) | Nombres de paramètres (0...1, -1)
+
+server: TRUE | DUP | 0
+	- Explain: Définit un bloc de configuration pour un serveur web virtuel.
+	- Exemple: server { ... }
+
+listen: FALSE | DUP | 1
+	- Explain: Définit l'adresse IP et le port sur lequel le serveur web doit écouter les requêtes.
+	- Exemple:	listen 80;
+							listen 127.0.0.1:8080;
+
+root: FALSE | NODUP | 1
+	- Explain: Définit le répertoire racine du serveur web.
+	- Exemple: root /var/www/html;
+
+index: FALSE | DUP | -1
+	- Explain: Définit les fichiers index par défaut.
+	- Exemple: index index.html index.htm;
+
+error_page: FALSE | DUP | -1
+	- Explain: Définit les pages d'erreur personnalisées.
+	il est possible d'avoir plusieurs status code pour une seule page d'erreur.
+	- Exemple: error_page 404 405 /404.html;
+
+location: TRUE | DUP | 1
+	- Explain: Définit un bloc de configuration pour une URL spécifique.
+	- Exemple: location / { ... }
+
+alias: FALSE | NODUP | 1
+	- Explain: Définit un alias pour un répertoire.
+	- Exemple: alias /images/ /var/www/images/;
+
+rewrite: FALSE | DUP | 2
+	- Explain: Définit une règle de réécriture d'URL.
+	- Exemple: rewrite ^/old$ /new permanent;
