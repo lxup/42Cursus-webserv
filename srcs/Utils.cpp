@@ -174,3 +174,21 @@ std::string intToString(int value)
 	oss << value;
 	return oss.str();
 }
+
+/**
+ * @brief affiche l'event qui a ete detecte
+ */
+void printEvent(int fd, uint32_t event){
+	if (event & EPOLLIN)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLIN | FD: %d", fd);
+	if (event & EPOLLOUT)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLOUT | FD: %d", fd);
+	if (event & EPOLLRDHUP)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLRDHUP | FD: %d", fd);
+	if (event & EPOLLERR)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLERR | FD: %d", fd);
+	if (event & EPOLLHUP)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLHUP | FD: %d", fd);
+	else
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: UNKNOWN | FD: %d", fd);
+}

@@ -8,22 +8,22 @@ class Server
 	private:
 		bool _isRunning;
 		int _epollFD;
-		std::vector<BlocServer> _serversConfig;
-		// ip:port map to the server socket
-		std::map<std::string, int> _listeningSockets;
+
+		std::vector<BlocServer> _serversConfig; // all the Configuration for each server
+		std::map<std::string, int> _listeningSockets; // ip:port map to the server socket
+		
+		std::map<int, std::queue<std::string> > _clientRequests; // TODO : format Reponse instead of string
 
 		int check(int ret, std::string msg);
 		void addSocketEpoll(int sockFD, uint32_t flags);
-		
-		
-		void showIpClient(int clientFD);
+		void modifySocketEpoll(int sockFD, uint32_t flags);
+		void deleteSocketEpoll(int sockFD);
+		void showIpPortClient(int clientFD);
 		void handleConnection(int clientFD);
-
+		void handleEvent(int fd, uint32_t event);
 		bool isNewConnection(int fd);
-
-
-
-
+		void closeConnection(int fd);
+		void sendResponse(int fd);
 
 
 	public:

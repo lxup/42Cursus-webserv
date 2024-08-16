@@ -18,11 +18,15 @@ Server::Server() : _isRunning(true), _epollFD(-1)
  * - close the epoll instance
  */
 Server::~Server(){
-	if (_epollFD != -1)
+	if (_epollFD != -1){
 		close(_epollFD);
+		_epollFD = -1;
+	}
 	for (std::map<std::string, int>::iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it) {
-		if (it->second != -1)
+		if (it->second != -1){
 			close(it->second);
+			it->second = -1;
+		}
 	}
 }
 
@@ -49,13 +53,36 @@ int Server::check(int ret, std::string msg)
 }
 
 
-
+/**
+ * WARNING: this function do not update flags for a socket, it only add socket to 
+ * epoll with flags
+ */
 void Server::addSocketEpoll(int sockFD, uint32_t flags)
 {
 	epoll_event ev;
 	ev.events = flags;
 	ev.data.fd = sockFD;
 	check(epoll_ctl(_epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function");
+}
+
+/**
+ * @brief
+ * WARNING: this function over written previous flags
+ * 
+ */
+void Server::modifySocketEpoll(int sockFD, uint32_t flags)
+{
+	epoll_event ev;
+	ev.events = flags;
+	ev.data.fd = sockFD;
+	check(epoll_ctl(_epollFD, EPOLL_CTL_MOD, sockFD, &ev), "Error with epoll_ctl function");
+}
+
+void Server::deleteSocketEpoll(int sockFD)
+{
+	epoll_event ev;
+	ev.data.fd = sockFD;
+	check(epoll_ctl(_epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
 }
 
 
@@ -87,8 +114,8 @@ void Server::init(std::vector<BlocServer> serversConfig)
 			addr.sin_addr.s_addr = inet_addr(blocServer.getIp().c_str());
 			addr.sin_port = htons(blocServer.getPort());
 
-			int optval = 1;
-			check(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)), "Error with setsockopt SO_REUSEADDR");
+			//int optval = 1;
+			//check(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)), "Error with setsockopt SO_REUSEADDR");
 
 			check(bind(sockFD, (const sockaddr *)(&addr), sizeof(addr)), "Error with function bind");
 
@@ -104,16 +131,14 @@ void Server::init(std::vector<BlocServer> serversConfig)
 }
 
 
-void Server::showIpClient(int clientFD){
-	// todo a modifier
-	int bufferSize = 1000;
-	char client_adress[INET_ADDRSTRLEN];
+void Server::showIpPortClient(int clientFD){
+	char clientAdress[INET_ADDRSTRLEN];
 	struct sockaddr_in addr;
 	socklen_t addr_len = sizeof(addr);
 	getpeername(clientFD, (struct sockaddr*)&addr, &addr_len);
-	inet_ntop(AF_INET, &(addr.sin_addr), client_adress, bufferSize);
-	Logger::log(Logger::INFO, "Ip du client: %s", client_adress);
-
+	inet_ntop(AF_INET, &(addr.sin_addr), clientAdress, INET6_ADDRSTRLEN);
+	uint16_t clientPort = ntohs(addr.sin_port);
+	Logger::log(Logger::DEBUG, "New connection from %s:%u, SOCKET CLIENT %d", clientAdress, clientPort, clientFD);
 }
 
 /**
@@ -125,12 +150,13 @@ void Server::showIpClient(int clientFD){
 void Server::handleConnection(int clientFD){
 	
 	char buffer[BUFFER_SIZE];
-	showIpClient(clientFD);
 	ssize_t bytesRead;
 	memset(&buffer, 0, BUFFER_SIZE);
-
+	bool isEnter = false;
+	
 	while ((bytesRead = read(clientFD, buffer, BUFFER_SIZE - 1)) > 0)
 	{
+		isEnter = true;
 		Logger::log(Logger::INFO, "Le message fait: %d characteres", bytesRead);
 		Logger::log(Logger::INFO, buffer);
 		if (buffer[bytesRead - 1] == '\n')
@@ -138,20 +164,32 @@ void Server::handleConnection(int clientFD){
 		memset(&buffer, 0, BUFFER_SIZE);
 	}
 
-	// std::string response = "Salut du mini BlocServer de Raf\n";
-	std::string body = "<h1>Hello, World bonjour louis!</h1>";
-	std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
+	if (!isEnter){
+		Logger::log(Logger::DEBUG, "Le client se barre, ce batard");
+		close(clientFD);
+		return ;
+	}
 
-	check((send(clientFD, response.c_str(), response.size(), 0)), "Error with function send");
-	close(clientFD);
-	clientFD = -1;
+	// std::string response = "Salut du mini BlocServer de Raf\n";
+
+
+	// parse ta requete
+	// tu genere ta response
+
+	// tu check que tu puisse ecrire avec EPOLLOUT sur le socket 
+	// tu envois ta reponse
+
+	
+
+
+	// une fois que l'on a gere la requete et genere la reponse, on passe en mode reponse pour l'envoyer
+	modifySocketEpoll(clientFD, RESPONSE_FLAGS);
 }
 
 
 /**
  * 
- * This function searches through all the listening sockets and checks if the file descriptor
- * corresponds to any of the values in the listeningSockets map. If it corresponds, it means
+ * If fd corresponds to a listening socket, it means
  * that it is a new connection. Otherwise, it is a known client.
  * 
  * @param fd The file descriptor to check.
@@ -166,6 +204,52 @@ bool Server::isNewConnection(int fd){
 	return false;
 }
 
+void Server::closeConnection(int fd){
+	Logger::log(Logger::DEBUG, "Connection closed with client %d", fd);
+	close(fd);
+	deleteSocketEpoll(fd);
+}
+
+void Server::sendResponse(int fd){
+	// envoi temporaire d'une reponse hardcode
+	std::string body = "<h1>Hello, World bonjour louis!</h1>";
+	std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
+
+	check((send(fd, response.c_str(), response.size(), 0)), "Error with function send");
+	modifySocketEpoll(fd, REQUEST_FLAGS);
+	Logger::log(Logger::DEBUG, "Sending response to client %d", fd);
+	// send response
+	// closeConnection(fd);
+}
+
+
+/**
+ * @brief Handle the event of a file descriptor
+ * 
+ * @param fd The file descriptor to handle.
+ * @param event The event to handle.
+ */
+void Server::handleEvent(int fd, uint32_t event){
+		if (event & EPOLLIN){
+			if (isNewConnection(fd)){
+				// nouvelle connexion, faut l'ajouter a epoll
+				Logger::log(Logger::DEBUG, "New connection to the epoll");
+				int connSock = check(accept(fd, NULL, NULL), "Error with accept function");
+				check(fcntl(connSock, F_SETFL, O_NONBLOCK), "Error with function fcntl");
+				showIpPortClient(connSock);
+				addSocketEpoll(connSock, REQUEST_FLAGS);
+			}else {
+				// client qu'on connait deja
+				Logger::log(Logger::DEBUG, "Known client, on gere la requete");
+				handleConnection(fd);
+			}
+		} else if (event & EPOLLOUT) {
+			sendResponse(fd);
+		} else if (event & EPOLLRDHUP || event & EPOLLERR) {
+			closeConnection(fd);
+		}
+}
+
 /**
  * @brief Main loop of Webserv
  * listen with epoll_wait an event and then handle it
@@ -173,40 +257,21 @@ bool Server::isNewConnection(int fd){
  * 
  */
 void Server::run( void ){
-
-	// todo: a modifier
-	const int MAX_EVENTS = 10;
 	epoll_event events[MAX_EVENTS];
 
 	while (_isRunning)
 	{
 		Logger::log(Logger::INFO, "Waiting for connections...");
 		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
-		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
+
+		Logger::log(Logger::DEBUG, "There are %d EVENTS after epoll wait", nfds);
 		for (int i = 0; i < nfds; i++)
 		{
-			if (events[i].events & EPOLLIN){
-				int fd = events[i].data.fd;
-	
-				if (isNewConnection(fd)){
-					Logger::log(Logger::DEBUG, "New connection to the epoll, LISTENING SOCKET: %d", fd);
-
-					// nouvelle connexion, faut l'ajouter a epoll
-					//todo a checker les parametre
-					int connSock = check(accept(fd, NULL, NULL), "Error with accept function");
-					check(fcntl(connSock, F_SETFL, O_NONBLOCK), "Error with function fcntl");
-					Logger::log(Logger::DEBUG, "Accept connection with new Client, SOCKET CLIENT: %d", connSock);
-
-					// todo flags a changer
-					addSocketEpoll(connSock, EPOLLIN | EPOLLOUT);
-				}else {
-					// client qu'on connait deja
-					Logger::log(Logger::DEBUG, "Known client, CLIENT SOCKET: %d", fd);
-					handleConnection(fd);
-				}
-			}
+			int fd = events[i].data.fd;
+			uint32_t event = events[i].events;
+			printEvent(fd, event);
+			handleEvent(fd, event);
 		}
-		
 	}
 	
 }

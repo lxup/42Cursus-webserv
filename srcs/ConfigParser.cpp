@@ -30,7 +30,7 @@ bool ConfigParser::isValidLineLocation(BlocLocation& location, std::vector<std::
 		location.setRoot(tokens[1]);
 	else if (key == "autoindex" && !tokens[1].empty())
 		location.setAutoIndex(strToBool(tokens[1]));
-	else if (key == "rewrite" && !tokens[1].empty())
+	else if (key == "return" && !tokens[1].empty())
 		location.setRewrite(tokens[1]);
 	else if (key == "alias" && !tokens[1].empty())
 		location.setAlias(tokens[1]);

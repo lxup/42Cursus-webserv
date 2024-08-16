@@ -28,6 +28,7 @@ std::string trimLine(std::string &line);
 std::vector<std::string> split(std::string s, std::string delimiter);
 std::string unsignedIntToString(unsigned int value);
 std::string intToString(int value);
+void printEvent(int fd, uint32_t event);
 
 
 #endif // UTILS_HPP
