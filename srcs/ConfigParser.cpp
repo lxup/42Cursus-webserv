@@ -165,6 +165,16 @@ BlocServer ConfigParser::getServerConfig(std::ifstream &configFile)
  * add it to _servers vector
  * 
  */
+// void ConfigParser::parse(void)
+// {
+// 	Logger::log(Logger::DEBUG, "Parsing config file: %s", _filename.c_str());
+// 	std::ifstream configFile(_filename.c_str());
+// 	if (!configFile.is_open())
+// 		throw WebservException(Logger::FATAL, "File %s can't be opened or doesn't exist", _filename.c_str());
+	
+
+// }
+
 void ConfigParser::parse(void)
 {
 	Logger::log(Logger::DEBUG, "Parsing config file: %s", _filename.c_str());
@@ -211,4 +221,23 @@ void ConfigParser::printServers(void){
 				  << std::endl;
 		_servers[i].printServer();
 	}
+}
+
+
+
+/*  */
+/* --------------------------------- METHODS --------------------------------- */
+/*  */
+
+// Init
+std::map<std::string, ServerDirective> ConfigParser::_generateServerDirectives(void)
+{
+	std::map<std::string, ServerDirective> serverDirectives;
+
+	serverDirectives["server"] = ServerDirective(0, false, 1, 0);
+	serverDirectives["listen"] = ServerDirective(1, false, 0, 0);
+	serverDirectives["server_name"] = ServerDirective(1, false, 0, 0);
+	serverDirectives["location"] = ServerDirective(0, false, 1, 0);
+
+	return serverDirectives;
 }
