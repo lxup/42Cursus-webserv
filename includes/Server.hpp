@@ -8,7 +8,6 @@ class Server
 	private:
 		bool _isRunning;
 		int _epollFD;
-		uint32_t _currentFlagEpoll;
 
 		std::vector<BlocServer> _serversConfig; // all the Configuration for each server
 		std::map<std::string, int> _listeningSockets; // ip:port map to the server socket
