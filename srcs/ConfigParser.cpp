@@ -124,6 +124,7 @@ bool ConfigParser::isValidLineServer(BlocServer& server, std::vector<std::string
 }
 
 
+
 /**
  * @brief parse a server bloc and if encounter a location bloc, it call getLocationConfig() to parse it
  * 
@@ -181,7 +182,7 @@ void ConfigParser::parse(void)
 		if (line.empty() || line[0] == '#')
 			continue;
 		tokens = split(line, " ");
-		if (tokens[0] == "server" && tokens[1] == "{"){
+		if (tokens[0] == "server" && tokens[1] == "{" || tokens[0] == "server{"){
 			BlocServer server = getServerConfig(configFile);
 			server.checkDoubleLine();
 			_servers.push_back(server);
