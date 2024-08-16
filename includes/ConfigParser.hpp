@@ -21,6 +21,7 @@ public:
 
 private:
 	std::map<std::string, ServerDirective> _serverDirectives;
+	std::string _bufferLine;
 	std::string _filename;
 	
 	std::vector<BlocServer> _servers;
@@ -32,6 +33,7 @@ private:
 	// Method init
 
 	// Method utils
+	bool turboGetLine(std::ifstream &configFile, std::vector<std::string>& tokens);
 	bool isValidLineLocation(BlocLocation& location, std::vector<std::string>& tokens, std::string& key);
 	bool isValidLineServer(BlocServer& server, std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile);
 
