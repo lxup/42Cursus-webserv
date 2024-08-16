@@ -18,15 +18,11 @@ Server::Server() : _isRunning(true), _epollFD(-1)
  * - close the epoll instance
  */
 Server::~Server(){
-	if (_epollFD != -1){
+	if (_epollFD != -1)
 		close(_epollFD);
-		_epollFD = -1;
-	}
 	for (std::map<std::string, int>::iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it) {
-		if (it->second != -1){
+		if (it->second != -1)
 			close(it->second);
-			it->second = -1;
-		}
 	}
 }
 
@@ -215,7 +211,7 @@ void Server::sendResponse(int fd){
 	std::string body = "<h1>Hello, World bonjour louis!</h1>";
 	std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
 
-	check((send(fd, response.c_str(), response.size(), 0)), "Error with function send");
+	check((send(events[i].data.fd, response.c_str(), response.size(), 0)), "Error with function send");
 	modifySocketEpoll(fd, REQUEST_FLAGS);
 	Logger::log(Logger::DEBUG, "Sending response to client %d", fd);
 	// send response
@@ -263,14 +259,13 @@ void Server::run( void ){
 	{
 		Logger::log(Logger::INFO, "Waiting for connections...");
 		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
-
-		Logger::log(Logger::DEBUG, "There are %d EVENTS after epoll wait", nfds);
+		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
 		for (int i = 0; i < nfds; i++)
 		{
 			int fd = events[i].data.fd;
-			uint32_t event = events[i].events;
+			uint32_t = events[i].event;
 			printEvent(fd, event);
-			handleEvent(fd, event);
+			handle_event(fd, event);
 		}
 	}
 	
