@@ -192,3 +192,18 @@ void printEvent(int fd, uint32_t event){
 	else
 		Logger::log(Logger::DEBUG, "NOUVEL EVENT: UNKNOWN | FD: %d", fd);
 }
+
+
+/**
+ * @brief return la ligne line jusqu'au delimiteur,
+ * si pas de delimiteur, retourne la ligne en entiere
+ */
+std::string cutLineDelimiter(std::string& line, char delimiter){
+	size_t pos = line.find(delimiter);
+
+	if (pos != std::string::npos){
+		return (line.substr(0, pos));
+	}else{
+		return (line);
+	}
+}
