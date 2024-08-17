@@ -1,16 +1,8 @@
 #include "Server.hpp"
 
-/*
-** ------------------------------- CONSTRUCTOR --------------------------------
-*/
-
-Server::Server() : _isRunning(true), _epollFD(-1)
+Server::Server() : _isRunning(true), _epollFD(-1), _state(S_STATE_INIT)
 {
 }
-
-/*
-** -------------------------------- DESTRUCTOR --------------------------------
-*/
 
 /**
  * @brief Destroy the Server:: Server object
@@ -81,6 +73,20 @@ void Server::deleteSocketEpoll(int sockFD)
 	check(epoll_ctl(_epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
 }
 
+// void Server::updateSocketEpoll(int sockFD, uint32_t flags, int op){
+// 	epoll_event ev;
+
+// 	if (operation == EPOLL_CTL_MOD || operation == EPOLL_CTL_ADD) {
+//         ev.events |= flags; // Ajouter les nouveaux flags aux existants
+//     } else if (operation == EPOLL_CTL_DEL) {
+//         ev.events &= ~flags; // Supprimer les flags spécifiés
+//     } else {
+// 		ev.events = flags;
+// 	}
+// 	ev.data.fd = sockFD;
+// 	check(epoll_ctl(_epollFD, op, sockFD, &ev), "Error with epoll_ctl function");
+// }
+
 
 /**
  * @brief Initializes the server with the given server configurations.
@@ -93,16 +99,16 @@ void Server::deleteSocketEpoll(int sockFD)
  */
 void Server::init(std::vector<BlocServer> serversConfig)
 {
-	_serversConfig = serversConfig;
-	_epollFD = check(epoll_create1(O_CLOEXEC), "Error with epoll function");
+	this->_serversConfig = serversConfig;
+	this->_epollFD = check(epoll_create1(O_CLOEXEC), "Error with epoll function");
 
-	for (size_t i = 0; i < serversConfig.size(); i++)
+	for (size_t i = 0; i < this->_serversConfig.size(); i++)
 	{
 		BlocServer blocServer = serversConfig[i];
 		std::string ipPort = blocServer.getIpPortJoin();
-		if (_listeningSockets.find(ipPort) == _listeningSockets.end())
+		if (this->_listeningSockets.find(ipPort) == this->_listeningSockets.end())
 		{
-			//ajouter un new socket
+			// add new listening socket
 			int sockFD = check(socket(AF_INET, SOCK_STREAM, 0), "Error with function socket");
 
 			struct sockaddr_in addr;
@@ -206,17 +212,17 @@ void Server::closeConnection(int fd){
 	deleteSocketEpoll(fd);
 }
 
-void Server::sendResponse(int fd){
-	// envoi temporaire d'une reponse hardcode
-	std::string body = "<h1>Hello, World bonjour louis!</h1>";
-	std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
+// void Server::sendResponse(int fd){
+// 	// envoi temporaire d'une reponse hardcode
+// 	std::string body = "<h1>Hello, World bonjour louis!</h1>";
+// 	std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
 
-	check((send(events[i].data.fd, response.c_str(), response.size(), 0)), "Error with function send");
-	modifySocketEpoll(fd, REQUEST_FLAGS);
-	Logger::log(Logger::DEBUG, "Sending response to client %d", fd);
-	// send response
-	// closeConnection(fd);
-}
+// 	check((send(events[i].data.fd, response.c_str(), response.size(), 0)), "Error with function send");
+// 	modifySocketEpoll(fd, REQUEST_FLAGS);
+// 	Logger::log(Logger::DEBUG, "Sending response to client %d", fd);
+// 	// send response
+// 	// closeConnection(fd);
+// }
 
 
 /**
@@ -240,7 +246,7 @@ void Server::handleEvent(int fd, uint32_t event){
 				handleConnection(fd);
 			}
 		} else if (event & EPOLLOUT) {
-			sendResponse(fd);
+			// sendResponse(fd);
 		} else if (event & EPOLLRDHUP || event & EPOLLERR) {
 			closeConnection(fd);
 		}
@@ -252,21 +258,40 @@ void Server::handleEvent(int fd, uint32_t event){
  * either it's a new connection either it's already a knowned client	
  * 
  */
-void Server::run( void ){
-	epoll_event events[MAX_EVENTS];
 
-	while (_isRunning)
+void Server::run( void ){
+	if (this->_state != S_STATE_READY)
+		WebservException(Logger::FATAL, "Server is not ready to run, something went wrong during initialization");
+	this->_state = S_STATE_RUN;
+	while (this->getIsRunning())
 	{
 		Logger::log(Logger::INFO, "Waiting for connections...");
-		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
-		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
-		for (int i = 0; i < nfds; i++)
-		{
-			int fd = events[i].data.fd;
-			uint32_t = events[i].event;
-			printEvent(fd, event);
-			handle_event(fd, event);
-		}
 	}
-	
+
+	Logger::log(Logger::INFO, "Server is stopping...");
 }
+
+
+
+
+
+
+
+// void Server::run( void ){
+// 	epoll_event events[MAX_EVENTS];
+
+// 	while (_isRunning)
+// 	{
+// 		Logger::log(Logger::INFO, "Waiting for connections...");
+// 		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
+// 		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
+// 		for (int i = 0; i < nfds; i++)
+// 		{
+// 			int fd = events[i].data.fd;
+// 			uint32_t = events[i].event;
+// 			printEvent(fd, event);
+// 			handle_event(fd, event);
+// 		}
+// 	}
+	
+// }

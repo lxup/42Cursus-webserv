@@ -3,8 +3,6 @@
 
 #include "Webserv.hpp"
 
-#include "ServerDirective.hpp"
-
 class BlocServer;
 class BlocLocation;
 
@@ -20,7 +18,6 @@ public:
 
 
 private:
-	static std::map<std::string, ServerDirective> _serverDirectives;
 	std::string _bufferLine;
 	std::string _filename;
 	

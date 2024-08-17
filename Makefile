@@ -68,6 +68,8 @@ CXXFLAGS		+=	-I$(INC_PATH)
 #                                   SOURCES                                    #
 # ** #
 
+
+
 HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					Webserv \
 					Utils \
@@ -77,7 +79,7 @@ HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					BlocServer \
 					BlocLocation \
 					Server \
-					ServerDirective \
+					Request \
 					))
 
 SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
@@ -89,7 +91,7 @@ SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					BlocServer \
 					BlocLocation \
 					Server \
-					ServerDirective \
+					Request \
 					))
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)
