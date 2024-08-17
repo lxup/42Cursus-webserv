@@ -21,6 +21,7 @@ enum e_boolMod
 class BlocLocation
 {
 	private:
+		// config bloc location
 		std::string _location;
 		std::string _root;
 		std::string _rewrite;
@@ -28,18 +29,24 @@ class BlocLocation
 		std::vector<std::string> _files;
 		std::vector<e_Methods> _allowedMethods;
 		e_boolMod _autoindex;
-		std::map<std::string, int> _counter;
 
+		// divers
+		std::map<std::string, int> _counter;
+		std::string _filename;
 	public:
-		BlocLocation();
+		BlocLocation(std::string filename);
 		~BlocLocation();
+
+		// parsing
+		BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
+		bool isValidLineLocation(std::vector<std::string>& tokens, std::string& key);
 
 		// Methods
 		void incrementCounter(const std::string& key) { _counter[key]++; }
 		void checkDoubleLine();
-		void checkValue();
-		bool fileExistVector();
+		//void checkValue();
 		bool methodsExist();
+		e_boolMod strToBool(std::string &str);
 
 		// Adders
 		void addAllowedMethods(std::string &token);

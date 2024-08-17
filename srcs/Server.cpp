@@ -95,7 +95,6 @@ void Server::init(std::vector<BlocServer> serversConfig)
 {
 	_serversConfig = serversConfig;
 	_epollFD = check(epoll_create1(O_CLOEXEC), "Error with epoll function");
-
 	for (size_t i = 0; i < serversConfig.size(); i++)
 	{
 		BlocServer blocServer = serversConfig[i];
