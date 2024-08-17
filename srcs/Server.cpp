@@ -266,32 +266,15 @@ void Server::run( void ){
 	while (this->getIsRunning())
 	{
 		Logger::log(Logger::INFO, "Waiting for connections...");
+		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
+		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
+		for (int i = 0; i < nfds; i++)
+		{
+			int fd = events[i].data.fd;
+			uint32_t = events[i].event;
+			printEvent(fd, event);
+			handle_event(fd, event);
+		}
 	}
-
-	Logger::log(Logger::INFO, "Server is stopping...");
-}
-
-
-
-
-
-
-
-// void Server::run( void ){
-// 	epoll_event events[MAX_EVENTS];
-
-// 	while (_isRunning)
-// 	{
-// 		Logger::log(Logger::INFO, "Waiting for connections...");
-// 		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
-// 		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
-// 		for (int i = 0; i < nfds; i++)
-// 		{
-// 			int fd = events[i].data.fd;
-// 			uint32_t = events[i].event;
-// 			printEvent(fd, event);
-// 			handle_event(fd, event);
-// 		}
-// 	}
 	
 // }

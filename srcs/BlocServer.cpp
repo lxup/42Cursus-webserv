@@ -17,10 +17,6 @@ void BlocServer::checkAttribut()
 {
 	if (!checkIp())
 		throw WebservException(Logger::FATAL, "Invalid Ip/Port value");
-	if (!directoryExist(_root.c_str()))
-		throw WebservException(Logger::FATAL, "Invalid Root value");
-	if (!fileExistMap())
-		throw WebservException(Logger::FATAL, "Invalid Error value");
 	checkLocation();
 }
 
@@ -68,14 +64,14 @@ bool BlocServer::checkIp()
 
 void BlocServer::printServer(void) const
 {
-	std::cout << "BlocServer name: " << _serverName << std::endl;
+	std::cout << "Server name: " << _serverName << std::endl;
 	std::cout << "Ip: " << _ip << std::endl;
 	std::cout << "Port: " << _port << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Client max body size: " << _clientMaxBodySize << std::endl;
 	std::cout << "Error pages: " << std::endl;
 	for (std::map<unsigned int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); ++it)
-		std::cout << it->first << " => " << it->second << std::endl;
+		std::cout << it->first << "	- " << it->second << std::endl;
 	std::cout << std::endl;
 
 	int i = 0;

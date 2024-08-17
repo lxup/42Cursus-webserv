@@ -55,30 +55,23 @@ bool BlocLocation::methodsExist()
 
 void BlocLocation::checkValue()
 {
-	if (!directoryExist(_location.c_str()))
-		throw WebservException(Logger::FATAL, "Invalid path value");
-	if (!directoryExist(_root.c_str()) && !_root.empty())
-		throw WebservException(Logger::FATAL, "Invalid root location value");
-	if (!directoryExist(_alias.c_str()) && !_alias.empty())
-		throw WebservException(Logger::FATAL, "Invalid alias value");
-	if (!fileExistVector())
-		throw WebservException(Logger::FATAL, "Invalid file value");
 	if (!methodsExist())
 		throw WebservException(Logger::FATAL, "Invalid methods value");
 }
 
 void BlocLocation::printLocation(void) const
 {
-	std::cout << "BlocLocation: " << _location << std::endl;
+	std::cout << "Path: " << _location << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Rewrite: " << _rewrite << std::endl;
 	std::cout << "Alias: " << _alias << std::endl;
 	std::cout << "Files: " << std::endl;
 	for (std::vector<std::string>::const_iterator it = _files.begin(); it != _files.end(); ++it)
-		std::cout << *it << std::endl;
+		std::cout << "	- " << *it << std::endl;
 	std::cout << "Allowed methods: " << std::endl;
 	for (std::vector<e_Methods>::const_iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); ++it)
 	{
+		std::cout << "	- ";
 		if (*it == GET)
 			std::cout << "GET" << std::endl;
 		else if (*it == POST)
