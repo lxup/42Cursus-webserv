@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/17 16:10:58 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/17 21:42:42 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,8 @@ int main(int ac, char **av)
 		configs.printServers();
 
 		// 2- Initialisation et lancement du Server
-		server.init(configs.getServersConfig());
-		server.run();
+		//server.init(configs.getServersConfig());
+		//server.run();
 	}
 	catch (const WebservException &e){
 		Logger::log(e.getLogLevel(), e.what());

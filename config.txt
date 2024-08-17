@@ -1,5 +1,8 @@
 Fichier de configuration du serveur.
 
+========= RULES =========
+- Les lignes commençant par # sont des commentaires. Pas le droit de mettre un commentaire sur la même ligne qu'une directive.
+
 
 ========= BLOCS =========
 
@@ -44,8 +47,8 @@ server_name: DUP | -1 | localhost
 
 error_page: DUP | -1 | /var/www/error.html
 	- Explain: Définit les pages d'erreur personnalisées.
-	il est possible d'avoir plusieurs status code pour une seule page d'erreur.
-	- Exemple: error_page 404 405 /404.html;
+	- La syntaxe est stricte: error_page CODE /path/to/file;
+	- Exemple: error_page 404 /404.html;
 
 root: NODUP | 1 | /var/www/html
 	- Explain: Définit le répertoire racine du serveur web.
@@ -99,6 +102,7 @@ upload_path: NODUP | 1 | /var/www/upload
 	- Exemple: upload_path /var/www/images;
 
 
+========= RECAP =========
 
 | **Directive**                | **Bloc**        | **Duplicable (DUP/NODUP)** | **Nombre de paramètres** | **Valeur par défaut**               | **Explication**                                                                 | **Exemple**                                       |
 |------------------------------|-----------------|----------------------------|--------------------------|-------------------------------------|---------------------------------------------------------------------------------|--------------------------------------------------|
@@ -118,3 +122,19 @@ upload_path: NODUP | 1 | /var/www/upload
 | **allow_methods**            | location        | NODUP                      | -1                       | GET DELETE POST                     | Définit les méthodes HTTP autorisées.                                           | `allow_methods GET DELETE POST;`                  |
 | **cgi_extension**            | location        | DUP                        | 2                        | none                                | Définit l'extension qui sera associée à un script CGI.                         | `cgi_extension .php /var/www/cgi-bin/php-cgi;`    |
 | **upload_path**              | location        | NODUP                      | 1                        | /var/www/upload                     | Définit le répertoire de destination des fichiers uploadés.                    | `upload_path /var/www/images;`                    |
+
+
+========= EXEMPLES =========
+
+server {
+	listen 80;
+	server_name louis.com;
+	root /var/www/html;
+	index index.html index.htm;
+	error_page 404 /404.html;
+
+	location / {
+		root /var/www/html;
+		index index.html index.htm;
+	}
+}

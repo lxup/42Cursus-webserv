@@ -5,6 +5,15 @@ ConfigParser::ConfigParser(const std::string &filename) : _filename(filename){
 
 ConfigParser::~ConfigParser(void) {}
 
+// ================== UTILS ==================
+
+bool ConfigParser::isStartBlocServer(std::vector<std::string> tokens){
+	return ((tokens[0] == "server" && tokens[1] == "{") && tokens.size() == 2) 
+				|| (tokens[0] == "server{" && tokens.size() == 1);
+}
+
+
+// ================== PARSER ==================
 /**
  * @brief main function to parse the config file
  * if encounter server bloc, call the getServerConfig function and 
@@ -28,12 +37,12 @@ void ConfigParser::parse(void)
 		if (line.empty() || line[0] == '#')
 			continue;
 		tokens = split(line, " ");
-		if ((tokens[0] == "server" && tokens[1] == "{") || tokens[0] == "server{"){
+		if (isStartBlocServer(tokens)){
 			BlocServer server(_filename);
 			_servers.push_back(server.getServerConfig(configFile));
 		}
 		else{
-			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename, ConfigParser::countLineFile);
+			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		}
 	}
 	configFile.close();

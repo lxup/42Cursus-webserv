@@ -78,6 +78,7 @@ HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					BlocLocation \
 					Server \
 					ServerDirective \
+					Listen \
 					))
 
 SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
@@ -90,6 +91,7 @@ SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					BlocLocation \
 					Server \
 					ServerDirective \
+					Listen \
 					))
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)

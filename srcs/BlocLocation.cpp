@@ -5,13 +5,13 @@ BlocLocation::BlocLocation(std::string filename) : _location(""), _root(""), _re
 {
 	// todo changer ca parce que par defautl ya les trois
 	_allowedMethods.push_back(GET);
-	_counter["location"] = 0;
-	_counter["root"] = 0;
-	_counter["rewrite"] = 0;
-	_counter["alias"] = 0;
-	_counter["files"] = 0;
-	_counter["allowedMethods"] = 0;
-	_counter["autoindex"] = 0;
+	_counterView["location"] = 0;
+	_counterView["root"] = 0;
+	_counterView["rewrite"] = 0;
+	_counterView["alias"] = 0;
+	_counterView["files"] = 0;
+	_counterView["allowedMethods"] = 0;
+	_counterView["autoindex"] = 0;
 }
 
 BlocLocation::~BlocLocation() {}
@@ -71,12 +71,11 @@ bool BlocLocation::methodsExist()
  * @brief This function checks if a line in the configuration file is a good directive in BlocLocation bloc (autoindex par ex)
  * It updates the location object with the corresponding values if the line is valid.
  * 
- * @param location  The BlocLocation object to update.
- * @param tokens  A vector of strings containing the tokens of the line.
- * @param key The key of the line. (the first token)
  */
 bool BlocLocation::isValidLineLocation(std::vector<std::string>& tokens, std::string& key)
 {
+	if (tokens.size() < 2)
+		return false;
 	if (key == "root" && !tokens[1].empty())
 		setRoot(tokens[1]);
 	else if (key == "autoindex" && !tokens[1].empty())
@@ -132,7 +131,7 @@ BlocLocation BlocLocation::getLocationConfig(std::ifstream &configFile, std::str
 			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	}
 	if (!isCloseLocation)
-		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
+		throw WebservException(Logger::FATAL, "Missing } in file %s:%d", _filename.c_str(), ConfigParser::countLineFile);
 	
 	return (*this);
 }
@@ -150,7 +149,7 @@ void BlocLocation::printLocation(void) const
 	std::cout << "Rewrite: " << _rewrite << std::endl;
 	std::cout << "Alias: " << _alias << std::endl;
 	std::cout << "Files: " << std::endl;
-	for (std::vector<std::string>::const_iterator it = _files.begin(); it != _files.end(); ++it)
+	for (std::vector<std::string>::const_iterator it = _indexes.begin(); it != _indexes.end(); ++it)
 		std::cout << "	- " << *it << std::endl;
 	std::cout << "Allowed methods: " << std::endl;
 	for (std::vector<e_Methods>::const_iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); ++it)
@@ -176,7 +175,7 @@ void BlocLocation::checkDoubleLine()
 
 	std::map<std::string, int>::iterator it;
 
-	for (it = _counter.begin(); it != _counter.end(); ++it)
+	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 	{
 		if (it->second > 1)
 		{

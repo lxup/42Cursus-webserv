@@ -2,20 +2,13 @@
 
 // ============ GENERAL ============
 
-BlocServer::BlocServer(std::string filename) : _port(69), _root("./config/0.conf"), _clientMaxBodySize(0), _filename(filename)
+BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(-1), _filename(filename)
 {
-	_serverName.push_back("localhost");
-	_counter["root"] = 0;
-	_counter["clientMaxBodySize"] = 0;
+	_counterView["root"] = 0;
+	_counterView["clientMaxBodySize"] = 0;
 }
 
 BlocServer::~BlocServer(){}
-
-
-std::string BlocServer::getIpPortJoin() const{
-	return (_ip + ":" + unsignedIntToString(_port));
-}
-
 
 //void BlocServer::checkAttribut()
 //{
@@ -26,16 +19,51 @@ std::string BlocServer::getIpPortJoin() const{
 //}
 
 
+// ============ UTILS ============
+bool BlocServer::isStartBlocLocation(std::vector<std::string>& tokens)
+{
+	return (tokens.size() == 3 && tokens[0] == "location" && tokens[2] == "{");
+}
+
+void BlocServer::addListen(std::string &token)
+{
+	Listen listen(token);
+	
+	if (_listens.find(listen.getIpPortJoin()) != _listens.end())
+		throw WebservException(Logger::FATAL, "Dupplicate listen in server context: %s", token.c_str());
+
+	_listens[listen.getIpPortJoin()] = listen;
+}
+
+void BlocServer::addServerName(std::vector<std::string>& token){
+	for (size_t i = 1; i < token.size(); i++){
+		if (std::find(_serverNames.begin(), _serverNames.end(), token[i]) == _serverNames.end())
+			_serverNames.push_back(token[i]);
+	}
+}
+
+void BlocServer::addIndexes(std::vector<std::string>& token){
+	for (size_t i = 1; i < token.size(); i++){
+		if (std::find(_indexes.begin(), _indexes.end(), token[i]) == _indexes.end())
+			_indexes.push_back(token[i]);
+	}
+}
+
+void BlocServer::addErrorPages(unsigned int errorCode, std::string file)
+{ 
+	if (errorCode < 400 || errorCode > 599)
+		throw WebservException(Logger::FATAL, "Invalid error code: %d in file %s:%d", errorCode, _filename.c_str(), ConfigParser::countLineFile);
+	_errorPages[errorCode] = file; 
+}
+
 // ============ CHECKER ============
 void BlocServer::checkAttribut()
 {
-	if (!checkIp())
-		throw WebservException(Logger::FATAL, "Invalid Ip/Port value");
 	//checkLocation();
 }
 
 //void BlocServer::checkLocation()
-//{
+//{	
 //	std::vector<BlocLocation>::iterator itLoc;
 
 //	for (itLoc = _locations.begin(); itLoc != _locations.end(); itLoc++)
@@ -52,36 +80,13 @@ bool BlocServer::fileExistMap()
 	return (true);
 }
 
-bool BlocServer::checkIp()
-{
-	int	i = 0;
-	int	j = 0;
-	std::string str = _ip + ":" + unsignedIntToString(_port);
-
-	for (int p = 0; p < 3; p++)
-	{
-		while (isdigit(str[i + j]))
-		i++;
-		if (i == 0 || i > 3 || str[j + i++] != '.')
-			return (false);
-		j += i;
-		i = 0;
-	}
-	while (isdigit(str[i + j]))
-		i++;
-	if (i == 0 || i > 3 || str[j + i++] != ':')
-		return (false);
-	if (_port > 65535)
-		return (false);
-	return (true);
-}
 
 
 void BlocServer::checkDoubleLine()
 {
 	std::map<std::string, int>::iterator it;
 
-	for (it = _counter.begin(); it != _counter.end(); ++it)
+	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 		if (it->second > 1)
 			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
 }
@@ -92,6 +97,25 @@ void BlocServer::checkDoubleLine()
 // ============ PARSING ============
 
 /**
+ * @brief This function sets the default values for the server object.
+ * At the all end
+ * 
+ */
+void BlocServer::setDefaultValue()
+{
+	if (_listens.empty()){
+		Listen listen("0.0.0.0:80");
+		_listens["0.0.0.0:80"] = listen;
+	}
+	if (_serverNames.empty())
+		_serverNames.push_back("localhost");
+	if (_root.empty())
+		_root = "./config/0.conf";
+	if (_indexes.empty())
+		_indexes.push_back("index.html");
+}
+
+/**
  * @brief This function checks if a line in the configuration file is a good directive in BlocServer bloc (server_name par ex)
  * It updates the server object with the corresponding values if the line is valid.
  * 
@@ -99,25 +123,23 @@ void BlocServer::checkDoubleLine()
  * @param key The key of the line. (the first token)
  */
 bool BlocServer::isValidLineServer(std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile){
-	if (tokens.size() == 3 && key == "location" && tokens[2] == "{"){
+	if (tokens.size() < 2)
+		return false;
+	if (isStartBlocLocation(tokens)){
 		BlocLocation location(_filename);
 		addLocation(location.getLocationConfig(configFile, tokens[1]));
 	}
-	else if (key == "listen")
-	{
-		std::vector<std::string> ip = split(tokens[1], ":");
-		setIp(ip[0]);
-		setPort(std::atoi(ip[1].c_str()));
-	}
+	else if (key == "listen" && tokens.size() == 2)
+		addListen(tokens[1]);
 	else if (key == "server_name")
-		setServerName(split(tokens[1], " "));
-	else if (key == "root")
+		addServerName(tokens);
+	else if (key == "index")
+		addIndexes(tokens);
+	else if (key == "root" && tokens.size() == 2)
 		setRoot(tokens[1]);
-	else if (key == "client_max_body_size")
+	else if (key == "client_max_body_size" && tokens.size() == 2)
 		setClientMaxBodySize(std::atoi(tokens[1].c_str()));
-	else if (key == "error_page")
-	{
-		incrementCounter(tokens[1]);
+	else if (key == "error_page" && tokens.size() == 3){
 		addErrorPages(std::atoi(tokens[1].c_str()), tokens[2]);
 	}else
 		return (false);
@@ -155,15 +177,11 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	}
 	if (isCloseServer == false)
-		throw WebservException(Logger::FATAL, "Missing } in %s", _filename);
+		throw WebservException(Logger::FATAL, "Missing } in file %s:%d", _filename.c_str(), ConfigParser::countLineFile);
+	checkDoubleLine();
+	setDefaultValue();
 	return (*this);
 }
-
-
-
-
-
-
 
 
 
@@ -171,15 +189,23 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 // ============ PRINT ============
 void BlocServer::printServer(void) const
 {
-	std::cout << "Server names: ";
-	for (size_t i = 0; i < _serverName.size(); i++)
-	{
-		std::cout << _serverName[i] << " ";
+	// Server names
+	std::cout << "Server names: " << std::endl;
+	for (size_t i = 0; i < _serverNames.size(); i++){
+		std::cout << "	- " << _serverNames[i] << std::endl;
 	}
 	std::cout << std::endl;
 	
-	std::cout << "Ip: " << _ip << std::endl;
-	std::cout << "Port: " << _port << std::endl;
+	// Listen
+	std::cout << "Listens: " << std::endl;
+	for (std::map<std::string, Listen>::const_iterator it = _listens.begin(); it != _listens.end(); ++it)
+		std::cout << "	- " << it->second.getIp() << ":" << it->second.getPort() << std::endl;
+
+	// Indexes
+	std::cout << "Indexes: " << std::endl;
+	for (size_t i = 0; i < _indexes.size(); i++)
+		std::cout << "	- " << _indexes[i] << std::endl;
+
 	std::cout << "Root: " << _root << std::endl;
 	std::cout << "Client max body size: " << _clientMaxBodySize << std::endl;
 	std::cout << "Error pages: " << std::endl;
