@@ -1,7 +1,6 @@
 #include "ConfigParser.hpp"
 
-ConfigParser::ConfigParser(const std::string &filename)
-	: _filename(filename){
+ConfigParser::ConfigParser(const std::string &filename) : _filename(filename), _countLineFile(0){
 }
 
 ConfigParser::~ConfigParser(void) {}
@@ -34,7 +33,7 @@ bool ConfigParser::isValidLineLocation(BlocLocation& location, std::vector<std::
 		location.setRewrite(tokens[1]);
 	else if (key == "alias" && !tokens[1].empty())
 		location.setAlias(tokens[1]);
-	else if (key == "allowed_methods" && !tokens[1].empty())
+	else if (key == "allow_methods" && !tokens[1].empty())
 	{
 		location.incrementCounter("allowedMethods");
 		for (size_t i = 1; i < tokens.size(); i++)
@@ -65,11 +64,13 @@ BlocLocation ConfigParser::getLocationConfig(std::ifstream &configFile, std::str
 	bool isCloseLocation = false;
 
 	location.setLocation(path);
-	while (turboGetLine(configFile, tokens))
-	{
-		key = tokens[0];
-		if (key[0] == '#')
+	while (std::getline(configFile, line)){
+		_countLineFile++;
+		line = trimLine(line);
+		if (line.empty() || line[0] == '#')
 			continue;
+		tokens = split(line, " ");
+		key = tokens[0];
 		if (key[0] == '}'){
 			isCloseLocation = true;
 			break;
@@ -77,9 +78,9 @@ BlocLocation ConfigParser::getLocationConfig(std::ifstream &configFile, std::str
 		if (isValidLineLocation(location, tokens, key))
 			continue;
 		else
-			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), tokens[tokens.size() - 1].c_str());
+			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), _countLineFile);
 	}
-	if (!isCloseLocation && tokens.empty())
+	if (!isCloseLocation)
 		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
 	
 	return location;
@@ -121,41 +122,6 @@ bool ConfigParser::isValidLineServer(BlocServer& server, std::vector<std::string
 	return (true);
 }
 
-/**
- * @brief regarde dans la static (_bufferLine) pour voir s'il reste une directive a traiter
- * sinon lit jusqu'au prochain ; et revoit true si tout vas bien, false si fin de fichier
- * 
- * @param configFile 
- */
-bool ConfigParser::turboGetLine(std::ifstream &configFile, std::vector<std::string>& tokens){
-    // Si _bufferLine contient déjà une directive à traiter
-    if (!_bufferLine.empty()){
-        size_t pos;
-        if ((pos = _bufferLine.find(';')) != std::string::npos){
-            std::string line = _bufferLine.substr(0, pos);
-            _bufferLine.erase(0, pos + 1);
-            tokens = split(line, " ");
-				return (true);
-        }
-    }
-
-    std::string line;
-    // Lire le fichier jusqu'à trouver un `;`
-    while (std::getline(configFile, line)){
-        _bufferLine += line + " ";
-        if (line.find(';') != std::string::npos){
-            size_t pos = _bufferLine.find(';');
-            std::string result = _bufferLine.substr(0, pos);
-            _bufferLine.erase(0, pos + 1);
-            tokens = split(result, " ");
-				return (true);
-        }
-    }
-
-    // Si on atteint ici, il n'y avait pas de `;` dans le fichier restant
-    return false;
-}
-
 
 /**
  * @brief parse a server bloc and if encounter a location bloc, it call getLocationConfig() to parse it
@@ -171,11 +137,13 @@ BlocServer ConfigParser::getServerConfig(std::ifstream &configFile)
 	std::string key;
 	bool isCloseServer = false;
 
-	while (turboGetLine(configFile, tokens)){
-		
-		key = tokens[0];
-		if (key[0] == '#')
+	while (std::getline(configFile, line)){
+		_countLineFile++;
+		line = trimLine(line);
+		if (line.empty() || line[0] == '#')
 			continue;
+		tokens = split(line, " ");
+		key = tokens[0];
 		if (key[0] == '}'){
 			isCloseServer = true;
 			break;
@@ -183,9 +151,9 @@ BlocServer ConfigParser::getServerConfig(std::ifstream &configFile)
 		else if (isValidLineServer(server, tokens, key, configFile))
 			continue ;
 		else
-			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), tokens[tokens.size() - 1].c_str());
+			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), _countLineFile);
 	}
-	if (isCloseServer == false && tokens.empty())
+	if (isCloseServer == false)
 		throw WebservException(Logger::FATAL, "Missing } in %s", _filename.c_str());
 	return (server);
 }
@@ -196,16 +164,6 @@ BlocServer ConfigParser::getServerConfig(std::ifstream &configFile)
  * add it to _servers vector
  * 
  */
-// void ConfigParser::parse(void)
-// {
-// 	Logger::log(Logger::DEBUG, "Parsing config file: %s", _filename.c_str());
-// 	std::ifstream configFile(_filename.c_str());
-// 	if (!configFile.is_open())
-// 		throw WebservException(Logger::FATAL, "File %s can't be opened or doesn't exist", _filename.c_str());
-	
-
-// }
-
 void ConfigParser::parse(void)
 {
 	Logger::log(Logger::DEBUG, "Parsing config file: %s", _filename.c_str());
@@ -218,6 +176,7 @@ void ConfigParser::parse(void)
 
 	while (std::getline(configFile, line))
 	{
+		_countLineFile++;
 		line = trimLine(line);
 		if (line.empty() || line[0] == '#')
 			continue;
@@ -228,7 +187,7 @@ void ConfigParser::parse(void)
 			_servers.push_back(server);
 		}
 		else{
-			throw WebservException(Logger::FATAL, "Invalid line in %s file: %s", _filename.c_str(), line.c_str());
+			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), _countLineFile);
 		}
 	}
 	checkAttribut();

@@ -21,7 +21,6 @@ public:
 };
 
 /* UTILS */
-std::string cutLineDelimiter(std::string& line, char delimiter);
 void printMsg(std::ostream &os, const char *msg, ...);
 bool directoryExist(const char *path);
 bool fileExist(const std::string &name);

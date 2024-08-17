@@ -211,7 +211,7 @@ void Server::sendResponse(int fd){
 	std::string body = "<h1>Hello, World bonjour louis!</h1>";
 	std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + intToString(body.size()) + "\n\n" + body;
 
-	check((send(events[i].data.fd, response.c_str(), response.size(), 0)), "Error with function send");
+	check((send(fd, response.c_str(), response.size(), 0)), "Error with function send");
 	modifySocketEpoll(fd, REQUEST_FLAGS);
 	Logger::log(Logger::DEBUG, "Sending response to client %d", fd);
 	// send response
@@ -263,9 +263,9 @@ void Server::run( void ){
 		for (int i = 0; i < nfds; i++)
 		{
 			int fd = events[i].data.fd;
-			uint32_t = events[i].event;
+			uint32_t event = events[i].events;
 			printEvent(fd, event);
-			handle_event(fd, event);
+			handleEvent(fd, event);
 		}
 	}
 	
