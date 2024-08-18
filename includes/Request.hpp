@@ -19,5 +19,6 @@ class Request
 		Request();
 		~Request();
 		void storageValue(char *str, unsigned int bytes);
+		void addAllowedMethods(std::string &token);
 };
 #endif
