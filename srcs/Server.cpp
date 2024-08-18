@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-Server::Server() : _isRunning(true), _epollFD(-1), _state(S_STATE_INIT)
+Server::Server() : _state(S_STATE_INIT), _epollFD(-1)
 {
 }
 
@@ -10,11 +10,20 @@ Server::Server() : _isRunning(true), _epollFD(-1), _state(S_STATE_INIT)
  * - close the epoll instance
  */
 Server::~Server(){
-	if (_epollFD != -1)
-		close(_epollFD);
-	for (std::map<std::string, int>::iterator it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it) {
-		if (it->second != -1)
-			close(it->second);
+	if (this->_epollFD != -1)
+		protectedCall(close(_epollFD), "Faild to close epoll instance", false);
+	// Close all the listening sockets
+	for (std::map<int, Socket>::iterator it = this->_sockets.begin(); it != this->_sockets.end(); ++it)
+	{
+		if (it->second.getFd() != -1)
+			protectedCall(close(it->second.getFd()), "Faild to close listening socket", false);
+	}
+	this->_sockets.clear();
+	// Close all the client sockets
+	for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+	{
+		if (it->second.getFd() != -1)
+			protectedCall(close(it->second.getFd()), "Faild to close client socket", false);
 	}
 }
 
@@ -23,23 +32,8 @@ Server::~Server(){
 */
 
 void Server::stop( void ) {
-   _isRunning = false;
+	this->setState(S_STATE_STOP);
 }
-
-
-/**
- * @param ret return code of function to test
- * @param msg message in case of error
- * @return the return code of the function if >= 0
- */
-int Server::check(int ret, std::string msg)
-{
-	if (ret < 0){
-		throw WebservException(Logger::FATAL, msg.c_str());
-	}
-	return ret;
-}
-
 
 /**
  * WARNING: this function do not update flags for a socket, it only add socket to 
@@ -50,7 +44,7 @@ void Server::addSocketEpoll(int sockFD, uint32_t flags)
 	epoll_event ev;
 	ev.events = flags;
 	ev.data.fd = sockFD;
-	check(epoll_ctl(_epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function");
+	protectedCall(epoll_ctl(_epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function");
 }
 
 /**
@@ -63,14 +57,14 @@ void Server::modifySocketEpoll(int sockFD, uint32_t flags)
 	epoll_event ev;
 	ev.events = flags;
 	ev.data.fd = sockFD;
-	check(epoll_ctl(_epollFD, EPOLL_CTL_MOD, sockFD, &ev), "Error with epoll_ctl function");
+	protectedCall(epoll_ctl(_epollFD, EPOLL_CTL_MOD, sockFD, &ev), "Error with epoll_ctl function");
 }
 
 void Server::deleteSocketEpoll(int sockFD)
 {
 	epoll_event ev;
 	ev.data.fd = sockFD;
-	check(epoll_ctl(_epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
+	protectedCall(epoll_ctl(_epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
 }
 
 // void Server::updateSocketEpoll(int sockFD, uint32_t flags, int op){
@@ -99,37 +93,28 @@ void Server::deleteSocketEpoll(int sockFD)
  */
 void Server::init(std::vector<BlocServer> serversConfig)
 {
-	this->_serversConfig = serversConfig;
-	this->_epollFD = check(epoll_create1(O_CLOEXEC), "Error with epoll function");
+	Logger::log(Logger::DEBUG, "Create epoll instance...");
+	this->setEpollFD(protectedCall(epoll_create1(O_CLOEXEC), "Failed to create epoll instance"));
 
-	for (size_t i = 0; i < this->_serversConfig.size(); i++)
+	Logger::log(Logger::DEBUG, "#==============================#");
+	Logger::log(Logger::DEBUG, "|| Create listening sockets...||");
+	Logger::log(Logger::DEBUG, "#==============================#");
+
+	std::map<std::string, std::vector<BlocServer> > serversByIpPort;
+	for (std::vector<BlocServer>::iterator it = serversConfig.begin(); it != serversConfig.end(); ++it)
 	{
-		BlocServer blocServer = serversConfig[i];
-		std::string ipPort = blocServer.getIpPortJoin();
-		if (this->_listeningSockets.find(ipPort) == this->_listeningSockets.end())
-		{
-			// add new listening socket
-			int sockFD = check(socket(AF_INET, SOCK_STREAM, 0), "Error with function socket");
-
-			struct sockaddr_in addr;
-			addr.sin_family = AF_INET;
-			addr.sin_addr.s_addr = inet_addr(blocServer.getIp().c_str());
-			addr.sin_port = htons(blocServer.getPort());
-
-			//int optval = 1;
-			//check(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)), "Error with setsockopt SO_REUSEADDR");
-
-			check(bind(sockFD, (const sockaddr *)(&addr), sizeof(addr)), "Error with function bind");
-
-			check(fcntl(sockFD, F_SETFL, O_NONBLOCK), "Error with function fcntl");
-
-			check(listen(sockFD, BACKLOGS), "Error with function listen");
-
-			_listeningSockets[ipPort] = sockFD;
- 
-			addSocketEpoll(sockFD, EPOLLIN);
-		}
+		
 	}
+
+
+
+	// for (std::vector<BlocServer>::iterator it = serversConfig.begin(); it != serversConfig.end(); ++it)
+	// {
+	// 	// Socket	socket(*it);
+	// 	this->_sockets[socket.getFd()] = socket;
+	// 	this->addSocketEpoll(socket.getFd(), EPOLLIN);
+	// }
+	this->setState(S_STATE_READY);
 }
 
 
@@ -189,23 +174,6 @@ void Server::handleConnection(int clientFD){
 }
 
 
-/**
- * 
- * If fd corresponds to a listening socket, it means
- * that it is a new connection. Otherwise, it is a known client.
- * 
- * @param fd The file descriptor to check.
- * @return True if it is a new connection, false otherwise.
- */
-bool Server::isNewConnection(int fd){
-	std::map<std::string, int>::iterator it;
-	for (it = _listeningSockets.begin(); it != _listeningSockets.end(); ++it){
-		if (it->second == fd)
-			return true;
-	}
-	return false;
-}
-
 void Server::closeConnection(int fd){
 	Logger::log(Logger::DEBUG, "Connection closed with client %d", fd);
 	close(fd);
@@ -231,26 +199,57 @@ void Server::closeConnection(int fd){
  * @param fd The file descriptor to handle.
  * @param event The event to handle.
  */
-void Server::handleEvent(int fd, uint32_t event){
-		if (event & EPOLLIN){
-			if (isNewConnection(fd)){
-				// nouvelle connexion, faut l'ajouter a epoll
-				Logger::log(Logger::DEBUG, "New connection to the epoll");
-				int connSock = check(accept(fd, NULL, NULL), "Error with accept function");
-				check(fcntl(connSock, F_SETFL, O_NONBLOCK), "Error with function fcntl");
-				showIpPortClient(connSock);
-				addSocketEpoll(connSock, REQUEST_FLAGS);
-			}else {
-				// client qu'on connait deja
-				Logger::log(Logger::DEBUG, "Known client, on gere la requete");
-				handleConnection(fd);
-			}
-		} else if (event & EPOLLOUT) {
-			// sendResponse(fd);
-		} else if (event & EPOLLRDHUP || event & EPOLLERR) {
-			closeConnection(fd);
-		}
+// void Server::handleEvent(int fd, uint32_t event){
+// 		if (event & EPOLLIN){
+// 			if (isNewConnection(fd)){
+// 				// nouvelle connexion, faut l'ajouter a epoll
+// 				Logger::log(Logger::DEBUG, "New connection to the epoll");
+// 				int connSock = protectedCall(accept(fd, NULL, NULL), "Error with accept function");
+// 				protectedCall(fcntl(connSock, F_SETFL, O_NONBLOCK), "Error with function fcntl");
+// 				showIpPortClient(connSock);
+// 				addSocketEpoll(connSock, REQUEST_FLAGS);
+// 			}else {
+// 				// client qu'on connait deja
+// 				Logger::log(Logger::DEBUG, "Known client, on gere la requete");
+// 				handleConnection(fd);
+// 			}
+// 		} else if (event & EPOLLOUT) {
+// 			// sendResponse(fd);
+// 		} else if (event & EPOLLRDHUP || event & EPOLLERR) {
+// 			closeConnection(fd);
+// 		}
+// }
+
+
+/*
+** --------------------------------- HANDLE ---------------------------------
+*/
+
+/**
+ * @brief Handle the new client connection
+ * 
+ * @param fd The file descriptor of the new client.
+ */
+void	Server::_handleClientConnection(int fd)
+{
+	Logger::log(Logger::DEBUG, "New client connected on file descriptor %d", fd);
+	Client client(fd);
+	this->_clients[client.getFd()] = client;
+	addSocketEpoll(client.getFd(), EPOLLIN);
 }
+
+/**
+ * @brief Handle the client disconnection
+ * 
+ */
+void	Server::_handleClientDisconnection(int fd)
+{
+	Logger::log(Logger::DEBUG, "Client disconnected on file descriptor %d", fd);
+	this->_clients.erase(fd);
+	deleteSocketEpoll(fd);
+	close(fd);
+}
+
 
 /**
  * @brief Main loop of Webserv
@@ -258,23 +257,74 @@ void Server::handleEvent(int fd, uint32_t event){
  * either it's a new connection either it's already a knowned client	
  * 
  */
+void Server::run( void )
+{
+	if (this->getState() != S_STATE_READY)
+		Logger::log(Logger::FATAL, "Server is not ready to run");
+	this->setState(S_STATE_RUN);
 
-void Server::run( void ){
-	if (this->_state != S_STATE_READY)
-		WebservException(Logger::FATAL, "Server is not ready to run, something went wrong during initialization");
-	this->_state = S_STATE_RUN;
-	while (this->getIsRunning())
+	epoll_event	events[MAX_EVENTS];
+	while (this->getState() == S_STATE_RUN)
 	{
 		Logger::log(Logger::INFO, "Waiting for connections...");
-		int nfds = check(epoll_wait(_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
+		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
 		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
+		
 		for (int i = 0; i < nfds; i++)
 		{
 			int fd = events[i].data.fd;
-			uint32_t = events[i].event;
-			printEvent(fd, event);
-			handle_event(fd, event);
+			uint32_t event = events[i].events;
+			
+			if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP)
+			{
+				Logger::log(Logger::DEBUG, "Something went wrong with file descriptor %d", fd);
+			}
+			if (event & EPOLLIN)
+			{
+				if (this->_clients.find(fd) == this->_clients.end()) // New client connection
+					_handleClientConnection(fd);
+				else
+					if (!(this->_clients[fd].handleRequest()))
+						_handleClientDisconnection(fd);
+			}
+			if (event & EPOLLOUT)
+			{
+				Logger::log(Logger::DEBUG, "EPOLLOUT event detected on file descriptor %d", fd);
+			}
 		}
 	}
-	
-// }
+}
+
+/*
+** --------------------------------- SETTERS ---------------------------------
+*/
+
+void	Server::setState(int state)
+{
+	if (state == S_STATE_INIT)
+		Logger::log(Logger::INFO, "Server is initializing...");
+	else if (state == S_STATE_READY)
+		Logger::log(Logger::INFO, "Server is ready to run...");
+	else if (state == S_STATE_RUN)
+		Logger::log(Logger::INFO, "Server is running...");
+	else if (state == S_STATE_STOP)
+		Logger::log(Logger::INFO, "Server is stopping...");
+	this->_state = state;
+}
+
+/**
+ * @brief affiche l'event qui a ete detecte
+ */
+void printEvent(int fd, uint32_t event){
+	if (event & EPOLLIN)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLIN | FD: %d", fd);
+	if (event & EPOLLOUT)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLOUT | FD: %d", fd);
+	if (event & EPOLLRDHUP)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLRDHUP | FD: %d", fd);
+	if (event & EPOLLERR)
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLERR | FD: %d", fd);
+	else
+		Logger::log(Logger::DEBUG, "NOUVEL EVENT: UNKNOWN | FD: %d", fd);
+}
+

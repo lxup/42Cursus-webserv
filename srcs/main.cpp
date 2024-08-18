@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:08:46 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/13 15:58:28 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/18 11:50:21 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 Server* serverInstance = NULL;
 
 void signalHandler(int signum) {
-	Logger::log(Logger::INFO, "interrupt signal (%d) received.", signum);
-   serverInstance->stop();
+	serverInstance->stop();
+	Logger::log(Logger::DEBUG, "interrupt signal (%d) received.", signum);
 }
 
 int main(int ac, char **av)
@@ -44,6 +44,13 @@ int main(int ac, char **av)
 		Logger::log(e.getLogLevel(), e.what());
 		return (EXIT_FAILURE);
 	}
+	catch (const std::exception &e){
+		return (EXIT_FAILURE);
+	}
+	// catch (const WebservException &e){
+	// 	Logger::log(e.getLogLevel(), e.what());
+	// 	return (EXIT_FAILURE);
+	// }
 
 
 

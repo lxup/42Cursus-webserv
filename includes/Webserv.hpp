@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
+/*   By: lquehec <lquehec@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/15 19:35:20 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/17 18:40:54 by lquehec          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,19 +15,19 @@
 #define WEBSERV_HPP
 
 // /* LIBRARIES */
-#include <cstdlib>
-#include <fstream> // read file
-#include <sys/stat.h>
-#include <stdlib.h>
-#include <sstream>
-#include <sys/epoll.h> // pour epoll API
-#include <sys/socket.h> // For socket functions
-#include <netinet/in.h> // For sockaddr_in
-#include <iostream>		// For cout
-#include <unistd.h>		// For read
-#include <arpa/inet.h>  // pour inet_ntop
-#include <csignal> // pour signal
-#include <stdarg.h>
+// #include <cstdlib>
+// #include <fstream> // read file
+// #include <sys/stat.h>
+// #include <stdlib.h>
+// #include <sstream>
+// #include <sys/epoll.h> // pour epoll API
+// #include <sys/socket.h> // For socket functions
+// #include <netinet/in.h> // For sockaddr_in
+// #include <iostream>		// For cout
+// #include <unistd.h>		// For read
+// #include <arpa/inet.h>  // pour inet_ntop
+// #include <csignal> // pour signal
+// #include <stdarg.h>
 
 
 //#include <cstdlib>
@@ -41,17 +41,20 @@
 // # include <cstring>
 // # include <cstdio>
 
+// include SIGNAL
+# include <csignal>
+
 // /* SYSTEM */
 // # include <sys/stat.h>
 
 /* CONTAINER */
-#include <vector>
-#include <map>
-#include <list>
-#include <iterator>
-#include <stack>
-#include <algorithm>
-#include <queue>
+// #include <vector>
+// #include <map>
+// #include <list>
+// #include <iterator>
+// #include <stack>
+// #include <algorithm>
+// #include <queue>
 
 
 /* CUSTOM */
@@ -63,5 +66,6 @@
 #include "BlocLocation.hpp"
 #include "BlocServer.hpp"
 #include "Server.hpp"
+#include "Socket.hpp"
 
 #endif // WEBSERV_HPP

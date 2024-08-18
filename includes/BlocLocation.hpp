@@ -1,7 +1,13 @@
 #ifndef LOCATION_HPP
 #define LOCATION_HPP
 
-#include "Webserv.hpp"
+#include <iostream>
+#include <vector>
+#include <map>
+#include <algorithm>
+
+#include "Utils.hpp"
+#include "Logger.hpp"
 
 enum e_Methods
 {

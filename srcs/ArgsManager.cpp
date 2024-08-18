@@ -113,7 +113,8 @@ void ArgsManager::_parse(void)
 				else if (arg == "-d" || arg == "--debug")
 					_options["--debug"] = true;
 				else
-					throw WebservException(0, "illegal option -- %s", arg.substr(2).c_str());
+					Logger::log(Logger::DEBUG, "illegal option -- %s", arg.substr(2).c_str());
+					// throw WebservException(0, "illegal option -- %s", arg.substr(2).c_str());
 				// throw std::invalid_argument("illegal option -- " + arg.substr(2));
 			}
 			else
@@ -121,7 +122,8 @@ void ArgsManager::_parse(void)
 				if (_configFilePath == "./config/default.conf")
 					_configFilePath = arg;
 				else
-					throw WebservException(0, "invalid argument -- %s (config file already set: \"%s\")", arg.c_str(), _configFilePath.c_str());
+					Logger::log(Logger::DEBUG, "invalid argument -- %s (config file already set: \"%s\")", arg.c_str(), _configFilePath.c_str());
+					// throw WebservException(0, "invalid argument -- %s (config file already set: \"%s\")", arg.c_str(), _configFilePath.c_str());
 				// throw WebservException(0, "invalid argument -- %s", arg.c_str());
 				// throw std::invalid_argument("invalid argument -- " + arg);
 			}

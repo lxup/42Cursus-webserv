@@ -176,19 +176,21 @@ std::string intToString(int value)
 }
 
 /**
- * @brief affiche l'event qui a ete detecte
+ * @brief Protected call to a function
+ * @param ret return code of function to test
+ * @param msg message in case of error
+ * @param isFatal if true, the error is fatal (optional, default is true)
+ * @return the return code of the function if >= 0
  */
-void printEvent(int fd, uint32_t event){
-	if (event & EPOLLIN)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLIN | FD: %d", fd);
-	if (event & EPOLLOUT)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLOUT | FD: %d", fd);
-	if (event & EPOLLRDHUP)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLRDHUP | FD: %d", fd);
-	if (event & EPOLLERR)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLERR | FD: %d", fd);
-	else
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: UNKNOWN | FD: %d", fd);
+int protectedCall(int ret, std::string msg, bool isFatal)
+{
+	if (ret < 0)
+	{
+		if (isFatal)
+			Logger::log(Logger::FATAL, msg.c_str());
+		else
+			Logger::log(Logger::ERROR, msg.c_str());
+	}
+	return ret;
 }
-
 	

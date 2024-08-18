@@ -79,6 +79,8 @@ HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					BlocServer \
 					BlocLocation \
 					Server \
+					Socket \
+					Client \
 					Request \
 					))
 
@@ -91,6 +93,8 @@ SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					BlocServer \
 					BlocLocation \
 					Server \
+					Socket \
+					Client \
 					Request \
 					))
 

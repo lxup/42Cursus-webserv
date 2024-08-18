@@ -1,7 +1,17 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include "Webserv.hpp"
+# include <iostream>
+# include <map>
+# include <vector>
+# include <queue>
+# include <sys/epoll.h>
+# include <arpa/inet.h>
+# include <algorithm>
+
+# include "Socket.hpp"
+# include "Client.hpp"
+# include "BlocServer.hpp"
 
 // define step for server 
 enum ServerState
@@ -12,26 +22,25 @@ enum ServerState
 	S_STATE_STOP
 };
 
-
 class Server
 {
 	private:
-		bool 									_isRunning;
-		int 									_epollFD;
+		int						_state;
+		int 					_epollFD;
+		std::map<int, Socket>	_sockets;
+		std::map<int, Client>	_clients;
+
+		/* SETTERS */
+		void setState(int state);
+		void setEpollFD(int epollFD) { _epollFD = epollFD; }
+
+
 		// uint32_t 	_currentFlagEpoll;
-		int										_state;
 
-		std::vector<BlocServer> 				_serversConfig; // all the Configuration for each server
-		std::map<std::string, int>				_listeningSockets; // ip:port map to the server socket
+		// std::vector<BlocServer> 				_serversConfig; // all the Configuration for each server
+		// std::map<std::string, int>				_listeningSockets; // ip:port map to the server socket
 		
-		std::map<int, std::queue<std::string> > _clientRequests; // TODO : format Reponse instead of string
-
-
-		/* EPOLL */
-		void	initEpoll(void);
-
-
-
+		// std::map<int, std::queue<std::string> > _clientRequests; // TODO : format Reponse instead of string
 
 		int check(int ret, std::string msg);
 		void addSocketEpoll(int sockFD, uint32_t flags);
@@ -44,20 +53,28 @@ class Server
 		void closeConnection(int fd);
 		void sendResponse(int fd);
 
+		/* HANDLE */
+		void	_handleClientConnection(int fd);
+		void	_handleClientDisconnection(int fd);
 
 	public:
 
-		Server();
-		~Server();
+		Server(void);
+		~Server(void);
 
 		void init(std::vector<BlocServer> serversConfig);
-		void run( void );
-		void stop( void );
+		void run(void);
+		void stop(void);
 
 		/* GETTERS */
-		bool getIsRunning(void) const { return _isRunning; }
+		int getState(void) const { return _state; }
+		int getEpollFD(void) const { return _epollFD; }
+		std::map<int, Socket> getSockets(void) const { return _sockets; }
+		Socket &getSocket(int fd) { return _sockets[fd]; }
+		std::map<int, Client> getClients(void) const { return _clients; }
+		Client &getClient(int fd) { return _clients[fd]; }
 };
 
-std::ostream &			operator<<( std::ostream & o, Server const & i );
+void printEvent(int fd, uint32_t event);
 
 #endif // SERVER_HPP

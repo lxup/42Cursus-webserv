@@ -1,13 +1,12 @@
 #ifndef ARGSMANAGER_HPP
-#define ARGSMANAGER_HPP
+# define ARGSMANAGER_HPP
 
-// # include "Webserv.hpp"
-#include "Utils.hpp"
-#include <iostream>
-#include <map>
+# include <iostream>
+# include <map>
 
-/* DEFAULT PARAMETERS */
-#define DEFAULT_CONFIG_FILE_PATH "./config/default.conf"
+# include "Utils.hpp"
+
+# define DEFAULT_CONFIG_FILE_PATH "./config/default.conf"
 
 class ArgsManager
 {

@@ -1,9 +1,13 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "Webserv.hpp"
+# include <iostream>
+# include <map>
+# include <vector>
 
-class BlocLocation;
+# include "Logger.hpp"
+# include "Utils.hpp"
+# include "BlocLocation.hpp"
 
 class BlocServer
 {

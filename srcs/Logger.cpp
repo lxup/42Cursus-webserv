@@ -212,6 +212,10 @@ void Logger::log(Logger::LogLevel level, const char *msg, ...)
 	Logger::_printLog(level, buffer.data(), timeBuffer);
 	if (Logger::getLogFileState() == true)
 		Logger::_writeLogInFile(level, buffer.data(), timeBuffer);
+	
+	// throw if level is FATAL
+	if (level == Logger::FATAL)
+		throw std::runtime_error(buffer.data());
 }
 
 /*  */

@@ -1,10 +1,17 @@
 #ifndef CONFIGPARSER_HPP
-#define CONFIGPARSER_HPP
+# define CONFIGPARSER_HPP
 
-#include "Webserv.hpp"
+# include <iostream>
+# include <fstream>
+# include <vector>
+# include <string>
 
-class BlocServer;
-class BlocLocation;
+# include "Utils.hpp"
+// add trimline
+
+
+# include "BlocServer.hpp"
+# include "BlocLocation.hpp"
 
 class ConfigParser
 {

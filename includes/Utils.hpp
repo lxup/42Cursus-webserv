@@ -2,7 +2,16 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "Webserv.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
+#include <exception>
+#include <cstdarg>
+#include <stdint.h>
+#include <sstream>
+#include <fstream>
+
+#include "Logger.hpp"
 
 /* WEBSERV EXCEPTION */
 class WebservException : public std::exception
@@ -28,7 +37,7 @@ std::string trimLine(std::string &line);
 std::vector<std::string> split(std::string s, std::string delimiter);
 std::string unsignedIntToString(unsigned int value);
 std::string intToString(int value);
-void printEvent(int fd, uint32_t event);
 
+int	protectedCall(int ret, std::string msg, bool isFatal = true);
 
 #endif // UTILS_HPP
