@@ -1,102 +1,223 @@
 #include "BlocLocation.hpp"
 
-BlocLocation::BlocLocation() : _location(""), _root(""), _rewrite(""), _alias(""), _autoindex(FALSE)
+// ------------------------------- GENERAL --------------------------------
+BlocLocation::BlocLocation(std::string filename) : _autoindex(FALSE), _filename(filename)
 {
-	_allowedMethods.push_back(GET);
-	_counter["location"] = 0;
-	_counter["root"] = 0;
-	_counter["rewrite"] = 0;
-	_counter["alias"] = 0;
-	_counter["files"] = 0;
-	_counter["allowedMethods"] = 0;
-	_counter["autoindex"] = 0;
+	_counterView["root"] = 0;
+	_counterView["alias"] = 0;
+	_counterView["allowedMethods"] = 0;
+	_counterView["autoindex"] = 0;
+	_counterView["upload_path"] = 0;
 }
 
 BlocLocation::~BlocLocation() {}
 
-void BlocLocation::addAllowedMethods(std::string &token)
+// ------------------------------- UTIL --------------------------------
+void BlocLocation::addAllowedMethods(std::vector<std::string> &tokens)
 {
 	e_Methods met;
 
-	if (token == "GET")
-		met = GET;
-	else if (token == "POST")
-		met = POST;
-	else if (token == "DELETE")
-		met = DELETE;
-	else
-		met = BAD_MET;
-	if (std::find(_allowedMethods.begin(), _allowedMethods.end(), met) != _allowedMethods.end())
-		return ;
-	_allowedMethods.push_back(met);
-}
-
-bool BlocLocation::fileExistVector()
-{
-	std::vector<std::string>::const_iterator it;
-
-	for (it = _files.begin(); it != _files.end(); ++it)
-		if (!fileExist(*it))
-			return (false);
-	return (true);
-}
-
-bool BlocLocation::methodsExist()
-{
-	std::vector<e_Methods>::const_iterator it = _allowedMethods.begin();
-
-	if (!(*it))
-		return (true);
-	for (; it != _allowedMethods.end(); ++it)
-		if (*it == BAD_MET)
-			return (false);
-	return (true);
-}
-
-void BlocLocation::checkValue()
-{
-	if (!methodsExist())
-		throw WebservException(Logger::FATAL, "Invalid methods value");
-}
-
-void BlocLocation::printLocation(void) const
-{
-	std::cout << "Path: " << _location << std::endl;
-	std::cout << "Root: " << _root << std::endl;
-	std::cout << "Rewrite: " << _rewrite << std::endl;
-	std::cout << "Alias: " << _alias << std::endl;
-	std::cout << "Files: " << std::endl;
-	for (std::vector<std::string>::const_iterator it = _files.begin(); it != _files.end(); ++it)
-		std::cout << "	- " << *it << std::endl;
-	std::cout << "Allowed methods: " << std::endl;
-	for (std::vector<e_Methods>::const_iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); ++it)
-	{
-		std::cout << "	- ";
-		if (*it == GET)
-			std::cout << "GET" << std::endl;
-		else if (*it == POST)
-			std::cout << "POST" << std::endl;
-		else if (*it == DELETE)
-			std::cout << "DELETE" << std::endl;
-		// std::cout << *it << std::endl;
+	incrementCounter("allowedMethods");
+	for (size_t i = 1; i < tokens.size(); i++){
+		std::string token = tokens[i];
+		if (token == "GET")
+			met = GET;
+		else if (token == "POST")
+			met = POST;
+		else if (token == "DELETE")
+			met = DELETE;
+		else
+			throw WebservException(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		if (std::find(_allowedMethods.begin(), _allowedMethods.end(), met) != _allowedMethods.end())
+			throw WebservException(Logger::FATAL, "Dupplicate method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		_allowedMethods.push_back(met);
 	}
-
-	if (_autoindex == TRUE)
-		std::cout << "Autoindex: TRUE" << std::endl;
-	else
-		std::cout << "Autoindex: FALSE" << std::endl;
 }
+
+e_boolMod BlocLocation::strToBool(std::string &str)
+{
+	if (str == "on")
+		return (TRUE);
+	else if (str == "off")
+		return (FALSE);
+	else
+		throw WebservException(Logger::FATAL, "Invalid value for autoindex: \"%s\" in file: %s:%d", str.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+}
+
+void BlocLocation::addIndexes(std::vector<std::string> &token)
+{
+	for (size_t i = 1; i < token.size(); i++)
+	{
+		if (std::find(_indexes.begin(), _indexes.end(), token[i]) == _indexes.end())
+			_indexes.push_back(token[i]);
+	}
+}
+
+void BlocLocation::addCgiExtension(std::vector<std::string> &token)
+{
+	std::vector<std::string> allowedExtensions;
+	allowedExtensions.push_back(".php");
+	allowedExtensions.push_back(".py");
+
+	if (_cgiExtension.find(token[1]) != _cgiExtension.end())
+		throw WebservException(Logger::FATAL, "Dupplicate cgi extension: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+	if (std::find(allowedExtensions.begin(), allowedExtensions.end(), token[1]) == allowedExtensions.end())
+		throw WebservException(Logger::FATAL, "CGI extension not allowed: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+	_cgiExtension[token[1]] = token[2];
+}
+
+void BlocLocation::setRewrite(std::vector<std::string>& tokens)
+{
+	int code = std::atoi(tokens[1].c_str());
+	if (code < 300 || code > 399)
+		throw WebservException(Logger::FATAL, "Invalid return code: \"%s\" in file: %s:%d", tokens[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+	_rewrite = std::make_pair(code, tokens[2]);
+}
+
+// ------------------------------- CHECKER --------------------------------
+
 
 void BlocLocation::checkDoubleLine()
 {
-
 	std::map<std::string, int>::iterator it;
 
-	for (it = _counter.begin(); it != _counter.end(); ++it)
-	{
+	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 		if (it->second > 1)
-		{
 			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
-		}
+}
+
+// ------------------------------- PARSING --------------------------------
+
+void BlocLocation::setDefaultValues()
+{
+	if (_allowedMethods.size() == 0)
+	{
+		_allowedMethods.push_back(GET);
+		_allowedMethods.push_back(POST);
+		_allowedMethods.push_back(DELETE);
 	}
+}
+
+/**
+ * @brief This function checks if a line in the configuration file is a good directive in BlocLocation bloc (autoindex par ex)
+ * It updates the location object with the corresponding values if the line is valid.
+ *
+ */
+bool BlocLocation::isValidLineLocation(std::vector<std::string> &tokens, std::string &key)
+{
+	if (tokens.size() < 2)
+		return false;
+	if (key == "root" && tokens.size() == 2)
+		setRoot(tokens[1]);
+	else if (key == "autoindex")
+		setAutoIndex(strToBool(tokens[1]));
+	else if (key == "return" && tokens.size() == 3)
+		setRewrite(tokens);
+	else if (key == "alias" && tokens.size() == 2)
+		setAlias(tokens[1]);
+	else if (key == "allow_methods")
+		addAllowedMethods(tokens);
+	else if (key == "index")
+		addIndexes(tokens);
+	else if (key == "cgi_extension" && tokens.size() == 3)
+		addCgiExtension(tokens);
+	else if (key == "upload_path" && tokens.size() == 2)
+		setUploadPath(tokens[1]);
+	else
+		return false;
+	return true;
+}
+
+/**
+ * @brief parse a BlocLocation bloc
+ *
+ */
+BlocLocation BlocLocation::getLocationConfig(std::ifstream &configFile, std::string &path)
+{
+	std::string line;
+	std::vector<std::string> tokens;
+	std::string key;
+	bool isCloseLocation = false;
+
+	setPath(path);
+	while (std::getline(configFile, line))
+	{
+		ConfigParser::countLineFile++;
+		line = trimLine(line);
+		if (line.empty() || line[0] == '#')
+			continue;
+		tokens = split(line, " ");
+		key = tokens[0];
+		if (key[0] == '}')
+		{
+			isCloseLocation = true;
+			break;
+		}
+		if (isValidLineLocation(tokens, key))
+			continue;
+		else
+			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+	}
+	if (!isCloseLocation)
+		throw WebservException(Logger::FATAL, "Missing } in file: %s:%d", _filename.c_str(), ConfigParser::countLineFile);
+	checkDoubleLine();
+	setDefaultValues();
+	return (*this);
+}
+
+// ------------------------------- PRINT --------------------------------
+
+
+void BlocLocation::printPair(const std::string& label, const std::string& value)
+{
+    std::cout << std::setw(15) << std::left << label << ": " << (value.empty() ? "none" : value) << std::endl;
+}
+
+void BlocLocation::printBool(const std::string& label, bool value, const std::string& trueStr, const std::string& falseStr)
+{
+    std::cout << std::setw(15) << std::left << label << ": " << (value ? trueStr : falseStr) << std::endl;
+}
+
+void BlocLocation::printVector(const std::string& label, const std::vector<std::string>& vec)
+{
+    std::cout << std::setw(15) << std::left << label << ": " << (vec.empty() ? "none" : "") << std::endl;
+    for (std::vector<std::string>::const_iterator it = vec.begin(); it != vec.end(); ++it)
+        std::cout << "\t- " << *it << std::endl;
+}
+
+void BlocLocation::printMap(const std::string& label, const std::map<std::string, std::string>& map)
+{
+    std::cout << std::setw(15) << std::left << label << ": " << (map.empty() ? "none" : "") << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = map.begin(); it != map.end(); ++it)
+        std::cout << "\t- " << it->first << ": " << it->second << std::endl;
+}
+
+
+void BlocLocation::printLocation(void)
+{
+    printPair("Path", _path);
+    printPair("Root", _root);
+    printPair("Alias", _alias);
+    printMap("CGI extension", _cgiExtension);
+    printPair("Upload path", _uploadPath);
+    printBool("Autoindex", _autoindex == TRUE, "on", "off");
+
+    std::cout << std::setw(15) << std::left << "Rewrite" << ": " 
+              << (_rewrite.first != 0 ? intToString(_rewrite.first) + " " + _rewrite.second : "none") << std::endl;
+
+    printVector("Indexes", _indexes);
+
+    std::cout << std::setw(15) << std::left << "Allowed methods" << ": " << std::endl;
+    for (std::vector<e_Methods>::const_iterator it = _allowedMethods.begin(); it != _allowedMethods.end(); ++it)
+    {
+        std::cout << "\t- ";
+        if (*it == GET)
+            std::cout << "GET";
+        else if (*it == POST)
+            std::cout << "POST";
+        else if (*it == DELETE)
+            std::cout << "DELETE";
+        std::cout << std::endl;
+    }
+
 }

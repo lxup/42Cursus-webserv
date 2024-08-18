@@ -3,7 +3,7 @@ services:
   container_name: nginx
   image: nginx
   ports:
-  - "8080:80"
+  - "1313:1313"
   - "9090:9090"
   volumes:
   - ./nginx-data/site-data:/var/www/

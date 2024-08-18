@@ -11,7 +11,6 @@
 
 enum e_Methods
 {
-	BAD_MET,
 	GET,
 	POST,
 	DELETE
@@ -20,57 +19,71 @@ enum e_Methods
 enum e_boolMod
 {
 	FALSE,
-	TRUE,
-	BAD
+	TRUE
 };
 
 class BlocLocation
 {
 	private:
-		std::string _location;
+		// config bloc location
+		std::string _path;
 		std::string _root;
-		std::string _rewrite;
+		std::pair<int, std::string> _rewrite;
 		std::string _alias;
-		std::vector<std::string> _files;
+		std::vector<std::string> _indexes;
 		std::vector<e_Methods> _allowedMethods;
 		e_boolMod _autoindex;
-		std::map<std::string, int> _counter;
+		std::map<std::string, std::string> _cgiExtension;
+		std::string _uploadPath;
+
+		// divers
+		std::map<std::string, int> _counterView;
+		std::string _filename;
 
 	public:
-		BlocLocation();
+		BlocLocation(std::string filename);
 		~BlocLocation();
 
+		// parsing
+		BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
+		bool isValidLineLocation(std::vector<std::string>& tokens, std::string& key);
+
 		// Methods
-		void incrementCounter(const std::string& key) { _counter[key]++; }
+		void incrementCounter(const std::string& key) { _counterView[key]++; }
 		void checkDoubleLine();
-		void checkValue();
-		bool fileExistVector();
-		bool methodsExist();
+		void setDefaultValues();
+		e_boolMod strToBool(std::string &str);
+
 
 		// Adders
-		void addAllowedMethods(std::string &token);
-		void addFile(std::string &file) { _files.push_back(file); }
+		void addAllowedMethods(std::vector<std::string> &tokens);
+		void addIndexes(std::vector<std::string>& token);
+		void addCgiExtension(std::vector<std::string>& token);
 
 		// Setters
-		void setLocation(const std::string &location) { _location = location; _counter["location"]++; }
-		void setRoot(const std::string &root) { _root = root;   _counter["root"]++;}
-		void setRewrite(const std::string &rewrite) { _rewrite = rewrite;  _counter["rewrite"]++;}
-		void setAlias(const std::string &alias) { _alias = alias;  _counter["alias"]++;}
-		void setFiles(const std::vector<std::string> &files) { _files = files;  _counter["files"]++;}
-		void setAllowedMethods(const std::vector<e_Methods> &allowedMethods) { _allowedMethods = allowedMethods;  _counter["allowedMethods"]++;}
-		void setAutoIndex(e_boolMod autoindex) { _autoindex = autoindex;  _counter["autoindex"]++;}
+		void setPath(const std::string &path) { _path = path; }
+		void setUploadPath(const std::string &uploadPath) { _uploadPath = uploadPath; _counterView["upload_path"]++;}
+		void setRoot(const std::string &root) { _root = root;  _counterView["root"]++;}
+		void setRewrite(std::vector<std::string>& tokens);
+		void setAlias(const std::string &alias) { _alias = alias;  _counterView["alias"]++;}
+		void setAutoIndex(e_boolMod autoindex) { _autoindex = autoindex;  _counterView["autoindex"]++;}
 
 		// Getters
-		const std::string &getLocation() const { return _location; }
+		const std::string &getPath() const { return _path; }
 		const std::string &getRoot() const { return _root; }
-		const std::string &getRewrite() const { return _rewrite; }
+		const std::pair<int, std::string> &getRewrite() const { return _rewrite; }
 		const std::string &getAlias() const { return _alias; }
-		const std::vector<std::string> &getFiles() const { return _files; }
+		const std::vector<std::string> &getFiles() const { return _indexes; }
 		const std::vector<e_Methods> &getAllowedMethods() const { return _allowedMethods; }
 		e_boolMod getAutoIndex() const { return _autoindex; }
 
 		// Print
-		void printLocation(void) const;
+		void printLocation(void);
+		void printPair(const std::string& label, const std::string& value);
+		void printBool(const std::string& label, bool value, const std::string& trueStr, const std::string& falseStr);
+		void printVector(const std::string& label, const std::vector<std::string>& vec);
+		void printMap(const std::string& label, const std::map<std::string, std::string>& map);
+
 };
 
 #endif

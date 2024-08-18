@@ -16,28 +16,29 @@
 class ConfigParser
 {
 public:
+	static int countLineFile;
+
+	// general
 	ConfigParser(const std::string &filename);
 	~ConfigParser(void);
-	void printServers(void);
-	/* MAIN */
-	void parse(void);
 	std::vector<BlocServer> getServersConfig( void ) const { return _servers; }
+	
+	// parser
+	void parse(void);
 
+	// utils
+	void checkDoubleServerName();
+	bool isStartBlocServer(std::vector<std::string> tokens);
+	void assignConfigs();
+
+	// print
+	void printServers(void);
 
 private:
 	std::string _filename;
-	int _countLineFile;
-	
+
 	std::vector<BlocServer> _servers;
-	
-	BlocServer getServerConfig(std::ifstream &file_config);
-	BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
-	void checkAttribut();
-
-	// Method utils
-	bool isValidLineLocation(BlocLocation& location, std::vector<std::string>& tokens, std::string& key);
-	bool isValidLineServer(BlocServer& server, std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile);
-
+	std::map<std::string, std::vector<BlocServer> > _configs;
 };
 
 #endif // CONFIGPARSER_HPP

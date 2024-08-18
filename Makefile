@@ -82,6 +82,7 @@ HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					Socket \
 					Client \
 					Request \
+					Listen \
 					))
 
 SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
@@ -96,6 +97,7 @@ SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					Socket \
 					Client \
 					Request \
+					Listen \
 					))
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)
