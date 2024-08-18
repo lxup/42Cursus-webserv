@@ -2,7 +2,11 @@ Fichier de configuration du serveur.
 
 ========= RULES =========
 - Les lignes commençant par # sont des commentaires. Pas le droit de mettre un commentaire sur la même ligne qu'une directive.
-
+- Pas le droit d'avoir deux bloc location avec le meme path dans un bloc server.
+- Un server peut avoir plusieurs server name
+- Un server peut avoir plusieurs listen (ip:port)
+- Deux server ne peuvent pas avoir le meme server_name
+- Deux server peuvent avoir le meme listen 
 
 ========= BLOCS =========
 
@@ -88,7 +92,7 @@ autoindex: NODUP | 1 | off
 			   Il ne faut pas la directive INDEX dans le bloc location.
 	- Exemple: autoindex on;
 
-allow_methods: NODUP | -1 | GET DELETE POST
+allow_methods: NODUP | 0..3 | GET DELETE POST
 	- Explain: Définit les méthodes HTTP autorisées.
 	- Exemple: allow_methods GET DELETE POST;
 
@@ -102,39 +106,23 @@ upload_path: NODUP | 1 | /var/www/upload
 	- Exemple: upload_path /var/www/images;
 
 
-========= RECAP =========
-
-| **Directive**                | **Bloc**        | **Duplicable (DUP/NODUP)** | **Nombre de paramètres** | **Valeur par défaut**               | **Explication**                                                                 | **Exemple**                                       |
-|------------------------------|-----------------|----------------------------|--------------------------|-------------------------------------|---------------------------------------------------------------------------------|--------------------------------------------------|
-| **server**                   | Global          | DUP                        | 0                        | none                                | Définit un bloc de configuration pour un serveur web virtuel.                  | `server { ... }`                                  |
-| **location**                 | server          | DUP                        | 1                        | none                                | Définit un bloc de configuration pour une URL spécifique.                      | `location / { ... }`                              |
-| **listen**                   | server          | DUP                        | 1                        | 0.0.0.0:80                          | Définit l'adresse IP et le port sur lequel le serveur doit écouter.            | `listen 80;`                                      |
-| **server_name**              | server          | DUP                        | -1                       | localhost                           | Définit le nom de domaine (host) sur lequel le serveur doit répondre.          | `server_name louis.com;`                          |
-| **error_page**               | server          | DUP                        | -1                       | /var/www/error.html                 | Définit les pages d'erreur personnalisées.                                      | `error_page 404 /404.html;`                       |
-| **root (bloc server)**       | server          | NODUP                      | 1                        | /var/www/html                       | Définit le répertoire racine du serveur web.                                    | `root /var/www/html;`                             |
-| **index (bloc server)**      | server          | DUP                        | -1                       | index.html                          | Définit les fichiers index par défaut.                                          | `index index.html index.htm;`                     |
-| **client_max_body_size**     | server          | NODUP                      | 1                        | 1m                                  | Définit la taille maximale des données que le serveur peut recevoir.           | `client_max_body_size 10m;`                       |
-| **root (bloc location)**     | location        | NODUP                      | 1                        | /var/www/html                       | Définit le répertoire racine pour le bloc location, remplace celui du bloc server. | `root /var/www/html;`                             |
-| **index (bloc location)**    | location        | DUP                        | -1                       | index.html                          | Définit les fichiers index du bloc location, remplace celui du bloc server.     | `index index.html index.htm;`                     |
-| **alias**                    | location        | NODUP                      | 1                        | none                                | Définit un alias pour un répertoire.                                            | `alias /var/www/images/;`                         |
-| **return**                   | location        | DUP                        | 2                        | none                                | Définit une règle de réécriture d'URL.                                          | `return 301 https://github.com/toukoum;`          |
-| **autoindex**                | location        | NODUP                      | 1                        | off                                 | Active ou désactive l'indexation automatique des répertoires.                  | `autoindex on;`                                   |
-| **allow_methods**            | location        | NODUP                      | -1                       | GET DELETE POST                     | Définit les méthodes HTTP autorisées.                                           | `allow_methods GET DELETE POST;`                  |
-| **cgi_extension**            | location        | DUP                        | 2                        | none                                | Définit l'extension qui sera associée à un script CGI.                         | `cgi_extension .php /var/www/cgi-bin/php-cgi;`    |
-| **upload_path**              | location        | NODUP                      | 1                        | /var/www/upload                     | Définit le répertoire de destination des fichiers uploadés.                    | `upload_path /var/www/images;`                    |
-
-
 ========= EXEMPLES =========
 
 server {
-	listen 80;
-	server_name louis.com;
-	root /var/www/html;
-	index index.html index.htm;
-	error_page 404 /404.html;
+	listen 80
+	server_name louis.com
+	root /var/www/html
+	index index.html index.htm
+	error_page 404 /404.html
 
 	location / {
-		root /var/www/html;
-		index index.html index.htm;
+		root /var/www/html
+		index index.html index.htm
+	}
+
+	location / {
+		allow_methods POST
+		upload_path /var/www/upload
+		cgi_extension .php /var/www/cgi-bin/php-cgi
 	}
 }

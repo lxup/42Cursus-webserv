@@ -23,34 +23,32 @@ private:
 	std::map<std::string, int> _counterView;
 
 	// Methods
-	bool fileExistMap();
-	//void checkLocation();
+	void checkDoubleLine();
+	void incrementCounter(const std::string &key) { _counterView[key]++; }
+	bool isValidLineServer(std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile);
+	bool isStartBlocLocation(std::vector<std::string>& tokens);
+	void checkDoubleLocation();
+
 
 public:
 	BlocServer(std::string filename);
 	~BlocServer();
 
-	// Methods
-	void checkAttribut();
-	void checkDoubleLine();
-	void incrementCounter(const std::string &key) { _counterView[key]++; }
-
 	// parsing
 	BlocServer getServerConfig(std::ifstream &file_config);
-	bool isValidLineServer(std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile);
-
-	// utils
-	bool isStartBlocLocation(std::vector<std::string>& tokens);
-
 
 	// Getters
 	const std::map<unsigned int, std::string> &getErrorPages() const { return _errorPages; }
-	const std::vector<std::string> &getServerName() const { return _serverNames; }
+	const std::vector<std::string> &getServerNames() const { return _serverNames; }
 	const std::vector<BlocLocation> &getLocations() const { return _locations; }
 	const std::string &getRoot() const { return _root; }
 	unsigned int getClientMaxBodySize() const { return _clientMaxBodySize; }
 	const std::map<std::string, Listen> &getListens() const { return _listens; }
 	const std::vector<std::string> &getIndexes() const { return _indexes; }
+
+	// Util
+	bool isServerNamePresent(std::vector<std::string>& otherNames);
+
 
 	// Setters
 	void setClientMaxBodySize(unsigned int clientMaxBodySize)
@@ -74,7 +72,15 @@ public:
 	void addServerName(std::vector<std::string>& token);
 	void addIndexes(std::vector<std::string>& token);
 
-	void printServer(void) const;
+	// Print
+	void printServer(void);
+	void printListens();
+	void printPair(const std::string& label, const std::string& value);
+	void printInt(const std::string& label, int value);
+	void printVector(const std::string& label, const std::vector<std::string>& vec);
+	void printMap(const std::string& label, const std::map<unsigned int, std::string>& map);
+
+
 };
 
 #endif

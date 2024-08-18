@@ -10,14 +10,6 @@ BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(-1), _filename
 
 BlocServer::~BlocServer(){}
 
-//void BlocServer::checkAttribut()
-//{
-//	std::vector<BlocServer>::iterator it;
-
-//	for (it = _servers.begin(); it != _servers.end(); it++)
-//		(*it).checkAttribut();
-//}
-
 
 // ============ UTILS ============
 bool BlocServer::isStartBlocLocation(std::vector<std::string>& tokens)
@@ -56,30 +48,30 @@ void BlocServer::addErrorPages(unsigned int errorCode, std::string file)
 	_errorPages[errorCode] = file; 
 }
 
+
+/**
+ * fonction qui check si un server_name de otherNames n'est
+ * pas egal a un serverName de _serverNames de l'instance actuel
+*/
+bool BlocServer::isServerNamePresent(std::vector<std::string>& otherNames){
+
+	for (size_t i = 0; i < otherNames.size(); i++)
+	{
+		for (size_t j = 0; j < _serverNames.size(); j++)
+		{
+			if (otherNames[i] == _serverNames[j]){
+				otherNames.clear();
+				otherNames.push_back(_serverNames[j]);
+				otherNames.push_back(_listens.begin()->first);
+				return (true);
+			}
+		}
+	}
+	return (false);
+}
+
+
 // ============ CHECKER ============
-void BlocServer::checkAttribut()
-{
-	//checkLocation();
-}
-
-//void BlocServer::checkLocation()
-//{	
-//	std::vector<BlocLocation>::iterator itLoc;
-
-//	for (itLoc = _locations.begin(); itLoc != _locations.end(); itLoc++)
-//		(*itLoc).checkValue();
-//}
-
-bool BlocServer::fileExistMap()
-{
-	std::map<unsigned int, std::string>::const_iterator it;
-
-	for (it = getErrorPages().begin(); it != getErrorPages().end(); ++it)
-		if (!fileExist(it->second))
-			return (false);
-	return (true);
-}
-
 
 
 void BlocServer::checkDoubleLine()
@@ -91,6 +83,21 @@ void BlocServer::checkDoubleLine()
 			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
 }
 
+
+void BlocServer::checkDoubleLocation()
+{
+	std::vector<BlocLocation>::iterator it;
+	std::vector<BlocLocation>::iterator it2;
+
+	for (it = _locations.begin(); it != _locations.end(); ++it)
+	{
+		for (it2 = it + 1; it2 != _locations.end(); ++it2)
+		{
+			if (it->getPath() == it2->getPath())
+				throw WebservException(Logger::FATAL, "Dupplicate location: \"%s\" in file: %s", it->getPath().c_str(), _filename.c_str());
+		}
+	}
+}
 
 
 
@@ -107,8 +114,6 @@ void BlocServer::setDefaultValue()
 		Listen listen("0.0.0.0:80");
 		_listens["0.0.0.0:80"] = listen;
 	}
-	if (_serverNames.empty())
-		_serverNames.push_back("localhost");
 	if (_root.empty())
 		_root = "./config/0.conf";
 	if (_indexes.empty())
@@ -180,6 +185,7 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 		throw WebservException(Logger::FATAL, "Missing } in file %s:%d", _filename.c_str(), ConfigParser::countLineFile);
 	checkDoubleLine();
 	setDefaultValue();
+	checkDoubleLocation();
 	return (*this);
 }
 
@@ -187,36 +193,57 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 
 
 // ============ PRINT ============
-void BlocServer::printServer(void) const
+
+
+void BlocServer::printPair(const std::string& label, const std::string& value)
 {
-	// Server names
-	std::cout << "Server names: " << std::endl;
-	for (size_t i = 0; i < _serverNames.size(); i++){
-		std::cout << "	- " << _serverNames[i] << std::endl;
-	}
-	std::cout << std::endl;
-	
-	// Listen
-	std::cout << "Listens: " << std::endl;
-	for (std::map<std::string, Listen>::const_iterator it = _listens.begin(); it != _listens.end(); ++it)
-		std::cout << "	- " << it->second.getIp() << ":" << it->second.getPort() << std::endl;
+    std::cout << std::left << label << ": " << (value.empty() ? "none" : value) << std::endl;
+}
 
-	// Indexes
-	std::cout << "Indexes: " << std::endl;
-	for (size_t i = 0; i < _indexes.size(); i++)
-		std::cout << "	- " << _indexes[i] << std::endl;
+void BlocServer::printInt(const std::string& label, int value)
+{
+    std::cout << std::left << label << ": " << (value == -1 ? "none" : intToString(value)) << std::endl;
+}
 
-	std::cout << "Root: " << _root << std::endl;
-	std::cout << "Client max body size: " << _clientMaxBodySize << std::endl;
-	std::cout << "Error pages: " << std::endl;
-	for (std::map<unsigned int, std::string>::const_iterator it = _errorPages.begin(); it != _errorPages.end(); ++it)
-		std::cout  << "	- " << it->first << ": " << it->second << std::endl;
-	std::cout << std::endl;
+void BlocServer::printVector(const std::string& label, const std::vector<std::string>& vec)
+{
+    std::cout << std::left << label << ": " << (vec.empty() ? "none" : "") << std::endl;
+    for (std::vector<std::string>::const_iterator it = vec.begin(); it != vec.end(); ++it)
+        std::cout << "\t- " << *it << std::endl;
+}
 
-	int i = 0;
-	for (std::vector<BlocLocation>::const_iterator it = _locations.begin(); it != _locations.end(); ++it)
-	{
-		std::cout << "\n-- LOCATION " << i++ << " --" << std::endl;
-		it->printLocation();
-	}
+void BlocServer::printMap(const std::string& label, const std::map<unsigned int, std::string>& map)
+{
+    std::cout << std::left << label << ": " << (map.empty() ? "none" : "") << std::endl;
+    for (std::map<unsigned int, std::string>::const_iterator it = map.begin(); it != map.end(); ++it)
+        std::cout << "\t- " << it->first << ": " << it->second << std::endl;
+}
+
+void BlocServer::printListens()
+{
+    std::cout << std::left << "Listens" << ": " << (_listens.empty() ? "none" : "") << std::endl;
+    for (std::map<std::string, Listen>::const_iterator it = _listens.begin(); it != _listens.end(); ++it)
+        std::cout << "\t- " << it->second.getIp() << ":" << it->second.getPort() << std::endl;
+}
+
+void BlocServer::printServer(void)
+{
+    printVector("Server names", _serverNames);
+    printListens();
+    printVector("Indexes", _indexes);
+    printPair("Root", _root);
+    printInt("Client max body size", _clientMaxBodySize);
+    printMap("Error pages", _errorPages);
+
+    if (_locations.empty()){
+        std::cout << std::setw(25) << std::left << "Locations" << ": none" << std::endl;
+    }
+    else
+    {
+        int i = 0;
+        for (std::vector<BlocLocation>::iterator it = _locations.begin(); it != _locations.end(); ++it){
+            std::cout << "\n-- LOCATION " << ++i << " --" << std::endl;
+            it->printLocation();
+        }
+    }
 }

@@ -6,7 +6,7 @@
 /*   By: rgiraud <rgiraud@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 12:02:14 by lquehec           #+#    #+#             */
-/*   Updated: 2024/08/17 20:52:43 by rgiraud          ###   ########.fr       */
+/*   Updated: 2024/08/18 13:43:53 by rgiraud          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@
 #include <arpa/inet.h>  // pour inet_ntop
 #include <csignal> // pour signal
 #include <stdarg.h>
+#include <iomanip> // pour setw
 
 
 //#include <cstdlib>

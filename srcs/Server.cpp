@@ -98,16 +98,16 @@ void Server::init(std::vector<BlocServer> serversConfig)
 	for (size_t i = 0; i < serversConfig.size(); i++)
 	{
 		BlocServer blocServer = serversConfig[i];
-		std::string ipPort = blocServer.getIpPortJoin();
-		if (_listeningSockets.find(ipPort) == _listeningSockets.end())
+		//std::string ipPort = blocServer.getIpPortJoin();
+		//if (_listeningSockets.find(ipPort) == _listeningSockets.end())
 		{
 			//ajouter un new socket
 			int sockFD = check(socket(AF_INET, SOCK_STREAM, 0), "Error with function socket");
 
 			struct sockaddr_in addr;
 			addr.sin_family = AF_INET;
-			addr.sin_addr.s_addr = inet_addr(blocServer.getIp().c_str());
-			addr.sin_port = htons(blocServer.getPort());
+			//addr.sin_addr.s_addr = inet_addr(blocServer.getIp().c_str());
+			//addr.sin_port = htons(blocServer.getPort());
 
 			//int optval = 1;
 			//check(setsockopt(sockFD, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)), "Error with setsockopt SO_REUSEADDR");
@@ -118,7 +118,7 @@ void Server::init(std::vector<BlocServer> serversConfig)
 
 			check(listen(sockFD, BACKLOGS), "Error with function listen");
 
-			_listeningSockets[ipPort] = sockFD;
+			//_listeningSockets[ipPort] = sockFD;
  
 			addSocketEpoll(sockFD, EPOLLIN);
 		}
