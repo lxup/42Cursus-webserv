@@ -27,9 +27,9 @@ void BlocLocation::addAllowedMethods(std::vector<std::string> &tokens)
 		else if (token == "DELETE")
 			met = DELETE;
 		else
-			throw WebservException(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+			Logger::log(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		if (std::find(_allowedMethods.begin(), _allowedMethods.end(), met) != _allowedMethods.end())
-			throw WebservException(Logger::FATAL, "Dupplicate method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+			Logger::log(Logger::FATAL, "Dupplicate method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		_allowedMethods.push_back(met);
 	}
 }
@@ -41,7 +41,8 @@ e_boolMod BlocLocation::strToBool(std::string &str)
 	else if (str == "off")
 		return (FALSE);
 	else
-		throw WebservException(Logger::FATAL, "Invalid value for autoindex: \"%s\" in file: %s:%d", str.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "Invalid value for autoindex: \"%s\" in file: %s:%d", str.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+	return (FALSE);
 }
 
 void BlocLocation::addIndexes(std::vector<std::string> &token)
@@ -60,9 +61,9 @@ void BlocLocation::addCgiExtension(std::vector<std::string> &token)
 	allowedExtensions.push_back(".py");
 
 	if (_cgiExtension.find(token[1]) != _cgiExtension.end())
-		throw WebservException(Logger::FATAL, "Dupplicate cgi extension: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "Dupplicate cgi extension: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	if (std::find(allowedExtensions.begin(), allowedExtensions.end(), token[1]) == allowedExtensions.end())
-		throw WebservException(Logger::FATAL, "CGI extension not allowed: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "CGI extension not allowed: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	_cgiExtension[token[1]] = token[2];
 }
 
@@ -70,7 +71,7 @@ void BlocLocation::setRewrite(std::vector<std::string>& tokens)
 {
 	int code = std::atoi(tokens[1].c_str());
 	if (code < 300 || code > 399)
-		throw WebservException(Logger::FATAL, "Invalid return code: \"%s\" in file: %s:%d", tokens[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "Invalid return code: \"%s\" in file: %s:%d", tokens[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	_rewrite = std::make_pair(code, tokens[2]);
 }
 
@@ -83,7 +84,7 @@ void BlocLocation::checkDoubleLine()
 
 	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 		if (it->second > 1)
-			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
+			Logger::log(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
 }
 
 // ------------------------------- PARSING --------------------------------
@@ -156,10 +157,10 @@ BlocLocation BlocLocation::getLocationConfig(std::ifstream &configFile, std::str
 		if (isValidLineLocation(tokens, key))
 			continue;
 		else
-			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+			Logger::log(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	}
 	if (!isCloseLocation)
-		throw WebservException(Logger::FATAL, "Missing } in file: %s:%d", _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "Missing } in file: %s:%d", _filename.c_str(), ConfigParser::countLineFile);
 	checkDoubleLine();
 	setDefaultValues();
 	return (*this);

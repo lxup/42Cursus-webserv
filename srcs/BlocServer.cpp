@@ -22,7 +22,7 @@ void BlocServer::addListen(std::string &token)
 	Listen listen(token);
 	
 	if (_listens.find(listen.getIpPortJoin()) != _listens.end())
-		throw WebservException(Logger::FATAL, "Dupplicate listen in server context: %s", token.c_str());
+		Logger::log(Logger::FATAL, "Dupplicate listen in server context: %s", token.c_str());
 
 	_listens[listen.getIpPortJoin()] = listen;
 }
@@ -44,7 +44,7 @@ void BlocServer::addIndexes(std::vector<std::string>& token){
 void BlocServer::addErrorPages(unsigned int errorCode, std::string file)
 { 
 	if (errorCode < 400 || errorCode > 599)
-		throw WebservException(Logger::FATAL, "Invalid error code: %d in file %s:%d", errorCode, _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "Invalid error code: %d in file %s:%d", errorCode, _filename.c_str(), ConfigParser::countLineFile);
 	_errorPages[errorCode] = file; 
 }
 
@@ -80,7 +80,7 @@ void BlocServer::checkDoubleLine()
 
 	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 		if (it->second > 1)
-			throw WebservException(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
+			Logger::log(Logger::FATAL, "Dupplicate line in server context: %s", it->first.c_str());
 }
 
 
@@ -94,7 +94,7 @@ void BlocServer::checkDoubleLocation()
 		for (it2 = it + 1; it2 != _locations.end(); ++it2)
 		{
 			if (it->getPath() == it2->getPath())
-				throw WebservException(Logger::FATAL, "Dupplicate location: \"%s\" in file: %s", it->getPath().c_str(), _filename.c_str());
+				Logger::log(Logger::FATAL, "Dupplicate location: \"%s\" in file: %s", it->getPath().c_str(), _filename.c_str());
 		}
 	}
 }
@@ -179,10 +179,10 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 		else if (isValidLineServer(tokens, key, configFile))
 			continue ;
 		else
-			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+			Logger::log(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	}
 	if (isCloseServer == false)
-		throw WebservException(Logger::FATAL, "Missing } in file %s:%d", _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "Missing } in file %s:%d", _filename.c_str(), ConfigParser::countLineFile);
 	checkDoubleLine();
 	setDefaultValue();
 	checkDoubleLocation();

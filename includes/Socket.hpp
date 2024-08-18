@@ -6,8 +6,8 @@
 # include <netinet/in.h>
 # include <arpa/inet.h>
 
-# include "BlocServer.hpp"
 # include "Utils.hpp"
+# include "BlocServer.hpp"
 
 class Socket
 {
@@ -17,6 +17,8 @@ class Socket
 		int						_fd;
 		std::vector<BlocServer>	_servers;
 		struct sockaddr_in		_addr;
+
+		static void	_closeSocket(int fd);
 	public:
 		Socket(void);
 		Socket(std::string ip, unsigned int port, std::vector<BlocServer> servers);

@@ -24,7 +24,7 @@ void ConfigParser::checkDoubleServerName(){
 		std::vector<std::string> currNames = _servers[i].getServerNames();
 		for (size_t j = i + 1; j < _servers.size(); j++){
 			if (_servers[j].isServerNamePresent(currNames))
-				throw WebservException(Logger::FATAL, "conflicting server name \"%s\" on %s", currNames[0].c_str(), currNames[1].c_str());
+				Logger::log(Logger::FATAL, "conflicting server name \"%s\" on %s", currNames[0].c_str(), currNames[1].c_str());
 		}
 	}
 }
@@ -58,8 +58,7 @@ void ConfigParser::parse(void)
 	std::string line;
 
 	if (!configFile.is_open())
-		throw WebservException(Logger::FATAL, "File %s can't be opened or doesn't exist", _filename.c_str());
-
+		Logger::log(Logger::FATAL, "File %s can't be opened or doesn't exist", _filename.c_str());
 	while (std::getline(configFile, line))
 	{
 		ConfigParser::countLineFile++;
@@ -71,9 +70,8 @@ void ConfigParser::parse(void)
 			BlocServer server(_filename);
 			_servers.push_back(server.getServerConfig(configFile));
 		}
-		else{
-			throw WebservException(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
-		}
+		else
+			Logger::log(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	}
 	checkDoubleServerName();
 	assignConfigs();

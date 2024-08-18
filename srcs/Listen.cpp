@@ -1,5 +1,5 @@
 
-#include "Webserv.hpp"
+#include "Listen.hpp"
 
 // --------------------- GENERAL ---------------------
 
@@ -21,11 +21,11 @@ Listen::Listen(std::string token) {
 		_ip = ip[0];
 		_port = std::atoi(ip[1].c_str());
 	}else{
-		throw WebservException(Logger::FATAL, "Invalid Ip/Port value");
+		Logger::log(Logger::FATAL, "Invalid listen value: %s", token.c_str());
 	}
 	_ipPortJoin = _ip + ":" + unsignedIntToString(_port);
 	if (!checkIpPort())
-		throw WebservException(Logger::FATAL, "Invalid Ip/Port value");
+		Logger::log(Logger::FATAL, "Invalid Ip/Port value: %s", token.c_str());
 }
 
 Listen::~Listen() {}

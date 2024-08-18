@@ -1,67 +1,67 @@
 #include "Utils.hpp"
 
 /* WEBSERV EXCEPTION */
-WebservException::WebservException(int errnoNum, const char *msg, ...)
-{
-	int bufferSize = 1024;
-	va_list args;
-	va_start(args, msg);
-	char buff[bufferSize];
-	int size = vsnprintf(buff, bufferSize, msg, args);
-	va_end(args);
+// WebservException::WebservException(int errnoNum, const char *msg, ...)
+// {
+// 	int bufferSize = 1024;
+// 	va_list args;
+// 	va_start(args, msg);
+// 	char buff[bufferSize];
+// 	int size = vsnprintf(buff, bufferSize, msg, args);
+// 	va_end(args);
 
-	if (size < 0)
-	{
-		// TODO: throw exception
-	}
+// 	if (size < 0)
+// 	{
+// 		// TODO: throw exception
+// 	}
 
-	while (size >= bufferSize)
-	{
-		bufferSize *= 2;
-		char newBuff[bufferSize];
-		va_start(args, msg);
-		size = vsnprintf(newBuff, bufferSize, msg, args);
-		va_end(args);
-		if (size < 0)
-		{
-			// TODO: throw exception
-		}
-	}
+// 	while (size >= bufferSize)
+// 	{
+// 		bufferSize *= 2;
+// 		char newBuff[bufferSize];
+// 		va_start(args, msg);
+// 		size = vsnprintf(newBuff, bufferSize, msg, args);
+// 		va_end(args);
+// 		if (size < 0)
+// 		{
+// 			// TODO: throw exception
+// 		}
+// 	}
 
-	_errno = errnoNum;
-	_msg = buff;
-	if (_errno)
-		_msg += " (" + std::string(strerror(_errno)) + ")";
-}
+// 	_errno = errnoNum;
+// 	_msg = buff;
+// 	if (_errno)
+// 		_msg += " (" + std::string(strerror(_errno)) + ")";
+// }
 
-WebservException::WebservException(Logger::LogLevel logLevel, const char *msg, ...) : _logLevel(logLevel)
-{
-	int bufferSize = 1024;
-	va_list args;
-	va_start(args, msg);
-	char buff[bufferSize];
-	int size = vsnprintf(buff, bufferSize, msg, args);
-	va_end(args);
+// WebservException::WebservException(Logger::LogLevel logLevel, const char *msg, ...) : _logLevel(logLevel)
+// {
+// 	int bufferSize = 1024;
+// 	va_list args;
+// 	va_start(args, msg);
+// 	char buff[bufferSize];
+// 	int size = vsnprintf(buff, bufferSize, msg, args);
+// 	va_end(args);
 
-	if (size < 0)
-	{
-		// TODO: throw exception
-	}
+// 	if (size < 0)
+// 	{
+// 		// TODO: throw exception
+// 	}
 
-	while (size >= bufferSize)
-	{
-		bufferSize *= 2;
-		char newBuff[bufferSize];
-		va_start(args, msg);
-		size = vsnprintf(newBuff, bufferSize, msg, args);
-		va_end(args);
-		if (size < 0)
-		{
-			// TODO: throw exception
-		}
-	}
-	_msg = buff;
-}
+// 	while (size >= bufferSize)
+// 	{
+// 		bufferSize *= 2;
+// 		char newBuff[bufferSize];
+// 		va_start(args, msg);
+// 		size = vsnprintf(newBuff, bufferSize, msg, args);
+// 		va_end(args);
+// 		if (size < 0)
+// 		{
+// 			// TODO: throw exception
+// 		}
+// 	}
+// 	_msg = buff;
+// }
 
 /* UTILS */
 
@@ -192,5 +192,16 @@ int protectedCall(int ret, std::string msg, bool isFatal)
 			Logger::log(Logger::ERROR, msg.c_str());
 	}
 	return ret;
+}
+
+
+std::string		extractIp(std::string ipPort)
+{
+	return(ipPort.substr(0, ipPort.find(":")));
+}
+
+unsigned int	extractPort(std::string ipPort)
+{
+	return(std::atoi(ipPort.substr(ipPort.find(":") + 1).c_str()));
 }
 	

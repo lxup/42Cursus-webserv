@@ -62,7 +62,7 @@ class Server
 		Server(void);
 		~Server(void);
 
-		void init(std::vector<BlocServer> serversConfig);
+		void init(std::map<std::string, std::vector<BlocServer> > servers);
 		void run(void);
 		void stop(void);
 

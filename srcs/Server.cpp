@@ -25,6 +25,7 @@ Server::~Server(){
 		if (it->second.getFd() != -1)
 			protectedCall(close(it->second.getFd()), "Faild to close client socket", false);
 	}
+	this->_clients.clear();
 }
 
 /*
@@ -91,7 +92,7 @@ void Server::deleteSocketEpoll(int sockFD)
  * 
  * @param serversConfig A vector of BlocServer objects representing the server configurations.
  */
-void Server::init(std::vector<BlocServer> serversConfig)
+void Server::init(std::map<std::string, std::vector<BlocServer> > servers)
 {
 	Logger::log(Logger::DEBUG, "Create epoll instance...");
 	this->setEpollFD(protectedCall(epoll_create1(O_CLOEXEC), "Failed to create epoll instance"));
@@ -100,10 +101,11 @@ void Server::init(std::vector<BlocServer> serversConfig)
 	Logger::log(Logger::DEBUG, "|| Create listening sockets...||");
 	Logger::log(Logger::DEBUG, "#==============================#");
 
-	std::map<std::string, std::vector<BlocServer> > serversByIpPort;
-	for (std::vector<BlocServer>::iterator it = serversConfig.begin(); it != serversConfig.end(); ++it)
+	for (std::map<std::string, std::vector<BlocServer> >::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		
+		Socket socket(extractIp(it->first), extractPort(it->first), it->second);
+		this->_sockets[socket.getFd()] = socket;
+		this->addSocketEpoll(socket.getFd(), EPOLLIN);
 	}
 
 

@@ -15,11 +15,18 @@ Socket::Socket(std::string ip, unsigned int port, std::vector<BlocServer> server
 	this->_addr.sin_port = htons(port);
 	this->_addr.sin_addr.s_addr = inet_addr(ip.c_str());
 
-	protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "fcntl");
-	int optval = 1;
-	protectedCall(setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)), "setsockopt");
-	protectedCall(bind(this->_fd, (struct sockaddr *)&this->_addr, sizeof(this->_addr)), "bind");
-	protectedCall(listen(this->_fd, BACKLOGS), "listen");
+	try {
+		protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "fcntl");
+		int optval = 1;
+		protectedCall(setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)), "setsockopt");
+		protectedCall(bind(this->_fd, (struct sockaddr *)&this->_addr, sizeof(this->_addr)), "bind");
+		protectedCall(listen(this->_fd, BACKLOGS), "listen");
+	}
+	catch (std::exception &e) {
+		protectedCall(close(this->_fd), "close", false);
+		throw std::exception();
+	}
+
 }
 
 Socket::Socket(const Socket &src)

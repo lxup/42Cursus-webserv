@@ -4,11 +4,15 @@
 # include <iostream>
 # include <map>
 # include <vector>
+# include <iomanip>
 
 # include "Logger.hpp"
 # include "Utils.hpp"
+# include "ConfigParser.hpp"
 # include "BlocLocation.hpp"
 # include "Listen.hpp"
+
+class BlocLocation;
 
 class BlocServer
 {
