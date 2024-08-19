@@ -14,9 +14,7 @@ class Client
 {
 	private:
 		int						_fd;
-		std::queue<Request>		_requests;
-
-		void	_addRequest(const std::string &rawRequest);
+		Request					_request;
 	public:
 		Client(void);
 		Client(int fd);

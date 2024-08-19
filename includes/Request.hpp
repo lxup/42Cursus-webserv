@@ -29,6 +29,9 @@ class Request
 		bool								_isChunked;
 		bool								_isReady;
 
+		/* SETTERS */
+		void	_setRawRequest(const std::string &rawRequest) { _rawRequest = rawRequest; }
+
 		void	_parse(void);
 		void	_parseRequestLine(std::istringstream &iss, std::string &line, int &step);
 		void	_parseHeaders(std::istringstream &iss, std::string &line, int &step);

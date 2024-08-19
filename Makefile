@@ -110,11 +110,11 @@ DEPS			=	$(OBJS:.o=.d)
 
 all: $(NAME)
 
-$(NAME): $(OBJS) # $(HEADERS)
+$(NAME): $(OBJS) $(HEADERS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 	@echo "\n${GREEN}> $(NAME) was successfuly compiled 🎉${END}"
 
-$(OBJ_PATH)/%.o: %.cpp # $(HEADERS)
+$(OBJ_PATH)/%.o: %.cpp $(HEADERS)
 			@mkdir -p $(dir $@)
 			@printf "${BLUE}>Generating $(NAME) objects... %-33.33s\r${END}" $@
 			@$(CXX) $(CXXFLAGS) -c $< -o $@
