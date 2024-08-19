@@ -38,7 +38,7 @@ int	Client::handleRequest(void)
 	char	buffer[CLIENT_READ_BUFFER_SIZE + 1];
 	int		bytesRead = 0;
 
-	memset(buffer, 0, CLIENT_READ_BUFFER_SIZE );
+	memset(buffer, 0, CLIENT_READ_BUFFER_SIZE + 1);
 	bytesRead  = recv(this->_fd, buffer, CLIENT_READ_BUFFER_SIZE, 0);
 	if (bytesRead > 0)
 	{
@@ -53,7 +53,7 @@ int	Client::handleRequest(void)
 	else if (bytesRead == 0)
 		return (0);
 
-	this->_request = Request(buffer);
+	this->_request.parse(buffer);
 
 	return (bytesRead);
 }

@@ -1,13 +1,7 @@
 #include "Request.hpp"
 
-Request::Request(void) : _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _isReady(false)
+Request::Request(void) : _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _state(Request::INIT), _errorCode(0)
 {
-}
-
-Request::Request(const std::string &rawRequest) : _rawRequest(rawRequest), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _isReady(false)
-{
-	this->_parse();
-	this->_isReady = true;
 }
 
 Request::Request(const Request &src)
@@ -23,12 +17,16 @@ Request &Request::operator=(const Request &rhs)
 {
 	if (this != &rhs)
 	{
+		this->_rawRequest = rhs._rawRequest;
 		this->_method = rhs._method;
 		this->_uri = rhs._uri;
 		this->_httpVersion = rhs._httpVersion;
 		this->_body = rhs._body;
 		this->_version = rhs._version;
 		this->_headers = rhs._headers;
+		this->_isChunked = rhs._isChunked;
+		this->_state = rhs._state;
+		this->_errorCode = rhs._errorCode;
 	}
 	return *this;
 }
@@ -40,18 +38,25 @@ Request &Request::operator=(const Request &rhs)
 /*
 ** @brief Parse the raw request
 */
-void	Request::_parse(void)
+void	Request::parse(const std::string &rawRequest)
 {
-		Logger::log(Logger::DEBUG, "Parsing request: %s\n", this->_rawRequest.c_str());
+	if (this->_state == Request::FINISH)
+	{
+		Logger::log(Logger::WARNING, "Request already parsed");
+		return ;
+	}
+	if (rawRequest.empty())
+	{
+		Logger::log(Logger::WARNING, "Empty request");
+		return ;
+	}
+	this->_rawRequest += rawRequest;
 
-		// read line by line 
-		std::istringstream	iss(this->_rawRequest);
-		std::string			line;
-		int					step(Request::START);
+	Logger::log(Logger::DEBUG, "Parsing request: %s", this->_rawRequest.c_str());
 
-		this->_parseRequestLine(iss, line, step);
-		this->_parseHeaders(iss, line, step);
-		this->_parseBody(iss, line, step);
+	this->_parseRequestLine();
+	this->_parseHeaders();
+	this->_parseBody();
 }
 
 /*
@@ -60,25 +65,27 @@ void	Request::_parse(void)
 ** @param iss : The input stream
 ** @param step : The current step
 */
-void	Request::_parseRequestLine(std::istringstream &iss, std::string &line, int &step)
+void	Request::_parseRequestLine(void)
 {
-	if (step == Request::START)
+	if (this->_state > Request::INIT)
+		return (Logger::log(Logger::DEBUG, "Request line already parsed"));
+	std::size_t pos = this->_rawRequest.find("\r\n");
+	if (pos == std::string::npos)
+		return (Logger::log(Logger::DEBUG, "Incomplete request line, waiting for more data"));
+	std::string 		line = this->_rawRequest.substr(0, pos);
+	std::istringstream	iss(line);
+	if (!(iss >> this->_method >> this->_uri >> this->_httpVersion))
 	{
-		std::getline(iss, line);
-		Logger::log(Logger::DEBUG, "Parsing request line: %s\n", line.c_str());
-
-		std::istringstream	issLine(line);
-		issLine >> this->_method >> this->_uri >> this->_httpVersion;
-		this->_method.erase(std::remove_if(this->_method.begin(), this->_method.end(), ::isspace), this->_method.end());
-		this->_uri.erase(std::remove_if(this->_uri.begin(), this->_uri.end(), ::isspace), this->_uri.end());
-		this->_httpVersion.erase(std::remove_if(this->_httpVersion.begin(), this->_httpVersion.end(), ::isspace), this->_httpVersion.end());
-
-		Logger::log(Logger::DEBUG, "Method: %s, URI: %s, HTTP Version: %s\n", this->_method.c_str(), this->_uri.c_str(), this->_httpVersion.c_str());
-
-		step = Request::HEADERS;
+		this->_setError(400);
+		return (Logger::log(Logger::ERROR, "Error parsing request line"));
 	}
-	else
-		Logger::log(Logger::WARNING, "Invalid step: %d\n", step);
+	this->_method.erase(std::remove_if(this->_method.begin(), this->_method.end(), ::isspace), this->_method.end());
+	this->_uri.erase(std::remove_if(this->_uri.begin(), this->_uri.end(), ::isspace), this->_uri.end());
+	this->_httpVersion.erase(std::remove_if(this->_httpVersion.begin(), this->_httpVersion.end(), ::isspace), this->_httpVersion.end());
+
+	Logger::log(Logger::DEBUG, "Method: %s, URI: %s, HTTP Version: %s", this->_method.c_str(), this->_uri.c_str(), this->_httpVersion.c_str());
+	this->_rawRequest.erase(0, pos + 2); // Remove the request line from the raw request
+	this->_setState(Request::HEADERS);
 }
 
 /*
@@ -88,35 +95,45 @@ void	Request::_parseRequestLine(std::istringstream &iss, std::string &line, int 
 ** @param line : The current line
 ** @param step : The current step
 */
-void	Request::_parseHeaders(std::istringstream &iss, std::string &line, int &step)
+void	Request::_parseHeaders(void)
 {
-	if (step == Request::HEADERS)
+	if (this->_state < Request::HEADERS)
+		return (Logger::log(Logger::DEBUG, "Request line not parsed yet"));
+	if (this->_state > Request::HEADERS)
+		return (Logger::log(Logger::DEBUG, "Headers already parsed"));
+
+	std::size_t	pos = this->_rawRequest.find("\r\n");
+	if (pos == std::string::npos)
+		return (Logger::log(Logger::DEBUG, "Incomplete headers, waiting for more data"));
+	while (pos != std::string::npos)
 	{
-		// read line by line until empty line (or white space)
-		while (std::getline(iss, line) && !line.empty() && line != "\r")
+		std::string 		line = this->_rawRequest.substr(0, pos);
+		std::istringstream	iss(line);
+		if (line.empty()) // Empty line, end of headers
 		{
-			std::string::size_type pos = line.find(':');
-			if (pos != std::string::npos)
-			{
-				// Get key and value
-				std::string key = line.substr(0, pos);
-				std::string value = line.substr(pos + 1);
-
-				// Trim key and value
-				key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
-				value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
-
-				// Add header
-				this->_headers[key] = value;
-				Logger::log(Logger::DEBUG, "Header: %s: %s\n", key.c_str(), value.c_str());
-			}
+			this->_rawRequest.erase(0, pos + 2); // Remove the empty line from the raw request
+			this->_setState(Request::BODY);
+			return ;
 		}
-		this->_setHeaderState();
-		step = Request::BODY;
+
+		std::size_t colonPos = line.find(':');
+		if (colonPos == std::string::npos)
+		{
+			this->_setError(400);
+			return (Logger::log(Logger::ERROR, "Malformed header: %s", line.c_str()));
+		}
+		std::string key = line.substr(0, colonPos);
+		std::string value = line.substr(colonPos + 1);
+
+		key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
+		value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+
+		this->_headers[key] = value;
+		this->_rawRequest.erase(0, pos + 2); // Remove the line from the raw request
+		pos = this->_rawRequest.find("\r\n");
 	}
-	else
-		Logger::log(Logger::WARNING, "Invalid step: %d\n", step);
 }
+
 
 /*
 ** @brief Parse the body
@@ -125,28 +142,35 @@ void	Request::_parseHeaders(std::istringstream &iss, std::string &line, int &ste
 ** @param line : The current line
 ** @param step : The current step
 */
-void	Request::_parseBody(std::istringstream &iss, std::string &line, int &step)
+void	Request::_parseBody(void)
 {
-	if (step == Request::BODY)
-	{
-		if (this->_isChunked)
-		{
-			Logger::log(Logger::DEBUG, "[Request] Chunked body\n");
-			this->_parseChunkedBody(iss, line, step);
-		}
-		else
-		{
-			Logger::log(Logger::DEBUG, "[Request] Body\n");
-			std::ostringstream oss;
-			while (std::getline(iss, line))
-				oss << line << std::endl;
-			this->_body = oss.str();
-		}
-		Logger::log(Logger::DEBUG, "Body: %s\n", this->_body.c_str());
-		step = Request::DONE;
-	}
-	else
-		Logger::log(Logger::WARNING, "Invalid step: %d\n", step);
+	if (this->_state < Request::BODY)
+		return (Logger::log(Logger::DEBUG, "Headers not parsed yet"));
+	if (this->_state > Request::BODY)
+		return (Logger::log(Logger::DEBUG, "Body already parsed"));
+	
+	if (this->isChunked())
+		this->_parseChunkedBody();
+	// if (step == Request::BODY)
+	// {
+	// 	if (this->_isChunked)
+	// 	{
+	// 		Logger::log(Logger::DEBUG, "[Request] Chunked body\n");
+	// 		this->_parseChunkedBody(iss, line, step);
+	// 	}
+	// 	else
+	// 	{
+	// 		Logger::log(Logger::DEBUG, "[Request] Body\n");
+	// 		std::ostringstream oss;
+	// 		while (std::getline(iss, line))
+	// 			oss << line << std::endl;
+	// 		this->_body = oss.str();
+	// 	}
+	// 	Logger::log(Logger::DEBUG, "Body: %s\n", this->_body.c_str());
+	// 	step = Request::FINISH;
+	// }
+	// else
+	// 	Logger::log(Logger::WARNING, "Invalid step: %d\n", step);
 }
 
 /*
@@ -156,58 +180,34 @@ void	Request::_parseBody(std::istringstream &iss, std::string &line, int &step)
 ** @param line : The current line
 ** @param step : The current step
 */
-void Request::_parseChunkedBody(std::istringstream &iss, std::string &line, int &step)
+void Request::_parseChunkedBody(void)
 {
-    if (step == Request::BODY)
-    {
-        std::ostringstream oss;
-        size_t size = 0;
+}
 
-        while (std::getline(iss, line))
-        {
-            // Remove CRLF
-            Logger::log(Logger::DEBUG, "Line: %s\n", line.c_str());
+/*
+** @brief Set the state
+**
+** @param state : The state
+*/
+void	Request::_setState(e_parse_state state)
+{
+	this->_state = state;
 
-            // Remove CRLF from the line
-            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-
-            // Log after removing CRLF
-            Logger::log(Logger::DEBUG, "Line after remove CRLF: %s\n", line.c_str());
-
-            if (size == 0)
-            {
-                // Get the size of the chunk
-                std::istringstream issLine(line);
-                issLine >> std::hex >> size;
-
-                if (size == 0)
-                {
-                    // End of the body
-                    break;
-                }
-            }
-            else
-            {
-                // If the remaining line size is greater than the chunk size
-                if (line.size() > size)
-                {
-                    oss << line.substr(0, size);
-                    line = line.substr(size);
-                    size = 0; // Reset chunk size
-                }
-                else
-                {
-                    oss << line;
-                    size -= line.size();
-                }
-            }
-        }
-        this->_body = oss.str();
-    }
-    else
-    {
-        Logger::log(Logger::WARNING, "Invalid step: %d\n", step);
-    }
+	if (state == Request::FINISH)
+		Logger::log(Logger::DEBUG, "Request state changed to FINISH");
+	else if (state == Request::ERROR)
+		Logger::log(Logger::DEBUG, "Request state changed to ERROR");
+	else if (state == Request::INIT)
+		Logger::log(Logger::DEBUG, "Request state changed to INIT");
+	else if (state == Request::HEADERS)
+	{
+		Logger::log(Logger::DEBUG, "Request state changed to HEADERS");
+		this->_setHeaderState();
+	}
+	else if (state == Request::BODY)
+		Logger::log(Logger::DEBUG, "Request state changed to BODY");
+	else
+		Logger::log(Logger::DEBUG, "Invalid state: %d\n", state);
 }
 
 
@@ -219,4 +219,15 @@ void	Request::_setHeaderState(void)
 	// Check if the body is chunked
 	if (this->_headers.find("Transfer-Encoding") != this->_headers.end() && this->_headers["Transfer-Encoding"] == "chunked")
 		this->_isChunked = true;
+}
+
+/*
+** @brief Set the error code
+**
+** @param code : The error code
+*/
+void	Request::_setError(int code)
+{
+	this->_setState(Request::ERROR);
+	this->_errorCode = code;
 }
