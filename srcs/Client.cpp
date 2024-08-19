@@ -23,11 +23,6 @@ Client::~Client(void)
 {
 }
 
-void	Client::_addRequest(const std::string &request)
-{
-	this->_requests.push(Request(request));
-}
-
 /*
 ** --------------------------------- HANDLE ---------------------------------
 */
@@ -58,7 +53,7 @@ int	Client::handleRequest(void)
 	else if (bytesRead == 0)
 		return (0);
 
-	this->_addRequest(buffer);
+	this->_request = Request(buffer);
 
 	return (bytesRead);
 }
