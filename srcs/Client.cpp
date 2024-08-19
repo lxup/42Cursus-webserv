@@ -4,11 +4,11 @@
 ** --------------------------------- PRIVATE METHODS ---------------------------
 */
 
-Client::Client(void) : _fd(-1)
+Client::Client(void) : _fd(-1), _socket(NULL)
 {
 }
 
-Client::Client(int fd)
+Client::Client(int fd, Socket* socket) : _socket(socket)
 {
 	Logger::log(Logger::DEBUG, "Initializing client with fd %d", fd);
 

@@ -1,6 +1,6 @@
 
-#ifndef LISTEN_HPP
-#define LISTEN_HPP
+#ifndef LISTENCONFIG_HPP
+#define LISTENCONFIG_HPP
 
 # include <iostream>
 # include <vector>

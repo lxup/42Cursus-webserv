@@ -5,19 +5,21 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 
-# include "Request.hpp"
 # include "Utils.hpp"
+# include "Request.hpp"
+# include "Socket.hpp"
 
-# define CLIENT_READ_BUFFER_SIZE 4096
+# define CLIENT_READ_BUFFER_SIZE 4096 // 4096
 
 class Client
 {
 	private:
 		int						_fd;
 		Request					_request;
+		Socket*					_socket;
 	public:
 		Client(void);
-		Client(int fd);
+		Client(int fd, Socket* socket);
 		~Client(void);
 
 		/* HANDLE */
@@ -25,6 +27,8 @@ class Client
 
 		/* GETTERS */
 		int getFd(void) const { return _fd; }
+		Request getRequest(void) const { return _request; }
+		Socket* getSocket(void) const { return _socket; }
 };
 
 #endif // CLIENT_HPP

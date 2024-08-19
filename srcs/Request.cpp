@@ -119,7 +119,7 @@ void	Request::_parseHeaders(void)
 		std::size_t colonPos = line.find(':');
 		if (colonPos == std::string::npos)
 		{
-			this->_setError(400);
+			this->_setError(400); // TODO : Set right error code
 			return (Logger::log(Logger::ERROR, "Malformed header: %s", line.c_str()));
 		}
 		std::string key = line.substr(0, colonPos);
@@ -148,9 +148,16 @@ void	Request::_parseBody(void)
 		return (Logger::log(Logger::DEBUG, "Headers not parsed yet"));
 	if (this->_state > Request::BODY)
 		return (Logger::log(Logger::DEBUG, "Body already parsed"));
-	
+
 	if (this->isChunked())
 		this->_parseChunkedBody();
+
+
+
+
+
+
+
 	// if (step == Request::BODY)
 	// {
 	// 	if (this->_isChunked)
@@ -205,11 +212,15 @@ void	Request::_setState(e_parse_state state)
 		this->_setHeaderState();
 	}
 	else if (state == Request::BODY)
-		Logger::log(Logger::DEBUG, "Request state changed to BODY");
+	{
+		if (this->_method != "POST") // If the method is not POST, the body is empty
+			this->_setState(Request::FINISH);
+		else
+			Logger::log(Logger::DEBUG, "Request state changed to BODY");
+	}
 	else
 		Logger::log(Logger::DEBUG, "Invalid state: %d\n", state);
 }
-
 
 /*
 ** @brief Set the header state

@@ -13,6 +13,7 @@
 # include "ListenConfig.hpp"
 
 class BlocLocation;
+class ListenConfig;
 
 class BlocServer
 {

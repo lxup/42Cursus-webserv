@@ -27,6 +27,7 @@ class Request
 		std::string							_body;
 		std::string							_version;
 		std::map<std::string, std::string>	_headers;
+		std::map<std::string, std::string>	_params;
 		bool								_isChunked;
 		e_parse_state						_state;
 		int									_errorCode;

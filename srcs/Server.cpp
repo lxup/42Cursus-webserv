@@ -235,7 +235,7 @@ void Server::closeConnection(int fd){
 void	Server::_handleClientConnection(int fd)
 {
 	Logger::log(Logger::DEBUG, "New client connected on file descriptor %d", fd);
-	Client client(fd);
+	Client client(fd, &(this->_sockets[fd]));
 	this->_clients[client.getFd()] = client;
 	addSocketEpoll(client.getFd(), EPOLLIN);
 }
@@ -259,7 +259,7 @@ void	Server::_handleClientDisconnection(int fd)
  * either it's a new connection either it's already a knowned client	
  * 
  */
-void Server::run( void )
+void Server::run(void)
 {
 	if (this->getState() != S_STATE_READY)
 		Logger::log(Logger::FATAL, "Server is not ready to run");
