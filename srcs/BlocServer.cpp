@@ -19,7 +19,7 @@ bool BlocServer::isStartBlocLocation(std::vector<std::string>& tokens)
 
 void BlocServer::addListen(std::string &token)
 {
-	Listen listen(token);
+	ListenConfig listen(token);
 	
 	if (_listens.find(listen.getIpPortJoin()) != _listens.end())
 		Logger::log(Logger::FATAL, "Dupplicate listen in server context: %s", token.c_str());
@@ -111,7 +111,7 @@ void BlocServer::checkDoubleLocation()
 void BlocServer::setDefaultValue()
 {
 	if (_listens.empty()){
-		Listen listen("0.0.0.0:80");
+		ListenConfig listen("0.0.0.0:80");
 		_listens["0.0.0.0:80"] = listen;
 	}
 	if (_root.empty())
@@ -181,7 +181,7 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 		else
 			Logger::log(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	}
-	if (isCloseServer == false)
+	if (isCloseServer == false && !isEmptyFile())
 		Logger::log(Logger::FATAL, "Missing } in file %s:%d", _filename.c_str(), ConfigParser::countLineFile);
 	checkDoubleLine();
 	setDefaultValue();
@@ -222,7 +222,7 @@ void BlocServer::printMap(const std::string& label, const std::map<unsigned int,
 void BlocServer::printListens()
 {
     std::cout << std::left << "Listens" << ": " << (_listens.empty() ? "none" : "") << std::endl;
-    for (std::map<std::string, Listen>::const_iterator it = _listens.begin(); it != _listens.end(); ++it)
+    for (std::map<std::string, ListenConfig>::const_iterator it = _listens.begin(); it != _listens.end(); ++it)
         std::cout << "\t- " << it->second.getIp() << ":" << it->second.getPort() << std::endl;
 }
 

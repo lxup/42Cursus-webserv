@@ -35,8 +35,8 @@ void ConfigParser::checkDoubleServerName(){
 void ConfigParser::assignConfigs(){
 	
 	for (size_t i = 0; i < _servers.size(); i++){
-		std::map<std::string, Listen> listens = _servers[i].getListens();
-		for (std::map<std::string, Listen>::iterator it = listens.begin(); it != listens.end() ; ++it){
+		std::map<std::string, ListenConfig> listens = _servers[i].getListens();
+		for (std::map<std::string, ListenConfig>::iterator it = listens.begin(); it != listens.end() ; ++it){
 			_configs[it->first].push_back(_servers[i]);
 		}	
 	}
@@ -72,6 +72,11 @@ void ConfigParser::parse(void)
 		}
 		else
 			Logger::log(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+	}
+	// add Default server if no server bloc
+	if (_servers.size() == 0){
+		BlocServer server(_filename);
+		_servers.push_back(server.getServerConfig(configFile));
 	}
 	checkDoubleServerName();
 	assignConfigs();

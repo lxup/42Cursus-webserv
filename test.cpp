@@ -1,36 +1,17 @@
 #include <iostream>
 #include <string>
 #include <regex>
+#include <vector>
+#include <algorithm>
 
-bool checkIp(std::string str)
-{
-	int	i = 0;
-	int	j = 0;
 
-	for (int p = 0; p < 3; p++)
-	{
-		while (isdigit(str[i + j]))
-		i++;
-		if (i == 0 || i > 3 || str[j + i++] != '.')
-			return (false);
-		j += i;
-		i = 0;
-	}
-	while (isdigit(str[i + j]))
-		i++;
-	if (i == 0 || i > 3 || str[j + i++] != ':')
-		return (false);
-	j += i;
-	i = 0;
-	while (isdigit(str[i + j]))
-		i++;
-	if (i == 0 || i > 5)
-		return (false);
-	return (true);
-}
 
 int main()
 {
-	if (checkIp("127.747.0.1:8080"))
-		std::cout << "caca";
+	std::vector<int> v; 
+	v.push_back(1);
+	v.push_back(2);
+	v.push_back(3);
+
+	std::find(v.begin(), v.end(), 2) != v.end() ? std::cout << "Found" << std::endl : std::cout << "Not found" << std::endl;
 }

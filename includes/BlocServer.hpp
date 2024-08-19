@@ -10,7 +10,7 @@
 # include "Utils.hpp"
 # include "ConfigParser.hpp"
 # include "BlocLocation.hpp"
-# include "Listen.hpp"
+# include "ListenConfig.hpp"
 
 class BlocLocation;
 
@@ -18,7 +18,7 @@ class BlocServer
 {
 private:
 	// config bloc server
-	std::map<std::string, Listen> _listens;
+	std::map<std::string, ListenConfig> _listens;
 	std::vector<std::string> _serverNames;
 	std::vector<std::string> _indexes;
 	std::string _root;
@@ -51,7 +51,7 @@ public:
 	const std::vector<BlocLocation> &getLocations() const { return _locations; }
 	const std::string &getRoot() const { return _root; }
 	unsigned int getClientMaxBodySize() const { return _clientMaxBodySize; }
-	const std::map<std::string, Listen> &getListens() const { return _listens; }
+	const std::map<std::string, ListenConfig> &getListens() const { return _listens; }
 	const std::vector<std::string> &getIndexes() const { return _indexes; }
 
 	// Util
