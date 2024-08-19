@@ -1,0 +1,176 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500&family=Sanchez&family=Varela+Round&display=swap');
+
+/* font-family: 'Poppins', sans-serif;
+font-family: 'Sanchez', serif;
+font-family: 'Varela Round', sans-serif; 
+*/
+
+html, body{
+    width: 100%;
+    font-size: calc(.75rem + 1.5vw)
+  }
+
+  
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+
+  .second-page{
+    display: flex;
+    height: 90vh;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+}
+
+.description {
+    width: 80%;   
+    display: flex;
+    justify-content: center;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    text-align: justify;
+    font-style: normal;
+    font-weight: 500;
+    line-height: 1.6rem;
+}
+
+.sur-text{
+  /* background: linear-gradient(to right, #7f7fd5, #86a8e7, #91eae4);  */
+  background: linear-gradient(black, black);
+  background-size: 0 100%;
+  transition: all 1s ease-out;
+  background-repeat: no-repeat;
+  border-radius: 10px;  
+  padding: 1px 10px;
+}
+
+.sur-text-active{
+  background-size: 100% 100%;
+  color: white;
+}
+
+
+#view-cv {
+  position: relative;
+  color: black;
+  text-decoration: none;
+  background: linear-gradient(to right, #000000, #ffffff); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0 2px, 100% 2px;
+  font-weight: 500;
+  transition: background-size .3s;
+}
+
+#view-cv:hover {
+  background-size: 100% 2px, 100% 2px;
+}
+  #view-cv::after {
+    content: "";
+    position: absolute;
+    bottom: 5px;
+    left: 0px;
+    width: 0;
+    height: 2px;
+    transition: width 2s;
+  }
+  
+  #view-cv:hover::after {
+    width: 75%;
+  }
+
+
+.description img{
+    transform: translate(30%, 17%);
+    height: 1.1rem;
+}
+
+.bouton-talk-wrapper{
+    text-decoration: none;
+    font-family: 'Poppins', sans-serif;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30vh;
+}
+
+
+
+
+.bouton-talk img{
+    height: .6rem ;
+    margin-left: 5px;
+}
+
+.bouton-talk:hover{
+    cursor: pointer;
+}
+
+
+
+/* pour les bouton 3d */
+
+.bouton-talk{
+    height: 3vh;
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    /* padding: 1rem 1rem; */
+    background: #FFFFFF;
+    font-size: .5rem;
+    border-radius: 75px;
+    border: none;
+    background: transparent;
+    white-space: nowrap;
+    transform-style: preserve-3d;
+    }
+
+
+
+.bouton-talk  span {
+    color: black;
+    padding: .4rem .9rem;
+    will-change: transform, filter;
+    transition: transform 0.5s ease-out, filter .5s ease-out;
+    border-radius: 100px;
+    overflow: hidden;
+    transform: rotateX(0deg) rotateY(0deg) scale(1);
+    font-weight: 500;
+    perspective-origin: 0 0;
+    display: flex;
+    align-items: center;
+    border: 2px solid black;
+  }
+  
+  .bouton-talk span:hover{
+    border: 2px solid rgba(53, 53, 240, 0.2) ;    
+    background: linear-gradient(90deg, #B4B4DD 0%, #B9C9E7 51.04%, #BAE8E5 100%);
+}
+
+@media (max-width: 1000px) {
+
+    .description p #view-cv{
+        text-decoration: underline;
+    }
+
+
+    #view-cv:hover {
+        background-size: 0% 2px, 0% 2px;
+      }
+
+
+      .description {
+
+        line-height: 5vh;
+
+      }
+
+
+}

@@ -1,0 +1,157 @@
+
+
+  .work-section{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+  }
+
+.title-section-wrapper{
+    position: relative;
+    width: 80%;
+    font-family: 'Poppins', sans-serif;
+}
+
+.title-section{
+    font-size: 2rem;
+    font-weight: 500;
+    overflow: hidden;
+}
+
+.title-section-wrapper p{
+    font-size: .7rem;
+    font-weight: 500;
+}
+
+
+.section-wrapper{
+    margin-top: 5rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+}
+
+.main-title-wrapper{
+    overflow: hidden;
+}
+
+
+
+/* Education section */
+
+
+.education-section{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+
+.education-card{
+    margin-top: 5%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+
+
+.card-wrapper {
+    position: relative;
+    padding: 40px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    width: 100%;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 80px;
+    /* background: linear-gradient(49deg, rgba(127, 127, 213, 0.26) 0%, rgba(134, 168, 231, 0.26) 51.56%, rgba(145, 234, 228, 0.26) 100%); */
+  }
+  
+  .card-wrapper::before {
+    box-shadow: 0px 7px 9px rgba(0, 0, 0, 0.6);
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 30px;
+    background: linear-gradient(49deg, rgba(127, 127, 213, 0.26) 0%, rgba(134, 168, 231, 0.26) 51.56%, rgba(145, 234, 228, 0.26) 100%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  
+  .education-card:hover .card-wrapper::before {
+    opacity: 1;
+  }
+
+.card-wrapper p{
+    font-size: 0.5rem;
+    font-weight: 500;
+    color: #8C8C8C;
+}
+
+.card-wrapper h3{
+    font-size: 1.3rem;
+    font-weight: 500;
+    transform: translateX(20px);
+}
+
+.card-wrapper h4{
+    font-size: 0.6rem;
+    font-weight: 500;
+    transform: translateX(20px);
+}
+
+.educ-second{
+    margin-top: 6vh;
+}
+
+
+.zoomable-image {
+    cursor: pointer;
+  }
+
+
+.zoomed-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    height: 100%;
+    width: 100%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+.zoomed-image img {
+    display: block;
+    height: 50%;
+    margin: 0 auto;
+  }
+
+
+
+  @media (max-width: 1000px) {
+
+    .card-wrapper{
+        width: 85%;
+    }
+
+    .education-card span{
+        display: flex;
+        justify-content: center;
+    }
+
+
+  }
+
+

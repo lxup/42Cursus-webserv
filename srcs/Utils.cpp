@@ -211,3 +211,6 @@ unsigned int	extractPort(std::string ipPort)
 bool isEmptyFile(){
 	return (ConfigParser::countLineFile == 0);
 }
+
+
+

@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;300;400;500&family=Sanchez&family=Varela+Round&display=swap');
+
+/* font-family: 'Poppins', sans-serif;
+font-family: 'Sanchez', serif;
+font-family: 'Varela Round', sans-serif; 
+*/
+
+html, body{
+    width: 100%;
+    font-size: calc(.75rem + 1.5vw)
+  }
+
+  
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+
+
+  .soft-section{
+    margin: 40vh 0vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .soft-wrapper{
+    margin-top: 100px;
+    width: 100%;
+    display: flex;
+    justify-content: end;
+  }
+
+  .soft-content{
+    position: relative;
+    width: 70%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(4, 1fr) ;
+  }
+
+  .soft-content p{
+    position: relative;
+    font-family: 'Poppins', sans-serif;
+    font-size: .7rem;
+    margin-bottom: 9vh;
+    font-weight: 500;
+  }
+
+  .soft-content p::after {
+    content: "";
+    position: absolute;
+    border-radius: 10px;
+    top:8vh;
+    left: 0;
+    width: 0%;
+    height: 10px;
+    background: linear-gradient(to right, #7f7fd5, #86a8e7, #91eae4); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    transition: all .7s ease-in-out;
+    }
+
+    .soft-content p.active-skill::after{
+      width: 200%;
+    }
+
+
+
+  /* hard section  */
+
+
+
+
+
+
+  @media (max-width: 1000px) {
+
+    .bouton-wrapper{
+      box-shadow: 2px 2px 8px black;
+    }
+
+     .bouton-wrapper::before{
+      opacity: .5;
+      transform: translate(8px, 8px);
+      background: #12c2e9;  /* fallback for old browsers */
+      background: -webkit-linear-gradient(to right, #f64f59, #c471ed, #12c2e9);  /* Chrome 10-25, Safari 5.1-6 */
+      background: linear-gradient(to right, #f64f59, #c471ed, #12c2e9); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    }
+
+
+    .bouton-wrapper{
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+
+    .soft-wrapper{
+      justify-content: center;
+    }
+
+    .soft-content{
+      width: 80%;
+    }
+
+
+    .hard-wrapper{
+      justify-content: start;
+    }
+
+    .hard-content{
+      width: 100%;
+      
+    }
+
+
+  }
