@@ -205,3 +205,9 @@ unsigned int	extractPort(std::string ipPort)
 	return(std::atoi(ipPort.substr(ipPort.find(":") + 1).c_str()));
 }
 	
+/**
+ * @brief renvoie true si le fichier est vide
+ */
+bool isEmptyFile(){
+	return (ConfigParser::countLineFile == 0);
+}

@@ -85,6 +85,10 @@ void BlocLocation::checkDoubleLine()
 	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 		if (it->second > 1)
 			Logger::log(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
+
+	// checker si root est present, alias ne doit pas l'etre et inversement
+	if (_counterView["root"] > 0 && _counterView["alias"] > 0)
+		Logger::log(Logger::FATAL, "Alias and Root can't be set in same location bloc %s", _path.c_str());
 }
 
 // ------------------------------- PARSING --------------------------------
@@ -159,7 +163,7 @@ BlocLocation BlocLocation::getLocationConfig(std::ifstream &configFile, std::str
 		else
 			Logger::log(Logger::FATAL, "Invalid line: \"%s\" in file: %s:%d", line.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	}
-	if (!isCloseLocation)
+	if (!isCloseLocation && !isEmptyFile())
 		Logger::log(Logger::FATAL, "Missing } in file: %s:%d", _filename.c_str(), ConfigParser::countLineFile);
 	checkDoubleLine();
 	setDefaultValues();

@@ -62,9 +62,9 @@ index: DUP | -1 | index.html
 	- Explain: Définit les fichiers index par défaut.
 	- Exemple: index index.html index.htm;
 
-client_max_body_size: NODUP | 1 | 1m
-	- Explain: Définit la taille maximale des données que le serveur web peut recevoir.
-	- Exemple: client_max_body_size 10m;
+client_max_body_size: NODUP | 1 | 1
+	- Explain: Définit la taille maximale des données que le serveur web peut recevoir (en octets).
+	- Exemple: client_max_body_size 10;
 
 
 -------------------

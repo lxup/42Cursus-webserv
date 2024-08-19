@@ -10,17 +10,18 @@ void signalHandler(int signum) {
 
 int main(int ac, char **av)
 {
+
 	ArgsManager args(ac, av);
 	
 	if (args.isOption("--help"))
 		return (args.help(), args.getState());
+
 
 	ConfigParser configs(args.getConfigFilePath());
 	Server server;
 	serverInstance = &server;
 	
 	signal(SIGINT, signalHandler);
-	
 	try{
 		// 1- Parsing
 		configs.parse();

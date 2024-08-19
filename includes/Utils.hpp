@@ -12,6 +12,7 @@
 #include <fstream>
 
 #include "Logger.hpp"
+#include "ConfigParser.hpp"
 
 /* WEBSERV EXCEPTION */
 // class WebservException : public std::exception
@@ -42,5 +43,7 @@ int	protectedCall(int ret, std::string msg, bool isFatal = true);
 
 std::string		extractIp(std::string ipPort);
 unsigned int	extractPort(std::string ipPort);
+bool isEmptyFile();
+
 
 #endif // UTILS_HPP
