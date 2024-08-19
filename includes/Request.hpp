@@ -9,7 +9,7 @@
 class Request
 {
 	private:
-		std::vector<e_Methods> _method;
+		e_Methods _method;
 		std::string _protocols;
 		std::string _host;
 		std::string _referer;
@@ -20,5 +20,7 @@ class Request
 		~Request();
 		void storageValue(char *str, unsigned int bytes);
 		void addAllowedMethods(std::string &token);
+		void printValue();
+
 };
 #endif

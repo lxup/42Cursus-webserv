@@ -1,8 +1,7 @@
 #include "Request.hpp"
 
-Request::Request() : _protocols(""), _host(""), _referer(""), _nbChar(0)
+Request::Request() : _method(GET), _protocols(""), _host(""), _referer(""), _nbChar(0)
 {
-	_method.push_back(GET);
 }
 
 Request::~Request()
@@ -21,9 +20,7 @@ void Request::addAllowedMethods(std::string &token)
 		met = DELETE;
 	else
 		met = BAD_MET;
-	if (std::find(_method.begin(), _method.end(), met) != _method.end())
-		return ;
-	_method.push_back(met);
+	_method = met;
 }
 
 void Request::storageValue(char *cha, unsigned int bytes)
@@ -34,5 +31,18 @@ void Request::storageValue(char *cha, unsigned int bytes)
 
 	this->addAllowedMethods(ve[0]);
 	this->_protocols = ve[2];
-	str.find("")
+	std::vector<std::string>::iterator it = std::find(ve.begin(), ve.end(), "Host:");
+	if (!(*it).empty())
+	{
+		it++;
+		_host = *it;
+	}
+}
+
+void Request::printValue()
+{
+	std::cout << _method << std::endl;
+	std::cout << _protocols << std::endl;
+	std::cout << _host << std::endl;
+	std::cout << _nbChar << std::endl;
 }

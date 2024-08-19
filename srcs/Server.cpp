@@ -111,6 +111,7 @@ void Server::handleConnection(int clientFD){
 		
 		Request req;
 		req.storageValue(buffer, bytesRead);
+		req.printValue();
 		//std::cout << buffer;
 		//Logger::log(Logger::INFO, buffer);
 		if (buffer[bytesRead - 1] == '\n')
