@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+.container{
+	/*--max-width: 1215px;*/
+	--max-width: 1015px;
+	--padding: 1rem;
+
+	width: min(var(--max-width), 100% - (var(--padding) * 1.2));
+	margin-inline: auto;
+}
+
+body{
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+	font-family: 'Inter', sans-serif;
+	background-color: #f9f9f9;
+}
+
+h1, h2, h3, h4, h5, h6{
+	margin: 0;
+}
+
+
+.wrapperAll{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+a {
+	text-decoration: none;
+}
+
+.button{
+	margin-top: 2rem;
+	color: white;
+	padding: 1rem 2rem;
+	border-radius: 10px;
+	display: flex;
+	cursor: pointer;
+	justify-content: center;
+}
+
+.button:hover{
+	opacity: .9;
+}
+
+.title{
+	margin-top: 3rem;
+	font-size: 5rem;
+	font-weight: semibold;
+	color: black;
+	margin-bottom: 2rem;
+}
+
+.portfolios,
+.features {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 2rem;
+	width: 100%;
+}
+
+
+@media(max-width:50em){
+	.features, .portfolios{
+		grid-template-columns: 1fr;
+	}
+}
+
+
+
+
+.bigLine{
+	width: 80%;
+	margin: 2rem 0;
+	height: 1px;
+	background-color: #33333326;
+}
+
+.portfolios .button{
+	background-color: #121212;
+	color: white;
+}
+
+.wrapper{
+	border-radius: 20px;
+	padding: 2rem 3rem;
+}
+
+.line{
+	width: 100%;
+	height: 1px;
+	background-color: #33333326;
+}
+
+.features{
+	gap: 1rem;
+	flex-wrap: wrap;
+}
+
+.subtitle{
+	font-size: 1.5rem;
+	margin-bottom: .5rem;
+	font-weight: 700;
+	color: #000000;
+}
+
+.features .line{
+	background-color: rgba(255, 255, 255, 0.277);
+}
+.features .wrapper{
+	background-color: #1e1e1e;
+	color: white;
+}
+
+.features .button{
+	background-color: rgb(255, 255, 255);
+	color: #121212;
+}
+
+.features .subtitle{
+	color: white;
+}
+
+#raf{
+	background-color: #AEE8FA;
+}
+
+#raf .button{
+	background-color: #0A1E30;
+}
+
+#loup{
+	background-color: #F9D3C1;
+}
+
+#loup .button{
+	background-color: #3A1D1D;
+}
+
+#louis{
+	background-color: #A2F6CE;
+}
+
+#louis .button{
+	background-color: #0F270C;
+}
+
+footer{
+	margin: 4rem 0 2rem 0;
+}
+
+.footer{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-direction: column;
+	text-align: center;
+	line-height: 27px;
+}
+
+.footer a{
+	color: #121212;
+	font-weight: 700;
+	cursor: pointer;
+}
