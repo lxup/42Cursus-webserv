@@ -83,6 +83,7 @@ HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
 					Client \
 					Request \
 					ListenConfig \
+					ErrorPage \
 					))
 
 SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
@@ -98,6 +99,7 @@ SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
 					Client \
 					Request \
 					ListenConfig \
+					ErrorPage \
 					))
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)
