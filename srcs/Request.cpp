@@ -1,6 +1,6 @@
 #include "Request.hpp"
 
-Request::Request(void) : _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _state(Request::INIT), _errorCode(0)
+Request::Request(void) : _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(0), _state(Request::INIT), _errorCode(0)
 {
 }
 
@@ -25,6 +25,7 @@ Request &Request::operator=(const Request &rhs)
 		this->_version = rhs._version;
 		this->_headers = rhs._headers;
 		this->_isChunked = rhs._isChunked;
+		this->_contentLength = rhs._contentLength;
 		this->_state = rhs._state;
 		this->_errorCode = rhs._errorCode;
 	}
@@ -41,10 +42,7 @@ Request &Request::operator=(const Request &rhs)
 void	Request::parse(const std::string &rawRequest)
 {
 	if (this->_state == Request::FINISH)
-	{
-		Logger::log(Logger::WARNING, "Request already parsed");
 		return ;
-	}
 	if (rawRequest.empty())
 	{
 		Logger::log(Logger::WARNING, "Empty request");
@@ -152,12 +150,14 @@ void	Request::_parseBody(void)
 	if (this->isChunked())
 		this->_parseChunkedBody();
 
+	Logger::log(Logger::DEBUG, "Expected content length: %d", this->_contentLength);
+	// add rawRequest to body with content length
+	this->_body += this->_rawRequest.substr(0, this->_contentLength - this->_body.size());
 
+	Logger::log(Logger::DEBUG, "Body: %s\n", this->_body.c_str());
 
-
-
-
-
+	if (this->_body.size() == this->_contentLength)
+		this->_setState(Request::FINISH);
 	// if (step == Request::BODY)
 	// {
 	// 	if (this->_isChunked)
@@ -196,7 +196,7 @@ void Request::_parseChunkedBody(void)
 **
 ** @param state : The state
 */
-void	Request::_setState(e_parse_state state)
+void	Request::_setState(e_parse_state state)	
 {
 	this->_state = state;
 
@@ -207,12 +207,10 @@ void	Request::_setState(e_parse_state state)
 	else if (state == Request::INIT)
 		Logger::log(Logger::DEBUG, "Request state changed to INIT");
 	else if (state == Request::HEADERS)
-	{
 		Logger::log(Logger::DEBUG, "Request state changed to HEADERS");
-		this->_setHeaderState();
-	}
 	else if (state == Request::BODY)
 	{
+		this->_setHeaderState(); // Set the header state
 		if (this->_method != "POST") // If the method is not POST, the body is empty
 			this->_setState(Request::FINISH);
 		else
@@ -230,6 +228,11 @@ void	Request::_setHeaderState(void)
 	// Check if the body is chunked
 	if (this->_headers.find("Transfer-Encoding") != this->_headers.end() && this->_headers["Transfer-Encoding"] == "chunked")
 		this->_isChunked = true;
+	if (this->_headers.find("Content-Length") != this->_headers.end())
+	{
+		std::istringstream iss(this->_headers["Content-Length"]);
+		iss >> this->_contentLength;
+	}
 }
 
 /*
