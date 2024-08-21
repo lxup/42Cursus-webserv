@@ -41,6 +41,7 @@ private:
 
 public:
 	BlocServer(std::string filename);
+	BlocServer();
 	~BlocServer();
 
 	// parsing

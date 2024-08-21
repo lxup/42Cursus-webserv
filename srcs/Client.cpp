@@ -33,7 +33,7 @@ Client::~Client(void)
  * @brief Handle the request of the client
  * 
  */
-int	Client::handleRequest(void)
+int	Client::handleRequest( int epollFD )
 {
 	Logger::log(Logger::DEBUG, "Handling request from client %d", this->_fd);
 	
@@ -57,14 +57,31 @@ int	Client::handleRequest(void)
 
 	this->_request.parse(buffer);
 
+	if (this->_request.getState() == Request::FINISH)
+		this->handleResponse(epollFD);
+
 	return (bytesRead);
 }
 
+
+/**
+ * @brief Handle the response of the client
+ * 
+ */
+void Client::handleResponse(int epollFD)
+{
+	
+	// this->_response = Response(this->_request, ICI IL ME FAUT LE BLOC SERVER);
+
+	// mettre le socket en epollout car on a une reponse a envoyer
+	modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);
+}
 
 /**
 * Une fois qu'on a envoye la reponse, il faut clear la requete, a voir comment faire ca clean ?
  */
 void Client::clearRequest(void){
 	Request newReq;
+	
 	_request = newReq;
 }

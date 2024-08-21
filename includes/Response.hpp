@@ -9,20 +9,28 @@
 # include "BlocServer.hpp"
 # include "Utils.hpp"
 
+class Request;
+
 class Response
 {
-
-
 	public:
-
+		Response(void);
 		Response(Request request, BlocServer blocServer);
 		~Response();
 
-		std::string getResponse( void );
+		std::string getRawResponse( void );
 
 	private:
 		Request _request;
 		BlocServer _blocServer;
+
+		std::string _response;
+		
+		// Methods
+		void handleGetRequest(void);
+		// std::vector<std::string> getPathRessource(void);
+
+
 
 };
 

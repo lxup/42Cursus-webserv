@@ -1,68 +1,5 @@
 #include "Utils.hpp"
 
-/* WEBSERV EXCEPTION */
-// WebservException::WebservException(int errnoNum, const char *msg, ...)
-// {
-// 	int bufferSize = 1024;
-// 	va_list args;
-// 	va_start(args, msg);
-// 	char buff[bufferSize];
-// 	int size = vsnprintf(buff, bufferSize, msg, args);
-// 	va_end(args);
-
-// 	if (size < 0)
-// 	{
-// 		// TODO: throw exception
-// 	}
-
-// 	while (size >= bufferSize)
-// 	{
-// 		bufferSize *= 2;
-// 		char newBuff[bufferSize];
-// 		va_start(args, msg);
-// 		size = vsnprintf(newBuff, bufferSize, msg, args);
-// 		va_end(args);
-// 		if (size < 0)
-// 		{
-// 			// TODO: throw exception
-// 		}
-// 	}
-
-// 	_errno = errnoNum;
-// 	_msg = buff;
-// 	if (_errno)
-// 		_msg += " (" + std::string(strerror(_errno)) + ")";
-// }
-
-// WebservException::WebservException(Logger::LogLevel logLevel, const char *msg, ...) : _logLevel(logLevel)
-// {
-// 	int bufferSize = 1024;
-// 	va_list args;
-// 	va_start(args, msg);
-// 	char buff[bufferSize];
-// 	int size = vsnprintf(buff, bufferSize, msg, args);
-// 	va_end(args);
-
-// 	if (size < 0)
-// 	{
-// 		// TODO: throw exception
-// 	}
-
-// 	while (size >= bufferSize)
-// 	{
-// 		bufferSize *= 2;
-// 		char newBuff[bufferSize];
-// 		va_start(args, msg);
-// 		size = vsnprintf(newBuff, bufferSize, msg, args);
-// 		va_end(args);
-// 		if (size < 0)
-// 		{
-// 			// TODO: throw exception
-// 		}
-// 	}
-// 	_msg = buff;
-// }
-
 /* UTILS */
 
 void printMsg(std::ostream &os, const char *msg, ...)
@@ -213,4 +150,37 @@ bool isEmptyFile(){
 }
 
 
+
+// _____________________________ MODIFY EPOLL _____________________________
+/**
+ * WARNING: this function do not update flags for a socket, it only add socket to 
+ * epoll with flags
+ */
+void addSocketEpoll(int epollFD, int sockFD, uint32_t flags)
+{
+	epoll_event ev;
+	ev.events = flags;
+	ev.data.fd = sockFD;
+	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function");
+}
+
+/**
+ * @brief
+ * WARNING: this function over written previous flags
+ * 
+ */
+void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags)
+{
+	epoll_event ev;
+	ev.events = flags;
+	ev.data.fd = sockFD;
+	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_MOD, sockFD, &ev), "Error with epoll_ctl function");
+}
+
+void deleteSocketEpoll(int epollFD, int sockFD)
+{
+	epoll_event ev;
+	ev.data.fd = sockFD;
+	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
+}
 
