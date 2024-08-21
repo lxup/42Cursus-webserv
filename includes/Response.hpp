@@ -15,13 +15,13 @@ class Response
 {
 	public:
 		Response(void);
-		Response(Request request, BlocServer blocServer);
+		Response(Request* request, BlocServer blocServer);
 		~Response();
 
 		std::string getRawResponse( void );
 
 	private:
-		Request _request;
+		Request*	_request;
 		BlocServer _blocServer;
 
 		std::string _response;

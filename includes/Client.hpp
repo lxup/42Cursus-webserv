@@ -19,10 +19,9 @@ class Client
 {
 	private:
 		int						_fd;
-		Request					_request;
-		Response				_response;
 		Socket*					_socket;
 		Request*				_request;
+		Response*				_response;
 	public:
 		Client(void);
 		Client(int fd, Socket* socket);
@@ -38,7 +37,7 @@ class Client
 		int getFd(void) const { return _fd; }
 		Request* getRequest(void) const { return _request; }
 		Socket* getSocket(void) const { return _socket; }
-		Response getResponse(void) const { return _response; }
+		Response* getResponse(void) const { return _response; }
 };
 
 #endif // CLIENT_HPP

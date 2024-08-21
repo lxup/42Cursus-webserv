@@ -30,14 +30,14 @@ Server::~Server(){
 * @brief Sent the response to the client
 * @TODO : handle the case where the response is too big to be sent in one time
  */
-void Server::sendResponse(Client &client){
-	Logger::log(Logger::DEBUG, "Sending response to client %d", client.getFd());
-	std::string response = client.getResponse().getRawResponse();
-	int bytesSent = send(client.getFd(), response.c_str(), response.length(), 0);
+void Server::sendResponse(Client* client){
+	Logger::log(Logger::DEBUG, "Sending response to client %d", client->getFd());
+	std::string response = client->getResponse()->getRawResponse();
+	int bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
 	if (bytesSent < 0)
 		Logger::log(Logger::ERROR, "Error with send function");
 	else
-		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client.getFd());
+		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
 }
 
 void Server::stop( void ) {
@@ -66,20 +66,7 @@ void Server::init(std::map<std::string, std::vector<BlocServer> > servers)
 	{
 		Socket* socket = new Socket(extractIp(it->first), extractPort(it->first), it->second);
 		this->_sockets[socket->getFd()] = socket;
-		this->addSocketEpoll(socket->getFd(), EPOLLIN);
-	}
-
-
-
-	// for (std::vector<BlocServer>::iterator it = serversConfig.begin(); it != serversConfig.end(); ++it)
-	// {
-	// 	// Socket	socket(*it);
-	// 	this->_sockets[socket.getFd()] = socket;
-	// 	this->addSocketEpoll(socket.getFd(), EPOLLIN);
-	// }
-		Socket socket(extractIp(it->first), extractPort(it->first), it->second);
-		this->_sockets[socket.getFd()] = socket;
-		addSocketEpoll(_epollFD,  socket.getFd(), REQUEST_FLAGS);
+		addSocketEpoll(this->_epollFD, socket->getFd(), EPOLLIN);
 	}
 	this->setState(S_STATE_READY);
 }
@@ -116,7 +103,7 @@ void	Server::_handleClientConnection(int fd)
 	Logger::log(Logger::DEBUG, "New client connected on file descriptor %d", fd);
 	Client *client = new Client(fd, this->_sockets[fd]);
 	this->_clients[client->getFd()] = client;
-	addSocketEpoll(client->getFd(), EPOLLIN);
+	addSocketEpoll(this->_epollFD, client->getFd(), EPOLLIN);
 
 }
 
@@ -127,7 +114,7 @@ void	Server::_handleClientConnection(int fd)
 void	Server::_handleClientDisconnection(int fd)
 {
 	Logger::log(Logger::DEBUG, "Client disconnected on file descriptor %d", fd);
-	deleteSocketEpoll(_epollFD, fd);
+	deleteSocketEpoll(this->_epollFD, fd);
 	std::map<int, Client*>::iterator it = this->_clients.find(fd);
 	if (it != this->_clients.end())
 	{

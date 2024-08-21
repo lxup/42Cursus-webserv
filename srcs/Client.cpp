@@ -4,11 +4,11 @@
 ** --------------------------------- PRIVATE METHODS ---------------------------
 */
 
-Client::Client(void) : _fd(-1), _socket(NULL), _request(new Request(this))
+Client::Client(void) : _fd(-1), _socket(NULL), _request(new Request(this)), _response(NULL)
 {
 }
 
-Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this))
+Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(NULL)
 {
 	Logger::log(Logger::DEBUG, "Initializing client with fd %d", fd);
 
@@ -25,7 +25,10 @@ Client::~Client(void)
 {
 	if (this->_fd != -1)
 		protectedCall(close(this->_fd), "Faild to close client socket", false);
-	delete this->_request;
+	if (this->_request != NULL)
+		delete this->_request;
+	if (this->_response != NULL)
+		delete this->_response;
 }
 
 /*
@@ -60,7 +63,7 @@ int	Client::handleRequest( int epollFD )
 
 	this->_request->parse(buffer);
 
-	if (this->_request.getState() == Request::FINISH)
+	if (this->_request->getState() == Request::FINISH)
 		this->handleResponse(epollFD);
 
 	return (bytesRead);
@@ -73,7 +76,7 @@ int	Client::handleRequest( int epollFD )
  */
 void Client::handleResponse(int epollFD)
 {
-	
+	this->_response = new Response();
 	// this->_response = Response(this->_request, ICI IL ME FAUT LE BLOC SERVER);
 
 	// mettre le socket en epollout car on a une reponse a envoyer
@@ -83,8 +86,8 @@ void Client::handleResponse(int epollFD)
 /**
 * Une fois qu'on a envoye la reponse, il faut clear la requete, a voir comment faire ca clean ?
  */
-void Client::clearRequest(void){
-	Request newReq;
-	
-	_request = newReq;
+void Client::clearRequest(void)
+{
+	delete this->_request;
+	this->_request = new Request(this);
 }
