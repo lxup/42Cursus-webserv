@@ -10,11 +10,11 @@
 #include <stdint.h>
 #include <sstream>
 #include <fstream>
+#include <sys/epoll.h>
+#include <arpa/inet.h>
 
 #include "Logger.hpp"
 #include "ConfigParser.hpp"
-# include <sys/epoll.h>
-# include <arpa/inet.h>
 
 /* UTILS */
 void printMsg(std::ostream &os, const char *msg, ...);
@@ -25,16 +25,15 @@ std::vector<std::string> split(std::string s, std::string delimiter);
 std::string unsignedIntToString(unsigned int value);
 std::string intToString(int value);
 
-int	protectedCall(int ret, std::string msg, bool isFatal = true);
+int protectedCall(int ret, std::string msg, bool isFatal = true);
 
-std::string		extractIp(std::string ipPort);
-unsigned int	extractPort(std::string ipPort);
+std::string extractIp(std::string ipPort);
+unsigned int extractPort(std::string ipPort);
 bool isEmptyFile();
 
-//epoll utils
+// epoll utils
 void addSocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void deleteSocketEpoll(int epollFD, int sockFD);
-
 
 #endif // UTILS_HPP

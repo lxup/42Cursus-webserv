@@ -31,6 +31,9 @@ void printMsg(std::ostream &os, const char *msg, ...)
 	os << buffer.data() << std::endl;
 }
 
+/**
+ * @brief renvoie true si le dossier existe
+ */
 bool directoryExist(const char *path)
 {
 	struct stat info;
@@ -41,6 +44,9 @@ bool directoryExist(const char *path)
 	return (info.st_mode & S_IFDIR) != 0;
 }
 
+/**
+ * @brief renvoie true si le fichier existe
+ */
 bool fileExist(const std::string &name)
 {
 	std::ifstream file(name.c_str());

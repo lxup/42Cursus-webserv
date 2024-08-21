@@ -67,6 +67,7 @@ class Request
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }
+		BlocServer *getServer(void) const { return _server; }
 		// bool isReady(void) const { return _isReady; }
 };
 

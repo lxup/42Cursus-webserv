@@ -233,7 +233,11 @@ void	Request::_setHeaderState(void)
 		iss >> this->_contentLength;
 	}
 
-	// CEST LOUP QUI DOIT FAIRE ICI PAS TOUCHEEEEEEEEEEEE
+	//raf modif pour faire les response
+	this->_findServer();
+	// fin des modif de raf 
+
+	// CEST LOUP QUI DOIT FAIRE ICI PAS TOUCHEEEEEEEEEEEE => j'ai touche tu vas faire quoi ?
 	// this->_findServer();
 	// if (this->_server == NULL)
 	// {

@@ -63,7 +63,7 @@ index: DUP | -1 | index.html
 	- Exemple: index index.html index.htm;
 
 client_max_body_size: NODUP | 1 | 1
-	- Explain: Définit la taille maximale des données que le serveur web peut recevoir (en octets).
+	- Explain: Définit la taille maximale des données que le serveur web peut recevoir (en Mo).
 	- Exemple: client_max_body_size 10;
 
 

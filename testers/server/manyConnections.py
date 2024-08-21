@@ -30,6 +30,8 @@ def main(url, num_clients):
      total_duration = time.time() - total_start_time
      print(f"\nTotal time taken: {total_duration:.4f} seconds")
 
+
+# test en iteratif
 #def main(url, num_clients):
 #    threads = []
 #    total_start_time = time.time()

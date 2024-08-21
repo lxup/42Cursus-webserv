@@ -75,9 +75,8 @@ int	Client::handleRequest( int epollFD )
  * 
  */
 void Client::handleResponse(int epollFD)
-{
-	this->_response = new Response();
-	// this->_response = Response(this->_request, ICI IL ME FAUT LE BLOC SERVER);
+{	
+	this->_response = new Response(this->_request, _request->getServer());
 
 	// mettre le socket en epollout car on a une reponse a envoyer
 	modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);
