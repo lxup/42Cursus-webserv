@@ -22,7 +22,7 @@ class ConfigParser
 		~ConfigParser(void);
 		// std::vector<BlocServer> getServersConfig( void ) const { return _servers; }
 		std::map<std::string, std::vector<BlocServer> > getConfigs( void ) const { return _configs; }
-		
+		std::map<std::string, std::vector<BlocServer> > &getServers( void ) { return _configs; }
 		// parser
 		void parse(const std::string &filename);
 

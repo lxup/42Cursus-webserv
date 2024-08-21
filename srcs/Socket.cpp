@@ -4,7 +4,7 @@ Socket::Socket(void) : _fd(-1)
 {
 }
 
-Socket::Socket(std::string ip, unsigned int port, std::vector<BlocServer> servers)
+Socket::Socket(std::string ip, unsigned int port, std::vector<BlocServer>* servers)
 {
 	Logger::log(Logger::DEBUG, "Initializing socket on %s:%d", ip.c_str(), port);
 	this->_ip = ip;

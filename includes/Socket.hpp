@@ -15,14 +15,11 @@ class Socket
 		std::string					_ip;
 		unsigned int				_port;
 		int							_fd;
-		std::vector<BlocServer>		_servers;
+		std::vector<BlocServer>*	_servers;
 		struct sockaddr_in			_addr;
-
-
-		static void	_closeSocket(int fd);
 	public:
 		Socket(void);
-		Socket(std::string ip, unsigned int port, std::vector<BlocServer> servers);
+		Socket(std::string ip, unsigned int port, std::vector<BlocServer>* servers);
 		Socket(Socket const &src);
 		~Socket(void);
 
@@ -32,7 +29,7 @@ class Socket
 		std::string getIp(void) const { return _ip; }
 		unsigned int getPort(void) const { return _port; }
 		int getFd(void) const { return _fd; }
-		std::vector<BlocServer> getServers(void) const { return _servers; }
+		std::vector<BlocServer>* getServers(void) const { return _servers; }
 		struct sockaddr_in getAddr(void) const { return _addr; }
 };
 

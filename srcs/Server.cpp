@@ -62,10 +62,10 @@ void Server::init(void)
 	Logger::log(Logger::DEBUG, "|| Create listening sockets...||");
 	Logger::log(Logger::DEBUG, "#==============================#");
 
-	std::map<std::string, std::vector<BlocServer> > servers = this->_configParser.getConfigs();
+	std::map<std::string, std::vector<BlocServer> > &servers = this->_configParser.getServers();
 	for (std::map<std::string, std::vector<BlocServer> >::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		Socket* socket = new Socket(extractIp(it->first), extractPort(it->first), it->second);
+		Socket* socket = new Socket(extractIp(it->first), extractPort(it->first), &it->second);
 		this->_sockets[socket->getFd()] = socket;
 		addSocketEpoll(this->_epollFD, socket->getFd(), EPOLLIN);
 	}

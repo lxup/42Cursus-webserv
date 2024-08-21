@@ -4,7 +4,8 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Response::Response( void ){
+Response::Response(void)
+{
 }
 
 Response::Response(Request* request, BlocServer blocServer) : _request(request), _blocServer(blocServer)

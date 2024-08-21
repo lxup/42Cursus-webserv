@@ -2,13 +2,13 @@
 
 // ============ GENERAL ============
 
-BlocServer::BlocServer(void) : _clientMaxBodySize(-1), _filename("")
+BlocServer::BlocServer(void) : _clientMaxBodySize(BS_DEFAULT_CLIENT_MAX_BODY_SIZE), _filename("")
 {
 	_counterView["root"] = 0;
 	_counterView["clientMaxBodySize"] = 0;
 }
 
-BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(-1), _filename(filename)
+BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(BS_DEFAULT_CLIENT_MAX_BODY_SIZE), _filename(filename)
 {
 	_counterView["root"] = 0;
 	_counterView["clientMaxBodySize"] = 0;
