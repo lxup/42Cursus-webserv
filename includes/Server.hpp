@@ -27,8 +27,8 @@ class Server
 	private:
 		int						_state;
 		int 					_epollFD;
-		std::map<int, Socket>	_sockets;
-		std::map<int, Client>	_clients;
+		std::map<int, Socket*>	_sockets;
+		std::map<int, Client*>	_clients;
 
 		/* SETTERS */
 		void setState(int state);
@@ -42,7 +42,6 @@ class Server
 		
 		// std::map<int, std::queue<std::string> > _clientRequests; // TODO : format Reponse instead of string
 
-		int check(int ret, std::string msg);
 		void addSocketEpoll(int sockFD, uint32_t flags);
 		void modifySocketEpoll(int sockFD, uint32_t flags);
 		void deleteSocketEpoll(int sockFD);
@@ -69,10 +68,14 @@ class Server
 		/* GETTERS */
 		int getState(void) const { return _state; }
 		int getEpollFD(void) const { return _epollFD; }
-		std::map<int, Socket> getSockets(void) const { return _sockets; }
-		Socket &getSocket(int fd) { return _sockets[fd]; }
-		std::map<int, Client> getClients(void) const { return _clients; }
-		Client &getClient(int fd) { return _clients[fd]; }
+		std::map<int, Socket*> getSockets(void) const { return _sockets; }
+		Socket* getSocket(int fd) { return _sockets[fd]; }
+		std::map<int, Client*> getClients(void) const { return _clients; }
+		Client* getClient(int fd) { return _clients[fd]; }
+
+		/* CLIENTS */
+		void addClient(int fd, Client* client);
+		void deleteClient(int fd);
 };
 
 void printEvent(int fd, uint32_t event);

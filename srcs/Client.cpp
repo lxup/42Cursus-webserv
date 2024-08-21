@@ -4,11 +4,11 @@
 ** --------------------------------- PRIVATE METHODS ---------------------------
 */
 
-Client::Client(void) : _fd(-1), _socket(NULL)
+Client::Client(void) : _fd(-1), _socket(NULL), _request(new Request(this))
 {
 }
 
-Client::Client(int fd, Socket* socket) : _socket(socket)
+Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this))
 {
 	Logger::log(Logger::DEBUG, "Initializing client with fd %d", fd);
 
@@ -21,6 +21,9 @@ Client::Client(int fd, Socket* socket) : _socket(socket)
 
 Client::~Client(void)
 {
+	if (this->_fd != -1)
+		protectedCall(close(this->_fd), "Faild to close client socket", false);
+	delete this->_request;
 }
 
 /*
@@ -53,7 +56,7 @@ int	Client::handleRequest(void)
 	else if (bytesRead == 0)
 		return (0);
 
-	this->_request.parse(buffer);
+	this->_request->parse(buffer);
 
 	return (bytesRead);
 }

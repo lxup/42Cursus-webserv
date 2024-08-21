@@ -12,19 +12,13 @@ Server::Server() : _state(S_STATE_INIT), _epollFD(-1)
 Server::~Server(){
 	if (this->_epollFD != -1)
 		protectedCall(close(_epollFD), "Faild to close epoll instance", false);
-	// Close all the listening sockets
-	for (std::map<int, Socket>::iterator it = this->_sockets.begin(); it != this->_sockets.end(); ++it)
-	{
-		if (it->second.getFd() != -1)
-			protectedCall(close(it->second.getFd()), "Faild to close listening socket", false);
-	}
+	// Delete all the sockets
+	for (std::map<int, Socket*>::iterator it = this->_sockets.begin(); it != this->_sockets.end(); ++it)
+		delete it->second;
 	this->_sockets.clear();
-	// Close all the client sockets
-	for (std::map<int, Client>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
-	{
-		if (it->second.getFd() != -1)
-			protectedCall(close(it->second.getFd()), "Faild to close client socket", false);
-	}
+	// Delete all the clients
+	for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+		delete it->second;
 	this->_clients.clear();
 }
 
@@ -103,9 +97,9 @@ void Server::init(std::map<std::string, std::vector<BlocServer> > servers)
 
 	for (std::map<std::string, std::vector<BlocServer> >::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		Socket socket(extractIp(it->first), extractPort(it->first), it->second);
-		this->_sockets[socket.getFd()] = socket;
-		this->addSocketEpoll(socket.getFd(), EPOLLIN);
+		Socket* socket = new Socket(extractIp(it->first), extractPort(it->first), it->second);
+		this->_sockets[socket->getFd()] = socket;
+		this->addSocketEpoll(socket->getFd(), EPOLLIN);
 	}
 
 
@@ -155,7 +149,9 @@ void Server::handleConnection(int clientFD){
 
 	if (!isEnter){
 		Logger::log(Logger::DEBUG, "Le client se barre, ce batard");
-		close(clientFD);
+		// close(clientFD);
+		// delete from map
+		this->_clients.erase(clientFD);
 		return ;
 	}
 
@@ -235,9 +231,9 @@ void Server::closeConnection(int fd){
 void	Server::_handleClientConnection(int fd)
 {
 	Logger::log(Logger::DEBUG, "New client connected on file descriptor %d", fd);
-	Client client(fd, &(this->_sockets[fd]));
-	this->_clients[client.getFd()] = client;
-	addSocketEpoll(client.getFd(), EPOLLIN);
+	Client *client = new Client(fd, this->_sockets[fd]);
+	this->_clients[client->getFd()] = client;
+	addSocketEpoll(client->getFd(), EPOLLIN);
 }
 
 /**
@@ -247,9 +243,13 @@ void	Server::_handleClientConnection(int fd)
 void	Server::_handleClientDisconnection(int fd)
 {
 	Logger::log(Logger::DEBUG, "Client disconnected on file descriptor %d", fd);
-	this->_clients.erase(fd);
 	deleteSocketEpoll(fd);
-	close(fd);
+	std::map<int, Client*>::iterator it = this->_clients.find(fd);
+	if (it != this->_clients.end())
+	{
+		delete it->second;
+		this->_clients.erase(it);
+	}
 }
 
 
@@ -286,7 +286,7 @@ void Server::run(void)
 				if (this->_clients.find(fd) == this->_clients.end()) // New client connection
 					_handleClientConnection(fd);
 				else
-					if (!(this->_clients[fd].handleRequest()))
+					if (!(this->_clients[fd]->handleRequest()))
 						_handleClientDisconnection(fd);
 			}
 			if (event & EPOLLOUT)

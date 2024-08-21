@@ -1,6 +1,11 @@
 #include "Request.hpp"
 
-Request::Request(void) : _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(0), _state(Request::INIT), _errorCode(0)
+Request::Request(void) : _client(NULL), _server(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(0), _state(Request::INIT), _stateCode(0)
+{
+
+}
+
+Request::Request(Client *client) : _client(client), _server(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(0), _state(Request::INIT), _stateCode(0)
 {
 }
 
@@ -27,7 +32,7 @@ Request &Request::operator=(const Request &rhs)
 		this->_isChunked = rhs._isChunked;
 		this->_contentLength = rhs._contentLength;
 		this->_state = rhs._state;
-		this->_errorCode = rhs._errorCode;
+		this->_stateCode = rhs._stateCode;
 	}
 	return *this;
 }
@@ -151,11 +156,7 @@ void	Request::_parseBody(void)
 		this->_parseChunkedBody();
 
 	Logger::log(Logger::DEBUG, "Expected content length: %d", this->_contentLength);
-	// add rawRequest to body with content length
 	this->_body += this->_rawRequest.substr(0, this->_contentLength - this->_body.size());
-
-	Logger::log(Logger::DEBUG, "Body: %s\n", this->_body.c_str());
-
 	if (this->_body.size() == this->_contentLength)
 		this->_setState(Request::FINISH);
 	// if (step == Request::BODY)
@@ -202,8 +203,6 @@ void	Request::_setState(e_parse_state state)
 
 	if (state == Request::FINISH)
 		Logger::log(Logger::DEBUG, "Request state changed to FINISH");
-	else if (state == Request::ERROR)
-		Logger::log(Logger::DEBUG, "Request state changed to ERROR");
 	else if (state == Request::INIT)
 		Logger::log(Logger::DEBUG, "Request state changed to INIT");
 	else if (state == Request::HEADERS)
@@ -225,6 +224,8 @@ void	Request::_setState(e_parse_state state)
 */
 void	Request::_setHeaderState(void)
 {
+	this->_findServer();
+
 	// Check if the body is chunked
 	if (this->_headers.find("Transfer-Encoding") != this->_headers.end() && this->_headers["Transfer-Encoding"] == "chunked")
 		this->_isChunked = true;
@@ -242,6 +243,61 @@ void	Request::_setHeaderState(void)
 */
 void	Request::_setError(int code)
 {
-	this->_setState(Request::ERROR);
-	this->_errorCode = code;
+	this->_setState(Request::FINISH);
+	this->_stateCode = code;
+}
+
+/*
+** @brief Find the server
+*/
+void	Request::_findServer(void)
+{
+	if (this->_client == NULL)
+	{
+		Logger::log(Logger::ERROR, "[_findServer] Client is NULL");
+		this->_setError(500);
+		return ;
+	}
+	if (this->_server != NULL)
+	{
+		Logger::log(Logger::DEBUG, "[_findServer] Server already set");
+		return ;
+	}
+
+	std::string host = this->_headers["Host"]; // Find the host in the headers
+	if (host.empty()) // If the host is empty, set the error code to 400
+	{
+		Logger::log(Logger::ERROR, "[_findServer] Host not found in headers");
+		this->_setError(400);
+		return ;
+	}
+	
+	Logger::log(Logger::DEBUG, "[_findServer] Host: %s", host.c_str());
+
+	Socket* socket = this->_client->getSocket();
+	if (socket == NULL)
+	{
+		Logger::log(Logger::ERROR, "[_findServer] Socket is NULL");
+		this->_setError(500);
+		return ;
+	}
+
+	BlocServer* serverFound = NULL;
+	std::vector<BlocServer> servers = socket->getServers();
+	for (std::vector<BlocServer>::iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		std::vector<std::string> serverNames = it->getServerNames();
+		for (std::vector<std::string>::iterator it2 = serverNames.begin(); it2 != serverNames.end(); it2++)
+		{
+			if (*it2 == host)
+			{
+				serverFound = &(*it);
+				break;
+			}
+		}
+	}
+	if (serverFound == NULL) // If the server is not found, set the first BlocServer
+		serverFound = &servers.front();
+	this->_server = serverFound;
+	Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
 }
