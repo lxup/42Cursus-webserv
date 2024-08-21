@@ -13,22 +13,8 @@
 
 #include "Logger.hpp"
 #include "ConfigParser.hpp"
-
-/* WEBSERV EXCEPTION */
-// class WebservException : public std::exception
-// {
-// private:
-// 	int _errno;
-// 	Logger::LogLevel _logLevel;
-// 	std::string _msg;
-
-// public:
-// 	WebservException(int errnoNum, const char *msg, ...);
-// 	WebservException(Logger::LogLevel logLevel, const char *msg, ...);
-// 	virtual ~WebservException(void) throw() {}
-// 	virtual const char *what() const throw() { return _msg.c_str(); }
-// 	Logger::LogLevel getLogLevel(void) const { return _logLevel; }
-// };
+# include <sys/epoll.h>
+# include <arpa/inet.h>
 
 /* UTILS */
 void printMsg(std::ostream &os, const char *msg, ...);
@@ -44,6 +30,11 @@ int	protectedCall(int ret, std::string msg, bool isFatal = true);
 std::string		extractIp(std::string ipPort);
 unsigned int	extractPort(std::string ipPort);
 bool isEmptyFile();
+
+//epoll utils
+void addSocketEpoll(int epollFD, int sockFD, uint32_t flags);
+void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags);
+void deleteSocketEpoll(int epollFD, int sockFD);
 
 
 #endif // UTILS_HPP

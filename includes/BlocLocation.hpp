@@ -55,7 +55,7 @@ class BlocLocation
 		void checkDoubleLine();
 		void setDefaultValues();
 		e_boolMod strToBool(std::string &str);
-
+		void cleanPaths();
 
 		// Adders
 		void addAllowedMethods(std::vector<std::string> &tokens);

@@ -18,6 +18,7 @@ class Socket
 		std::vector<BlocServer>	_servers;
 		struct sockaddr_in		_addr;
 
+
 		static void	_closeSocket(int fd);
 	public:
 		Socket(void);

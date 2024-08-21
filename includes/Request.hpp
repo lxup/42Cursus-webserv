@@ -7,6 +7,9 @@
 # include <algorithm>
 
 # include "Logger.hpp"
+# include "Client.hpp"
+
+class Client;
 
 class Request
 {
@@ -16,10 +19,11 @@ class Request
 			INIT,
 			HEADERS,
 			BODY,
-			FINISH,
-			ERROR
+			FINISH
 		};
 	private:
+		Client*								_client;
+		BlocServer*							_server;
 		std::string 						_rawRequest;
 		std::string 						_method;
 		std::string 						_uri;
@@ -29,8 +33,9 @@ class Request
 		std::map<std::string, std::string>	_headers;
 		std::map<std::string, std::string>	_params;
 		bool								_isChunked;
+		size_t								_contentLength;
 		e_parse_state						_state;
-		int									_errorCode;
+		int									_stateCode;
 
 		void	_parseRequestLine(void);
 		void	_parseHeaders(void);
@@ -40,8 +45,11 @@ class Request
 		void	_setState(e_parse_state state);
 		void	_setHeaderState(void);
 		void	_setError(int code);
+
+		void	_findServer(void);
 	public:
 		Request(void);
+		Request(Client *client);
 		Request(const Request &src);
 		~Request(void);
 

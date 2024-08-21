@@ -36,6 +36,8 @@ Socket::Socket(const Socket &src)
 
 Socket::~Socket(void)
 {
+	if (this->_fd != -1)
+		protectedCall(close(this->_fd), "Faild to close socket", false);
 }
 
 Socket &Socket::operator=(const Socket &rhs)
