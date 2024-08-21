@@ -33,7 +33,7 @@ class Request
 		std::map<std::string, std::string>	_headers;
 		std::map<std::string, std::string>	_params;
 		bool								_isChunked;
-		size_t								_contentLength;
+		int									_contentLength;
 		e_parse_state						_state;
 		int									_stateCode;
 

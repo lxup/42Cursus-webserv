@@ -2,16 +2,41 @@
 
 // ============ GENERAL ============
 
+BlocServer::BlocServer(void) : _clientMaxBodySize(-1), _filename("")
+{
+	_counterView["root"] = 0;
+	_counterView["clientMaxBodySize"] = 0;
+}
+
 BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(-1), _filename(filename)
 {
 	_counterView["root"] = 0;
 	_counterView["clientMaxBodySize"] = 0;
 }
 
-BlocServer::~BlocServer(){}
+BlocServer::BlocServer(const BlocServer &other)
+{
+	*this = other;
+}
 
-BlocServer::BlocServer(){}
+BlocServer::~BlocServer(void){}
 
+BlocServer &BlocServer::operator=(const BlocServer &other)
+{
+	if (this != &other)
+	{
+		_listens = other._listens;
+		_serverNames = other._serverNames;
+		_indexes = other._indexes;
+		_root = other._root;
+		_clientMaxBodySize = other._clientMaxBodySize;
+		_locations = other._locations;
+		_errorPages = other._errorPages;
+		_filename = other._filename;
+		_counterView = other._counterView;
+	}
+	return *this;
+}
 
 // ============ UTILS ============
 bool BlocServer::isStartBlocLocation(std::vector<std::string>& tokens)

@@ -1,11 +1,11 @@
 #include "Request.hpp"
 
-Request::Request(void) : _client(NULL), _server(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(0), _state(Request::INIT), _stateCode(0)
+Request::Request(void) : _client(NULL), _server(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _state(Request::INIT), _stateCode(0)
 {
 
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(0), _state(Request::INIT), _stateCode(0)
+Request::Request(Client *client) : _client(client), _server(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _state(Request::INIT), _stateCode(0)
 {
 }
 
@@ -157,7 +157,7 @@ void	Request::_parseBody(void)
 
 	Logger::log(Logger::DEBUG, "Expected content length: %d", this->_contentLength);
 	this->_body += this->_rawRequest.substr(0, this->_contentLength - this->_body.size());
-	if (this->_body.size() == this->_contentLength)
+	if ((int)this->_body.size() == this->_contentLength)
 		this->_setState(Request::FINISH);
 	// if (step == Request::BODY)
 	// {
@@ -224,8 +224,6 @@ void	Request::_setState(e_parse_state state)
 */
 void	Request::_setHeaderState(void)
 {
-	this->_findServer();
-
 	// Check if the body is chunked
 	if (this->_headers.find("Transfer-Encoding") != this->_headers.end() && this->_headers["Transfer-Encoding"] == "chunked")
 		this->_isChunked = true;
@@ -234,6 +232,21 @@ void	Request::_setHeaderState(void)
 		std::istringstream iss(this->_headers["Content-Length"]);
 		iss >> this->_contentLength;
 	}
+
+	// CEST LOUP QUI DOIT FAIRE ICI PAS TOUCHEEEEEEEEEEEE
+	// this->_findServer();
+	// if (this->_server == NULL)
+	// {
+	// 	Logger::log(Logger::ERROR, "[_setHeaderState] Server is NULL");
+	// 	this->_setError(500);
+	// 	return ;
+	// }
+	// if (this->_server->getClientMaxBodySize() != -1 && this->_contentLength > (int)this->_server->getClientMaxBodySize())
+	// {
+	// 	Logger::log(Logger::ERROR, "[_setHeaderState] Content-Length too big");
+	// 	this->_setError(413);
+	// 	return ;
+	// }
 }
 
 /*
@@ -243,8 +256,8 @@ void	Request::_setHeaderState(void)
 */
 void	Request::_setError(int code)
 {
-	this->_setState(Request::FINISH);
 	this->_stateCode = code;
+	this->_setState(Request::FINISH);
 }
 
 /*

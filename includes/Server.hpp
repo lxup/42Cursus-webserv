@@ -13,8 +13,8 @@
 # include "BlocServer.hpp"
 # include "Response.hpp"
 # include "Utils.hpp"
-
-#include "Request.hpp"
+# include "Request.hpp"
+# include "ConfigParser.hpp"
 
 // define step for server 
 enum ServerState
@@ -30,6 +30,7 @@ class Server
 	private:
 		int						_state;
 		int 					_epollFD;
+		ConfigParser			_configParser;
 		std::map<int, Socket*>	_sockets;
 		std::map<int, Client*>	_clients;
 
@@ -61,13 +62,14 @@ class Server
 		Server(void);
 		~Server(void);
 
-		void init(std::map<std::string, std::vector<BlocServer> > servers);
+		void init(void);
 		void run(void);
 		void stop(void);
 
 		/* GETTERS */
 		int getState(void) const { return _state; }
 		int getEpollFD(void) const { return _epollFD; }
+		ConfigParser& getConfigParser(void) { return _configParser; }
 		std::map<int, Socket*> getSockets(void) const { return _sockets; }
 		Socket* getSocket(int fd) { return _sockets[fd]; }
 		std::map<int, Client*> getClients(void) const { return _clients; }

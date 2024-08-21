@@ -53,7 +53,7 @@ void Server::stop( void ) {
  * 
  * @param serversConfig A vector of BlocServer objects representing the server configurations.
  */
-void Server::init(std::map<std::string, std::vector<BlocServer> > servers)
+void Server::init(void)
 {
 	Logger::log(Logger::DEBUG, "Create epoll instance...");
 	this->setEpollFD(protectedCall(epoll_create1(O_CLOEXEC), "Failed to create epoll instance"));
@@ -62,6 +62,7 @@ void Server::init(std::map<std::string, std::vector<BlocServer> > servers)
 	Logger::log(Logger::DEBUG, "|| Create listening sockets...||");
 	Logger::log(Logger::DEBUG, "#==============================#");
 
+	std::map<std::string, std::vector<BlocServer> > servers = this->_configParser.getConfigs();
 	for (std::map<std::string, std::vector<BlocServer> >::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
 		Socket* socket = new Socket(extractIp(it->first), extractPort(it->first), it->second);

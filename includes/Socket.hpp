@@ -12,11 +12,11 @@
 class Socket
 {
 	private:
-		std::string				_ip;
-		unsigned int			_port;
-		int						_fd;
-		std::vector<BlocServer>	_servers;
-		struct sockaddr_in		_addr;
+		std::string					_ip;
+		unsigned int				_port;
+		int							_fd;
+		std::vector<BlocServer>		_servers;
+		struct sockaddr_in			_addr;
 
 
 		static void	_closeSocket(int fd);

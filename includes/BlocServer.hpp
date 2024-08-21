@@ -41,8 +41,12 @@ private:
 
 public:
 	BlocServer(std::string filename);
-	BlocServer();
-	~BlocServer();
+	BlocServer(void);
+	BlocServer(const BlocServer &other);
+	~BlocServer(void);
+
+	BlocServer &operator=(const BlocServer &other);
+
 
 	// parsing
 	BlocServer getServerConfig(std::ifstream &file_config);
@@ -52,7 +56,7 @@ public:
 	const std::vector<std::string> &getServerNames() const { return _serverNames; }
 	const std::vector<BlocLocation> &getLocations() const { return _locations; }
 	const std::string &getRoot() const { return _root; }
-	unsigned int getClientMaxBodySize() const { return _clientMaxBodySize; }
+	int getClientMaxBodySize() const { return _clientMaxBodySize; }
 	const std::map<std::string, ListenConfig> &getListens() const { return _listens; }
 	const std::vector<std::string> &getIndexes() const { return _indexes; }
 

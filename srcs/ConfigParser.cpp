@@ -1,7 +1,9 @@
 #include "ConfigParser.hpp"
 
-ConfigParser::ConfigParser(const std::string &filename) : _filename(filename){
-}
+// ConfigParser::ConfigParser(const std::string &filename) : _filename(filename){
+// }
+
+ConfigParser::ConfigParser(void) : _filename("") {}
 
 ConfigParser::~ConfigParser(void) {}
 
@@ -50,8 +52,9 @@ void ConfigParser::assignConfigs(){
  * add it to _servers vector
  * 
  */
-void ConfigParser::parse(void)
+void ConfigParser::parse(const std::string &filename)
 {
+	this->_filename = filename;
 	Logger::log(Logger::DEBUG, "Parsing config file: %s", _filename.c_str());
 	std::ifstream configFile(_filename.c_str());
 	std::vector<std::string> tokens;
