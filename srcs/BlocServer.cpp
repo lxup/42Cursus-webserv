@@ -10,6 +10,8 @@ BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(-1), _filename
 
 BlocServer::~BlocServer(){}
 
+BlocServer::BlocServer(){}
+
 
 // ============ UTILS ============
 bool BlocServer::isStartBlocLocation(std::vector<std::string>& tokens)

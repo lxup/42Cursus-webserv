@@ -4,7 +4,6 @@
 # include <iostream>
 # include <map>
 # include <vector>
-# include <queue>
 # include <sys/epoll.h>
 # include <arpa/inet.h>
 # include <algorithm>
@@ -13,6 +12,7 @@
 # include "Client.hpp"
 # include "BlocServer.hpp"
 # include "Response.hpp"
+# include "Utils.hpp"
 
 #include "Request.hpp"
 
@@ -45,15 +45,13 @@ class Server
 		
 		// std::map<int, std::queue<std::string> > _clientRequests; // TODO : format Reponse instead of string
 
-		void addSocketEpoll(int sockFD, uint32_t flags);
-		void modifySocketEpoll(int sockFD, uint32_t flags);
-		void deleteSocketEpoll(int sockFD);
+		int check(int ret, std::string msg);
 		void showIpPortClient(int clientFD);
 		void handleConnection(int clientFD);
 		void handleEvent(int fd, uint32_t event);
 		bool isNewConnection(int fd);
 		void closeConnection(int fd);
-		void sendResponse(int fd);
+		void sendResponse(Client &client);
 
 		/* HANDLE */
 		void	_handleClientConnection(int fd);
