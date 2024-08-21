@@ -18,7 +18,6 @@ class Socket
 		std::vector<BlocServer>	_servers;
 		struct sockaddr_in		_addr;
 
-		int _fdClient;
 
 		static void	_closeSocket(int fd);
 	public:
@@ -35,9 +34,6 @@ class Socket
 		int getFd(void) const { return _fd; }
 		std::vector<BlocServer> getServers(void) const { return _servers; }
 		struct sockaddr_in getAddr(void) const { return _addr; }
-		int getFdClient(void) const { return _fdClient; }
-		/* SETTERS */
-		void setClient(int fdClient) { _fdClient = fdClient; }
 };
 
 #endif // SOCKET_HPP

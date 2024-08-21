@@ -61,6 +61,9 @@ int	Client::handleRequest(void)
 }
 
 
+/**
+* Une fois qu'on a envoye la reponse, il faut clear la requete, a voir comment faire ca clean ?
+ */
 void Client::clearRequest(void){
 	Request newReq;
 	_request = newReq;
