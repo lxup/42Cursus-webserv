@@ -17,6 +17,8 @@ Client::Client(int fd, Socket* socket) : _socket(socket)
 
 	this->_fd = protectedCall(accept(fd, (struct sockaddr *)&addr, &addrLen), "Error with accept function");
 	protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "Error with fcntl function");
+
+	
 }
 
 Client::~Client(void)
@@ -56,4 +58,10 @@ int	Client::handleRequest(void)
 	this->_request.parse(buffer);
 
 	return (bytesRead);
+}
+
+
+void Client::clearRequest(void){
+	Request newReq;
+	_request = newReq;
 }

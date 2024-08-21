@@ -268,6 +268,14 @@ void Server::run(void)
 	epoll_event	events[MAX_EVENTS];
 	while (this->getState() == S_STATE_RUN)
 	{
+		// check if one response is ready to be sent
+		for (std::map<int, Client>::iterator it = _clients.begin(); it != _clients.end(); ++it){
+			Client client = it->second;
+			if (client.getRequest().getState() == Request::FINISH){
+				modifySocketEpoll(client.getFd(), RESPONSE_FLAGS);
+			}
+		}
+
 		Logger::log(Logger::INFO, "Waiting for connections...");
 		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
 		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
@@ -277,10 +285,10 @@ void Server::run(void)
 			int fd = events[i].data.fd;
 			uint32_t event = events[i].events;
 			
-			if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP)
-			{
-				Logger::log(Logger::DEBUG, "Something went wrong with file descriptor %d", fd);
-			}
+			//if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP)
+			//{
+			//	Logger::log(Logger::DEBUG, "Something went wrong with file descriptor %d", fd);
+			//}
 			if (event & EPOLLIN)
 			{
 				if (this->_clients.find(fd) == this->_clients.end()) // New client connection
@@ -292,6 +300,17 @@ void Server::run(void)
 			if (event & EPOLLOUT)
 			{
 				Logger::log(Logger::DEBUG, "EPOLLOUT event detected on file descriptor %d", fd);
+
+				BlocServer blocServer = _clients[fd].getSocket()->getServers()[0];
+				std::cout << "ROOOT : " <<  blocServer.getRoot() << std::endl;
+				Response response(this->_clients[fd].getRequest(), blocServer);
+
+				std::string page = response.getResponse();
+				int byteSent = send(fd, page.c_str(), page.size(), 0);
+				Logger::log(Logger::DEBUG, "Nombre de byte envoye: %d", byteSent);
+				_clients[fd].clearRequest();
+				modifySocketEpoll(fd, REQUEST_FLAGS);
+		
 			}
 		}
 	}

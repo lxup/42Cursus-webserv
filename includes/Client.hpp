@@ -24,6 +24,7 @@ class Client
 
 		/* HANDLE */
 		int	handleRequest(void);
+		void clearRequest(void);
 
 		/* GETTERS */
 		int getFd(void) const { return _fd; }
