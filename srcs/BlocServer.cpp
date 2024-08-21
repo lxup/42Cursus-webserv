@@ -71,6 +71,28 @@ bool BlocServer::isServerNamePresent(std::vector<std::string>& otherNames){
 }
 
 
+/**
+ * @brief remove all trailing slashes from paths
+ * trailing ca veut dire a la fin
+ */
+void BlocServer::cleanPaths()
+{
+	// clean root path
+	if (!_root.empty() && _root != "/" && _root[_root.size() - 1] == '/')
+		_root.erase(_root.size() - 1);
+
+	// clean all error pages path
+	for (std::map<unsigned int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it){
+		if (it->second != "/" && it->second[it->second.size() - 1] == '/')
+			it->second.erase(it->second.size() - 1);
+	}
+
+	// clean all Location path
+	std::vector<BlocLocation>::iterator it;
+	for (it = _locations.begin(); it != _locations.end(); ++it){
+		it->cleanPaths();
+	}
+}
 // ============ CHECKER ============
 
 
@@ -115,7 +137,7 @@ void BlocServer::setDefaultValue()
 		_listens["0.0.0.0:80"] = listen;
 	}
 	if (_root.empty())
-		_root = "./config/0.conf";
+		_root = "./config/webserv.conf";
 	if (_indexes.empty())
 		_indexes.push_back("index.html");
 }
@@ -186,6 +208,7 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 	checkDoubleLine();
 	setDefaultValue();
 	checkDoubleLocation();
+	cleanPaths();
 	return (*this);
 }
 

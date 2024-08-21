@@ -75,6 +75,31 @@ void BlocLocation::setRewrite(std::vector<std::string>& tokens)
 	_rewrite = std::make_pair(code, tokens[2]);
 }
 
+/**
+ * @brief remove all trailing slashes from paths
+ * trailing ca veut dire a la fin
+ */
+void BlocLocation::cleanPaths()
+{
+	if (_path != "/" && _path[_path.size() - 1] == '/')
+		_path.erase(_path.size() - 1);
+	
+	if (!_root.empty() && _root != "/" && _root[_root.size() - 1] == '/')
+		_root.erase(_root.size() - 1);
+	
+	if (!_alias.empty() && _alias != "/" && _alias[_alias.size() - 1] == '/')
+		_alias.erase(_alias.size() - 1);	
+
+	if (!_uploadPath.empty() && _uploadPath != "/" && _uploadPath[_uploadPath.size() - 1] == '/')
+		_uploadPath.erase(_uploadPath.size() - 1);
+
+	for (std::map<std::string, std::string>::iterator it = _cgiExtension.begin(); it != _cgiExtension.end(); ++it)
+	{
+		if (it->second != "/" && it->second[it->second.size() - 1] == '/')
+			it->second.erase(it->second.size() - 1);
+	}
+}
+
 // ------------------------------- CHECKER --------------------------------
 
 

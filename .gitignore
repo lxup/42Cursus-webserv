@@ -9,3 +9,4 @@ webserv
 .vscode/
 bash.sh
 logs
+a.out*

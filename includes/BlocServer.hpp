@@ -37,7 +37,7 @@ private:
 	bool isValidLineServer(std::vector<std::string>& tokens, std::string& key, std::ifstream &configFile);
 	bool isStartBlocLocation(std::vector<std::string>& tokens);
 	void checkDoubleLocation();
-
+	void cleanPaths();
 
 public:
 	BlocServer(std::string filename);

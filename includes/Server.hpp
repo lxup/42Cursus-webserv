@@ -12,6 +12,9 @@
 # include "Socket.hpp"
 # include "Client.hpp"
 # include "BlocServer.hpp"
+# include "Response.hpp"
+
+#include "Request.hpp"
 
 // define step for server 
 enum ServerState
