@@ -78,7 +78,7 @@ class BlocLocation
 		const std::vector<std::string> &getFiles() const { return _indexes; }
 		const std::vector<e_Methods> &getAllowedMethods() const { return _allowedMethods; }
 		e_boolMod getAutoIndex() const { return _autoindex; }
-
+		const std::vector<std::string> &getIndexes() const { return _indexes; }
 		// Print
 		void printLocation(void);
 		void printPair(const std::string& label, const std::string& value);

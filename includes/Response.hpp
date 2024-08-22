@@ -8,29 +8,48 @@
 #include "Request.hpp"
 #include "BlocServer.hpp"
 #include "Utils.hpp"
+#include "BlocLocation.hpp"
 #include "ErrorPage.hpp"
 
 class Request;
 
 class Response
 {
-public:
-	Response(void);
-	Response(Request *request, BlocServer *blocServer);
-	~Response();
+	public:
+		enum e_response_state
+			{
+				INIT,
+				PROCESS,
+				FINISH
+			};
+	private:
+		const Request *_request;
+		const BlocServer *_blocServer;
+		const BlocLocation* _blocLocation;
 
-	std::string getRawResponse(void);
+		std::string _response;
 
-private:
-	Request *_request;
-	BlocServer *_blocServer;
+		e_response_state _state;	
 
-	std::string _response;
+		// Methods
+		void handleGetRequest();
+		bool isRedirect();
+		std::vector<std::string> getAllPathsServer();
+		std::vector<std::string> getAllPathsLocation();
+		void initBlocLocation();
+		void manageServer();
+		void manageLocation();
 
-	// Methods
-	void handleGetRequest(void);
-	bool isRedirect();
-	std::vector<std::string> getAllPaths(void);
+
+		// Setters
+		void setState(e_response_state state);
+	public:
+		Response();
+		Response(Request *request, BlocServer *blocServer);
+		~Response();
+
+		std::string getRawResponse();
+
 };
 
 #endif /* ******************************************************** RESPONSE_H */

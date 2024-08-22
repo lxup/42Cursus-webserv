@@ -309,7 +309,8 @@ void	Request::_findServer(void)
 	}
 	
 	Logger::log(Logger::DEBUG, "[_findServer] Host: %s", host.c_str());
-
+	_host = host;
+	
 	Socket* socket = this->_client->getSocket();
 	if (socket == NULL)
 	{
@@ -335,5 +336,5 @@ void	Request::_findServer(void)
 	if (serverFound == NULL) // If the server is not found, set the first BlocServer
 		serverFound = &servers->front();
 	this->_server = serverFound;
-	Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
+	Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getLocations().front().getRoot().c_str());
 }
