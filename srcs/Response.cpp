@@ -8,7 +8,7 @@ Response::Response() : _request(NULL), _blocServer(NULL), _blocLocation(NULL), _
 {
 }
 
-Response::Response(Request *request) : _request(request), _blocServer(request->getServer()), _blocLocation(request->getLocation()), _state(INIT)
+Response::Response(Request *request) : _request(request), _blocServer(request->getServer()), _blocLocation(request->getLocation()), _state(Response::INIT)
 {
 }
 

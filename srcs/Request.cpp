@@ -1,11 +1,11 @@
 #include "Request.hpp"
 
-Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(0)
+Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _path(""), _query(""), _httpVersion(""), _body(""), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATEC_ODE)
 {
 
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(0)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _query(""), _httpVersion(""), _body(""), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATEC_ODE)
 {
 }
 
@@ -22,13 +22,18 @@ Request &Request::operator=(const Request &rhs)
 {
 	if (this != &rhs)
 	{
+		this->_client = rhs._client;
+		this->_server = rhs._server;
+		this->_location = rhs._location;
 		this->_rawRequest = rhs._rawRequest;
 		this->_method = rhs._method;
 		this->_uri = rhs._uri;
+		this->_path = rhs._path;
+		this->_query = rhs._query;
 		this->_httpVersion = rhs._httpVersion;
 		this->_body = rhs._body;
-		this->_version = rhs._version;
 		this->_headers = rhs._headers;
+		this->_envCGI = rhs._envCGI;
 		this->_isChunked = rhs._isChunked;
 		this->_contentLength = rhs._contentLength;
 		this->_chunkSize = rhs._chunkSize;
@@ -89,6 +94,24 @@ void	Request::_parseRequestLine(void)
 
 	Logger::log(Logger::DEBUG, "Method: %s, URI: %s, HTTP Version: %s", this->_method.c_str(), this->_uri.c_str(), this->_httpVersion.c_str());
 	this->_rawRequest.erase(0, pos + 2); // Remove the request line from the raw request
+
+	if (this->_httpVersion != "HTTP/1.1")
+	{
+		this->_setError(400);
+		return (Logger::log(Logger::ERROR, "HTTP Version not supported: %s", this->_httpVersion.c_str()));
+	}
+	if (this->_method != "GET" && this->_method != "POST" && this->_method != "DELETE")
+	{
+		this->_setError(400);
+		return (Logger::log(Logger::ERROR, "Method not implemented: %s", this->_method.c_str()));
+	}
+	if (this->_uri.empty())
+	{
+		this->_setError(400);
+		return (Logger::log(Logger::ERROR, "Empty URI"));
+	}
+	this->_processUri();
+
 	this->_setState(Request::HEADERS);
 }
 
@@ -285,6 +308,25 @@ void	Request::_setError(int code)
 }
 
 /*
+** --------------------------------- PROCESS -----------------------------------
+*/
+
+/*
+** @brief Process the URI
+*/
+void	Request::_processUri(void)
+{
+	size_t pos = this->_uri.find('?');
+	if (pos != std::string::npos)
+	{
+		this->_path = this->_uri.substr(0, pos);
+		this->_query = this->_uri.substr(pos + 1);
+	}
+	else
+		this->_path = this->_uri;
+}
+
+/*
 ** --------------------------------- FINDERS ----------------------------------
 */
 
@@ -372,7 +414,7 @@ int	Request::_findLocation(void)
 	for (std::vector<BlocLocation>::iterator it = locations->begin(); it != locations->end(); ++it)
 	{
 		std::string	path = it->getPath();
-		if (this->_checkPathsMatch(this->_uri, path))
+		if (this->_checkPathsMatch(this->_path, path))
 		{
 			if ((int)path.size() > lastClosestMatch)
 			{

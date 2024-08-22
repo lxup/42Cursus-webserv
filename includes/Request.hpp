@@ -9,6 +9,8 @@
 # include "Logger.hpp"
 # include "Client.hpp"
 
+# define REQUEST_DEFAULT_STATEC_ODE 200
+
 class Client;
 
 class Request
@@ -28,11 +30,12 @@ class Request
 		std::string 						_rawRequest;
 		std::string 						_method;
 		std::string 						_uri;
+		std::string 						_path;
+		std::string 						_query;
 		std::string							_httpVersion;
 		std::string							_body;
-		std::string							_version;
 		std::map<std::string, std::string>	_headers;
-		std::map<std::string, std::string>	_params;
+		std::map<std::string, std::string>	_envCGI;
 		bool								_isChunked;
 		int									_contentLength;
 		int									_chunkSize;
@@ -47,6 +50,9 @@ class Request
 		void	_setState(e_parse_state state);
 		void	_setHeaderState(void);
 		void	_setError(int code);
+
+		/* PROCESS */
+		void	_processUri(void);
 
 		/* FINDERS */
 		int		_findServer(void);
@@ -75,7 +81,6 @@ class Request
 		std::string getUri(void) const { return _uri; }
 		std::string getHttpVersion(void) const { return _httpVersion; }
 		std::string getBody(void) const { return _body; }
-		std::string getVersion(void) const { return _version; }
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }
