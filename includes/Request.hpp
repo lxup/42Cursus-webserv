@@ -24,6 +24,7 @@ class Request
 	private:
 		Client*								_client;
 		BlocServer*							_server;
+		BlocLocation*						_location;
 		std::string 						_rawRequest;
 		std::string 						_method;
 		std::string 						_uri;
@@ -63,6 +64,9 @@ class Request
 		void	parse(const std::string &rawRequest);
 
 		/* GETTERS */
+		Client*		getClient(void) const { return _client; }
+		BlocServer*	getServer(void) const { return _server; }
+		BlocLocation* getLocation(void) const { return _location; }
 		std::string	getRawRequest(void) const { return _rawRequest; }
 		std::string getMethod(void) const { return _method; }
 		std::string getUri(void) const { return _uri; }

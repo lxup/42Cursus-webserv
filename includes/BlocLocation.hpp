@@ -27,8 +27,7 @@ enum e_boolMod
 class BlocLocation
 {
 	private:
-		// config bloc location
-		std::string _path;
+		std::string	_path;
 		std::string _root;
 		std::pair<int, std::string> _rewrite;
 		std::string _alias;

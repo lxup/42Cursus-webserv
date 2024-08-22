@@ -2,7 +2,7 @@ import socket
 
 # Connexion à ton serveur
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect(('localhost', 1313))
+sock.connect(('localhost', 8080))
 
 # Construction de la requête chunked
 request = (
@@ -10,7 +10,7 @@ request = (
     "Host: localhost\r\n"
     "Transfer-Encoding: chunked\r\n"
     "\r\n"
-    "435\r\nBonjour je suis Wikipedia\r\n"
+    "19\r\nBonjour je suis Wikipedia\r\n"
     "4\r\n in \r\n"
     "5\r\nchunk\r\n"
     "0\r\n\r\n"

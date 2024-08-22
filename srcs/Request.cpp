@@ -365,16 +365,21 @@ int	Request::_checkClientMaxBodySize(void)
 **
 ** @return 0 if the check is successful, -1 otherwise
 */
+
+
 int	Request::_checkMethod(void)
 {
 	BlocLocation* location = this->_server->findLocation(this->_uri);
-	if (location == NULL)
+	if (location == NULL) // If no location, allow all methods
 		return (0);
-	// for (std::vector<std::string>::iterator it = location->getAllowedMethods().begin(); it != location->getAllowedMethods().end(); ++it)
-	// {
-	// 	if (*it == this->_method)
-	// 		return (0);
-	// }
+	std::vector<e_Methods> allowedMethods = location->getAllowedMethods();
+	for (std::vector<e_Methods>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); ++it)
+	{
+		std::cout << "Method: " << *it << std::endl;
+		// if (*it == this->_method)
+		// 	return (0);
+	}
+	return (0);
 	Logger::log(Logger::ERROR, "[_checkMethod] Method not allowed: %s", this->_method.c_str());
 	this->_setError(405);
 	return (-1);

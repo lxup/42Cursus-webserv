@@ -20,6 +20,10 @@ class Response
 
 		std::string getRawResponse( void );
 
+		/* GETTERS */
+		Request* getRequest(void) const { return _request; }
+		BlocServer getBlocServer(void) const { return _blocServer; }
+
 	private:
 		Request*	_request;
 		BlocServer _blocServer;
