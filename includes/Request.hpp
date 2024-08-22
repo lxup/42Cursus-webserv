@@ -38,7 +38,6 @@ class Request
 		int									_chunkSize;
 		e_parse_state						_state;
 		int									_stateCode;
-		std::string							_host;
 
 		void	_parseRequestLine(void);
 		void	_parseHeaders(void);
@@ -80,7 +79,6 @@ class Request
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }
-		std::string getHost(void) const { return _host; }
 		// bool isReady(void) const { return _isReady; }
 };
 

@@ -30,6 +30,7 @@ int protectedCall(int ret, std::string msg, bool isFatal = true);
 std::string extractIp(std::string ipPort);
 unsigned int extractPort(std::string ipPort);
 bool isEmptyFile();
+std::string getRedirectionMessage(int code);
 
 // epoll utils
 void addSocketEpoll(int epollFD, int sockFD, uint32_t flags);

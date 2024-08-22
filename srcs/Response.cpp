@@ -8,9 +8,8 @@ Response::Response() : _request(NULL), _blocServer(NULL), _blocLocation(NULL), _
 {
 }
 
-Response::Response(Request *request, BlocServer *blocServer) : _request(request), _blocServer(blocServer), _state(INIT)
+Response::Response(Request *request) : _request(request), _blocServer(request->getServer()), _blocLocation(request->getLocation()), _state(INIT)
 {
-	initBlocLocation();
 }
 
 /*
@@ -25,29 +24,7 @@ Response::~Response()
 ** --------------------------------- METHODS ----------------------------------
 */
 
-
 // UTIL RESPONSE ==============================
-
-
-/**
- * @brief assigne le bon bloc location qui match avec la requete
- */
-void Response::initBlocLocation(){
-	// const std::vector<BlocLocation>& locations = _blocServer->getLocations();
-	// std::string uri = _request->getUri();
-	// for (size_t i = 0; i < locations.size(); i++)
-	// {
-	// 	std::string pathLocation = locations[i].getPath();
-	// 	if (uri.find(pathLocation) == 0){
-	// 		Logger::log(Logger::DEBUG, "[findGoodLocation] Location found %s", pathLocation.c_str());
-	// 		_blocLocation = &locations[i];
-	// 		return ;
-	// 	}
-	// }
-	Logger::log(Logger::DEBUG, "[findGoodLocation] PROUT NO Location not found");
-	_blocLocation = NULL;
-}
-
 
 /**
  * @brief Fonction pour obtenir le type MIME basé sur l'extension de fichier
@@ -84,26 +61,42 @@ std::string getMimeType(const std::string &path)
 }
 
 /**
- * @brief check if the file exist
+ * @brief check if the folder exist and if he does not have a / at the end
  */
 bool Response::isRedirect()
 {
 	std::string uri = _request->getUri();
 	std::string root;
-	if (_blocLocation != NULL && _blocLocation->getRoot() != "")
+	bool isLoc;
+
+	isLoc = _blocLocation == NULL ? false : true;
+
+	if (isLoc && !_blocLocation->getRewrite().second.empty())
+	{
+		std::pair<int, std::string> rewrite = _blocLocation->getRewrite();
+		_response = "HTTP/1.1 " + intToString(rewrite.first) + " " + getRedirectionMessage(rewrite.first) + "\r\n";
+		_response += "Location:" + rewrite.second + "\r\n";
+		_response += "Content-Length: 0\r\n";
+		_response += "\r\n";
+		return (true);
+	}
+
+	if (isLoc && !_blocLocation->getRoot().empty())
 		root = _blocLocation->getRoot();
 	else
 		root = _blocServer->getRoot();
 
-	Logger::log(Logger::DEBUG, "roooot: %s", root.c_str());
-	if (uri[uri.size() - 1] == '/' || uri == "/"){
+	// si l'uri fini par / ou est egal a / on ne redirige pas
+	if (uri[uri.size() - 1] == '/' || uri == "/")
+	{
 		return false;
 	}
 
-	if (directoryExist((root + uri).c_str()))
+	if (directoryExist((root + uri).c_str()) || (isLoc && directoryExist(_blocLocation->getAlias().c_str())))
 	{
+		std::string host = _request->getHeaders()["Host"];
 		_response = "HTTP/1.1 301 Moved Permanently\r\n";
-		_response += "Location: http://" + _request->getHost() + uri + "/\r\n";
+		_response += "Location: http://" + host + uri + "/\r\n";
 		_response += "Content-Length: 0\r\n";
 		_response += "\r\n";
 
@@ -112,31 +105,33 @@ bool Response::isRedirect()
 	}
 	Logger::log(Logger::DEBUG, "NO REDIRECT");
 
-
 	return false;
 }
 
-
-
-
-
 // PATHS MANAGER =================
-
-
 /**
- * @brief function qui renvoit tous les paths possible 
+ * @brief function qui renvoit tous les paths possible
  * pour le bloc location qui correstpond a la requete
- * 
+ *
  */
-std::vector<std::string> Response::getAllPathsLocation(){
-	
+std::vector<std::string> Response::getAllPathsLocation()
+{
+
 	std::vector<std::string> allPathsLocations;
 	std::string uri = _request->getUri();
 	std::string root = _blocLocation->getRoot();
+	std::string alias = _blocLocation->getAlias();
 	std::vector<std::string> indexes = _blocLocation->getIndexes();
+	bool isAlias = false;
 
 	if (_blocLocation == NULL)
 		return std::vector<std::string>();
+
+	if (!alias.empty())
+	{
+		root = alias;
+		isAlias = true;
+	}
 
 	if (root.empty())
 		root = _blocServer->getRoot();
@@ -149,25 +144,23 @@ std::vector<std::string> Response::getAllPathsLocation(){
 	{
 		std::string index = indexes[i];
 		std::string path;
-		if (uri == "/"){
+		if (uri == "/")
+		{
 			path = root + "/" + index;
 		}
-		else{
+		else if (isAlias)
+		{
+			path = root + "/" + index;
+		}
+		else
+		{
 			path = root + uri + index;
 		}
 		allPathsLocations.push_back(path);
 	}
-	
+
 	return allPathsLocations;
 }
-
-
-
-
-
-
-
-
 
 /**
  * @brief get the path of the ressource ask by the request
@@ -179,8 +172,8 @@ std::vector<std::string> Response::getAllPathsLocation(){
 
 std::vector<std::string> Response::getAllPathsServer(void)
 {
-	std::string uri = _request->getUri();												
-	std::string root = _blocServer->getRoot();									
+	std::string uri = _request->getUri();
+	std::string root = _blocServer->getRoot();
 	std::vector<std::string> indexes = _blocServer->getIndexes();
 	std::vector<std::string> allPaths;
 
@@ -193,42 +186,36 @@ std::vector<std::string> Response::getAllPathsServer(void)
 	{
 		std::string index = indexes[i];
 		std::string path;
-		if (uri == "/"){
+		if (uri == "/")
+		{
 			path = root + "/" + index;
 		}
-		else{
+		else
+		{
 			path = root + uri + index;
 		}
 		allPaths.push_back(path);
 	}
 
-
 	return allPaths;
 }
 
-
-
-
-
-
-
 // GET METHOD ==============================
-
 
 /**
  * @brief on check si la requete correspond a un bloc location
  * et on la gere
  */
-void Response::manageLocation(){
+void Response::manageLocation()
+{
 	std::string page;
 
 	if (_blocLocation == NULL)
-		return ;
-	
+		return;
+
 	// Bloc location
 	std::vector<std::string> allPathsLocation = getAllPathsLocation();
 	std::string path;
-
 
 	// trouver le premier fichier qui existe dans allPathsLocation
 	for (size_t i = 0; i < allPathsLocation.size(); i++)
@@ -254,10 +241,13 @@ void Response::manageLocation(){
 		page += body;
 
 		file.close();
-	}else if (directoryExist((_blocServer->getRoot() + _request->getUri()).c_str())){
+	}
+	else if (directoryExist((_blocServer->getRoot() + _request->getUri()).c_str()))
+	{
 		page = ErrorPage::getPage(403);
 	}
-	else{
+	else
+	{
 		page = ErrorPage::getPage(404);
 	}
 
@@ -265,12 +255,12 @@ void Response::manageLocation(){
 	setState(Response::FINISH);
 }
 
-
 /**
- * @brief on a checker la requete avec le bloc location et ca ne 
+ * @brief on a checker la requete avec le bloc location et ca ne
  * correspond pas, on va gerer la requete avec le bloc server
  */
-void Response::manageServer(){
+void Response::manageServer()
+{
 	std::string page;
 
 	std::vector<std::string> allPaths = getAllPathsServer();
@@ -299,17 +289,18 @@ void Response::manageServer(){
 		page += body;
 
 		file.close();
-	}else if (directoryExist((_blocServer->getRoot() + _request->getUri()).c_str())){
+	}
+	else if (directoryExist((_blocServer->getRoot() + _request->getUri()).c_str()))
+	{
 		page = ErrorPage::getPage(403);
 	}
-	else{
+	else
+	{
 		page = ErrorPage::getPage(404);
 	}
 
 	_response = page;
-
 }
-
 
 /**
  * @brief handle the GET request
@@ -321,18 +312,6 @@ void Response::handleGetRequest(void)
 	if (_state != Response::FINISH)
 		manageServer();
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 // MAIN RESPONSE ==============================
 /**
@@ -364,8 +343,8 @@ std::string Response::getRawResponse(void)
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
-
-void Response::setState(e_response_state state){
+void Response::setState(e_response_state state)
+{
 	if (this->_state == Response::FINISH)
 		return (Logger::log(Logger::DEBUG, "[setState (response)] Response already finished"));
 	if (this->_state == state)

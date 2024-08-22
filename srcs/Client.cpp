@@ -82,7 +82,7 @@ void Client::handleResponse(int epollFD)
 		Logger::log(Logger::DEBUG, "[handleResponse] Existing response, deleting it");
 		delete this->_response;
 	}
-	this->_response = new Response(this->_request, _request->getServer());
+	this->_response = new Response(this->_request);
 	// this->_response = Response(this->_request, ICI IL ME FAUT LE BLOC SERVER);
 
 	// mettre le socket en epollout car on a une reponse a envoyer

@@ -146,9 +146,9 @@ void Server::run(void)
 			int fd = events[i].data.fd;
 			uint32_t event = events[i].events;
 			
-			//// if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
-			//// 	Logger::log(Logger::DEBUG, "[Server::run] Something went wrong with file descriptor %d", fd);
-			//// }
+			//if (!(event | EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
+			//	Logger::log(Logger::DEBUG, "Something went wrong with file descriptor %d", fd);
+			//}
 			if (event & EPOLLIN){
 				if (this->_clients.find(fd) == this->_clients.end()) // New client connection
 					_handleClientConnection(fd);

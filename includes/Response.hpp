@@ -36,7 +36,6 @@ class Response
 		bool isRedirect();
 		std::vector<std::string> getAllPathsServer();
 		std::vector<std::string> getAllPathsLocation();
-		void initBlocLocation();
 		void manageServer();
 		void manageLocation();
 
@@ -45,7 +44,7 @@ class Response
 		void setState(e_response_state state);
 	public:
 		Response();
-		Response(Request *request, BlocServer *blocServer);
+		Response(Request *request);
 		~Response();
 
 		std::string getRawResponse();
