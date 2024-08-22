@@ -70,12 +70,7 @@ class Server
 		Socket* getSocket(int fd) { return _sockets[fd]; }
 		std::map<int, Client*> getClients(void) const { return _clients; }
 		Client* getClient(int fd) { return _clients[fd]; }
-
-		/* CLIENTS */
-		void addClient(int fd, Client* client);
-		void deleteClient(int fd);
 };
 
-void printEvent(int fd, uint32_t event);
 
 #endif // SERVER_HPP

@@ -33,12 +33,14 @@ Server::~Server(){
 void Server::sendResponse(Client* client){
 	Logger::log(Logger::DEBUG, "Sending response to client %d", client->getFd());
 	std::string response = client->getResponse()->getRawResponse();
+	Logger::log(Logger::DEBUG, "Response: %s", response.c_str());
 	int bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
 	if (bytesSent < 0)
 		Logger::log(Logger::ERROR, "Error with send function");
 	else
 		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
 }
+
 
 void Server::stop( void ) {
 	this->setState(S_STATE_STOP);
@@ -67,7 +69,7 @@ void Server::init(void)
 	{
 		Socket* socket = new Socket(extractIp(it->first), extractPort(it->first), &it->second);
 		this->_sockets[socket->getFd()] = socket;
-		addSocketEpoll(this->_epollFD, socket->getFd(), EPOLLIN);
+		addSocketEpoll(this->_epollFD, socket->getFd(), REQUEST_FLAGS);
 	}
 	this->setState(S_STATE_READY);
 }
@@ -98,7 +100,7 @@ void	Server::_handleClientConnection(int fd)
 	Logger::log(Logger::DEBUG, "[Server::_handleClientConnection] New client connected on file descriptor %d", fd);
 	Client *client = new Client(fd, this->_sockets[fd]);
 	this->_clients[client->getFd()] = client;
-	addSocketEpoll(this->_epollFD, client->getFd(), EPOLLIN);
+	addSocketEpoll(this->_epollFD, client->getFd(), REQUEST_FLAGS);
 
 }
 
@@ -144,9 +146,9 @@ void Server::run(void)
 			int fd = events[i].data.fd;
 			uint32_t event = events[i].events;
 			
-			// if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
-			// 	Logger::log(Logger::DEBUG, "[Server::run] Something went wrong with file descriptor %d", fd);
-			// }
+			//// if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
+			//// 	Logger::log(Logger::DEBUG, "[Server::run] Something went wrong with file descriptor %d", fd);
+			//// }
 			if (event & EPOLLIN){
 				if (this->_clients.find(fd) == this->_clients.end()) // New client connection
 					_handleClientConnection(fd);
@@ -157,6 +159,7 @@ void Server::run(void)
 			if (event & EPOLLOUT){
 				this->sendResponse(_clients[fd]);
 				modifySocketEpoll(_epollFD, fd, REQUEST_FLAGS);
+				_clients[fd]->clearRequest();
 			}
 		}
 	}
@@ -177,21 +180,5 @@ void	Server::setState(int state)
 	else if (state == S_STATE_STOP)
 		Logger::log(Logger::INFO, "Server is stopping...");
 	this->_state = state;
-}
-
-/**
- * @brief affiche l'event qui a ete detecte
- */
-void printEvent(int fd, uint32_t event){
-	if (event & EPOLLIN)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLIN | FD: %d", fd);
-	if (event & EPOLLOUT)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLOUT | FD: %d", fd);
-	if (event & EPOLLRDHUP)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLRDHUP | FD: %d", fd);
-	if (event & EPOLLERR)
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: EPOLLERR | FD: %d", fd);
-	else
-		Logger::log(Logger::DEBUG, "NOUVEL EVENT: UNKNOWN | FD: %d", fd);
 }
 

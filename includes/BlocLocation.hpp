@@ -15,7 +15,8 @@ enum e_Methods
 {
 	GET,
 	POST,
-	DELETE
+	DELETE,
+	UNKNOWN
 };
 
 enum e_boolMod
@@ -43,7 +44,10 @@ class BlocLocation
 
 	public:
 		BlocLocation(std::string filename);
+		BlocLocation(const BlocLocation &other);
 		~BlocLocation();
+
+		BlocLocation &operator=(const BlocLocation &other);
 
 		// parsing
 		BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
@@ -77,7 +81,7 @@ class BlocLocation
 		const std::vector<std::string> &getFiles() const { return _indexes; }
 		const std::vector<e_Methods> &getAllowedMethods() const { return _allowedMethods; }
 		e_boolMod getAutoIndex() const { return _autoindex; }
-
+		const std::vector<std::string> &getIndexes() const { return _indexes; }
 		// Print
 		void printLocation(void);
 		void printPair(const std::string& label, const std::string& value);
@@ -87,6 +91,9 @@ class BlocLocation
 
 		// Is
 		bool	isMethodAllowed(e_Methods method);
+
+		/* UTILS */
+		static e_Methods	converStrToMethod(const std::string &method);
 };
 
 #endif

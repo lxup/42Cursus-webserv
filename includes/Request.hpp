@@ -38,6 +38,7 @@ class Request
 		int									_chunkSize;
 		e_parse_state						_state;
 		int									_stateCode;
+		std::string							_host;
 
 		void	_parseRequestLine(void);
 		void	_parseHeaders(void);
@@ -48,11 +49,14 @@ class Request
 		void	_setHeaderState(void);
 		void	_setError(int code);
 
-		void	_findServer(void);
+		/* FINDERS */
+		int		_findServer(void);
+		int		_findLocation(void);
 
 		/* CHECKERS */
 		int 	_checkClientMaxBodySize(void);
 		int		_checkMethod(void);
+		int		_checkPathsMatch(const std::string &path, const std::string &parentPath);
 	public:
 		Request(void);
 		Request(Client *client);
@@ -76,6 +80,7 @@ class Request
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }
+		std::string getHost(void) const { return _host; }
 		// bool isReady(void) const { return _isReady; }
 };
 

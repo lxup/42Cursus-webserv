@@ -56,7 +56,8 @@ public:
 	// Getters
 	const std::map<unsigned int, std::string> &getErrorPages() const { return _errorPages; }
 	const std::vector<std::string> &getServerNames() const { return _serverNames; }
-	const std::vector<BlocLocation> &getLocations() const { return _locations; }
+	// const std::vector<BlocLocation> &getLocations() const { return _locations; }
+	std::vector<BlocLocation>* getLocations() { return &_locations; }
 	const std::string &getRoot() const { return _root; }
 	size_t getClientMaxBodySize() const { return _clientMaxBodySize; }
 	const std::map<std::string, ListenConfig> &getListens() const { return _listens; }

@@ -1,11 +1,11 @@
 #include "Request.hpp"
 
-Request::Request(void) : _client(NULL), _server(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(0)
+Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(0)
 {
 
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(0)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(0)
 {
 }
 
@@ -181,7 +181,6 @@ void Request::_parseChunkedBody(void)
 			if (pos == std::string::npos)
 				return ; // Waiting for more data
 			std::string line = this->_rawRequest.substr(0, pos);
-			std::cout << "Line: " << line << std::endl;
 			std::istringstream iss(line);
 			if (!(iss >> std::hex >> this->_chunkSize))
 			{
@@ -260,13 +259,14 @@ void	Request::_setHeaderState(void)
 		iss >> this->_contentLength;
 	}
 
-	this->_findServer();
-	if (this->_server == NULL)
-	{
-		Logger::log(Logger::ERROR, "[_setHeaderState] Server is NULL");
-		this->_setError(500);
+	if (this->_findServer() == -1 || this->_findLocation() == -1)
 		return ;
-	}
+	// if (this->_server == NULL)
+	// {
+	// 	Logger::log(Logger::ERROR, "[_setHeaderState] Server is NULL");
+	// 	this->_setError(500);
+	// 	return ;
+	// }
 	
 	if (this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1)
 		return ;
@@ -285,20 +285,24 @@ void	Request::_setError(int code)
 }
 
 /*
+** --------------------------------- FINDERS ----------------------------------
+*/
+
+/*
 ** @brief Find the server
 */
-void	Request::_findServer(void)
+int	Request::_findServer(void)
 {
 	if (this->_client == NULL)
 	{
 		Logger::log(Logger::ERROR, "[_findServer] Client is NULL");
 		this->_setError(500);
-		return ;
+		return (-1);
 	}
 	if (this->_server != NULL)
 	{
 		Logger::log(Logger::DEBUG, "[_findServer] Server already set");
-		return ;
+		return (-1);
 	}
 
 	std::string host = this->_headers["Host"]; // Find the host in the headers
@@ -306,17 +310,18 @@ void	Request::_findServer(void)
 	{
 		Logger::log(Logger::ERROR, "[_findServer] Host not found in headers");
 		this->_setError(400);
-		return ;
+		return (-1);
 	}
 	
 	Logger::log(Logger::DEBUG, "[_findServer] Host: %s", host.c_str());
-
+	_host = host;
+	
 	Socket* socket = this->_client->getSocket();
 	if (socket == NULL)
 	{
 		Logger::log(Logger::ERROR, "[_findServer] Socket is NULL");
 		this->_setError(500);
-		return ;
+		return (-1);
 	}
 
 	BlocServer* serverFound = NULL;
@@ -334,10 +339,51 @@ void	Request::_findServer(void)
 		}
 	}
 	if (serverFound == NULL) // If the server is not found, set the first BlocServer
+	{
+		if (servers->empty())
+		{
+			Logger::log(Logger::ERROR, "[_findServer] No server found");
+			this->_setError(500);
+			return (-1);
+		}
 		serverFound = &servers->front();
+	}
 	this->_server = serverFound;
+	return (1);
 	
 	// Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
+}
+
+/*
+** @brief Find the location
+*/
+int	Request::_findLocation(void)
+{
+	if (this->_server == NULL)
+	{
+		Logger::log(Logger::ERROR, "[_findLocation] Server is NULL");
+		this->_setError(500);
+		return (-1);
+	}
+	
+	BlocLocation* locationFound = NULL;
+	std::vector<BlocLocation>* locations = this->_server->getLocations();
+
+	int lastClosestMatch = -1;
+	for (std::vector<BlocLocation>::iterator it = locations->begin(); it != locations->end(); ++it)
+	{
+		std::string	path = it->getPath();
+		if (this->_checkPathsMatch(this->_uri, path))
+		{
+			if ((int)path.size() > lastClosestMatch)
+			{
+				lastClosestMatch = path.size();
+				locationFound = &(*it);
+			}
+		}
+	}
+	this->_location = locationFound;
+	return (0);
 }
 
 /*
@@ -369,18 +415,29 @@ int	Request::_checkClientMaxBodySize(void)
 
 int	Request::_checkMethod(void)
 {
-	BlocLocation* location = this->_server->findLocation(this->_uri);
-	if (location == NULL) // If no location, allow all methods
+	if (this->_location == NULL) // if the location is not found, allow all methods
 		return (0);
-	std::vector<e_Methods> allowedMethods = location->getAllowedMethods();
-	for (std::vector<e_Methods>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); ++it)
-	{
-		std::cout << "Method: " << *it << std::endl;
-		// if (*it == this->_method)
-		// 	return (0);
-	}
-	return (0);
+	if (this->_location->isMethodAllowed(BlocLocation::converStrToMethod(this->_method)))
+		return (0);
 	Logger::log(Logger::ERROR, "[_checkMethod] Method not allowed: %s", this->_method.c_str());
 	this->_setError(405);
 	return (-1);
+}
+
+/*
+** @brief Check if the path is inside another path
+**
+** @param path : The path
+** @param parentPath : The parent path
+**
+** @return 0 if the check is successful, -1 otherwise
+*/
+int	Request::_checkPathsMatch(const std::string &path, const std::string &parentPath)
+{
+	size_t	pathSize = path.size();
+	size_t	parentPathSize = parentPath.size();
+	if (path.compare(0, parentPathSize, parentPath) == 0)
+		if (pathSize== parentPathSize || path[parentPathSize] == '/')
+			return (1);
+	return (0);
 }
