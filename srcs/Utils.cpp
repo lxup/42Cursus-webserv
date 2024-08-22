@@ -190,3 +190,21 @@ void deleteSocketEpoll(int epollFD, int sockFD)
 	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
 }
 
+std::string getRedirectionMessage(int code)
+{
+	switch (code)
+	{
+	case 301:
+		return "Moved Permanently";
+	case 302:
+		return "Found";
+	case 303:
+		return "See Other";
+	case 307:
+		return "Temporary Redirect";
+	case 308:
+		return "Permanent Redirect";
+	default:
+		return "Unknown";
+	}
+}

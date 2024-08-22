@@ -152,7 +152,7 @@ void Server::run(void)
 			int fd = events[i].data.fd;
 			uint32_t event = events[i].events;
 			
-			//if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
+			//if (!(event | EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
 			//	Logger::log(Logger::DEBUG, "Something went wrong with file descriptor %d", fd);
 			//}
 			if (event & EPOLLIN){

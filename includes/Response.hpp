@@ -45,7 +45,7 @@ class Response
 		void setState(e_response_state state);
 	public:
 		Response();
-		Response(Request *request, BlocServer *blocServer);
+		Response(Request *request);
 		~Response();
 
 		std::string getRawResponse();

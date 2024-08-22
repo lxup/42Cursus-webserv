@@ -309,7 +309,6 @@ void	Request::_findServer(void)
 	}
 	
 	Logger::log(Logger::DEBUG, "[_findServer] Host: %s", host.c_str());
-	_host = host;
 	
 	Socket* socket = this->_client->getSocket();
 	if (socket == NULL)
