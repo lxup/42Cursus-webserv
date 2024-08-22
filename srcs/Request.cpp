@@ -159,6 +159,7 @@ void	Request::_parseBody(void)
 	Logger::log(Logger::DEBUG, "Expected content length: %d", this->_contentLength);
 	this->_body += this->_rawRequest.substr(0, this->_contentLength - this->_body.size());
 	this->_rawRequest.erase(0, this->_contentLength - this->_body.size());
+	std::cout << "Body: " << this->_body << std::endl;
 	if ((int)this->_body.size() == this->_contentLength)
 		return (this->_setState(Request::FINISH));
 }
@@ -203,6 +204,8 @@ void Request::_parseChunkedBody(void)
 		this->_body += this->_rawRequest.substr(0, this->_chunkSize);
 		this->_rawRequest.erase(0, this->_chunkSize + 2);
 		this->_chunkSize = -1;
+		if (this->_body.size() > (size_t)this->_server->getClientMaxBodySize()) // Check the client max body size
+			return (this->_setError(413));
 	}
 }
 
@@ -264,12 +267,10 @@ void	Request::_setHeaderState(void)
 		this->_setError(500);
 		return ;
 	}
-	if (this->_contentLength > (int)this->_server->getClientMaxBodySize())
-	{
-		Logger::log(Logger::ERROR, "[_setHeaderState] Content-Length too big, max body size: %d, content length: %d", this->_server->getClientMaxBodySize(), this->_contentLength);
-		this->_setError(413);
+	
+	if (this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1)
 		return ;
-	}
+
 }
 
 /*
@@ -335,5 +336,46 @@ void	Request::_findServer(void)
 	if (serverFound == NULL) // If the server is not found, set the first BlocServer
 		serverFound = &servers->front();
 	this->_server = serverFound;
-	Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
+	
+	// Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
+}
+
+/*
+** --------------------------------- CHECKERS ---------------------------------
+*/
+
+/*
+** @brief Check the client max body size
+**
+** @return 0 if the check is successful, -1 otherwise
+*/
+int	Request::_checkClientMaxBodySize(void)
+{
+	if (this->_contentLength > (int)this->_server->getClientMaxBodySize())
+	{
+		Logger::log(Logger::ERROR, "[_checkClientMaxBodySize] Content-Length too big, max body size: %d, content length: %d", this->_server->getClientMaxBodySize(), this->_contentLength);
+		this->_setError(413);
+		return -1;
+	}
+	return 0;
+}
+
+/*
+** @brief Check the method
+**
+** @return 0 if the check is successful, -1 otherwise
+*/
+int	Request::_checkMethod(void)
+{
+	BlocLocation* location = this->_server->findLocation(this->_uri);
+	if (location == NULL)
+		return (0);
+	// for (std::vector<std::string>::iterator it = location->getAllowedMethods().begin(); it != location->getAllowedMethods().end(); ++it)
+	// {
+	// 	if (*it == this->_method)
+	// 		return (0);
+	// }
+	Logger::log(Logger::ERROR, "[_checkMethod] Method not allowed: %s", this->_method.c_str());
+	this->_setError(405);
+	return (-1);
 }

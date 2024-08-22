@@ -47,10 +47,6 @@ class Server
 		// std::map<int, std::queue<std::string> > _clientRequests; // TODO : format Reponse instead of string
 
 		void showIpPortClient(int clientFD);
-		void handleConnection(int clientFD);
-		void handleEvent(int fd, uint32_t event);
-		bool isNewConnection(int fd);
-		void closeConnection(int fd);
 		void sendResponse(Client* client);
 
 		/* HANDLE */

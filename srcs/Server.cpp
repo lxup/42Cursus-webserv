@@ -55,7 +55,7 @@ void Server::stop( void ) {
  */
 void Server::init(void)
 {
-	Logger::log(Logger::DEBUG, "Create epoll instance...");
+	Logger::log(Logger::DEBUG, "[Server::init] Create epoll instance...");
 	this->setEpollFD(protectedCall(epoll_create1(O_CLOEXEC), "Failed to create epoll instance"));
 
 	Logger::log(Logger::DEBUG, "#==============================#");
@@ -83,12 +83,6 @@ void Server::showIpPortClient(int clientFD){
 	Logger::log(Logger::DEBUG, "New connection from %s:%u, SOCKET CLIENT %d", clientAdress, clientPort, clientFD);
 }
 
-void Server::closeConnection(int fd){
-	Logger::log(Logger::DEBUG, "Connection closed with client %d", fd);
-	close(fd);
-	deleteSocketEpoll(_epollFD, fd);
-}
-
 
 /*
 ** --------------------------------- HANDLE ---------------------------------
@@ -101,7 +95,7 @@ void Server::closeConnection(int fd){
  */
 void	Server::_handleClientConnection(int fd)
 {
-	Logger::log(Logger::DEBUG, "New client connected on file descriptor %d", fd);
+	Logger::log(Logger::DEBUG, "[Server::_handleClientConnection] New client connected on file descriptor %d", fd);
 	Client *client = new Client(fd, this->_sockets[fd]);
 	this->_clients[client->getFd()] = client;
 	addSocketEpoll(this->_epollFD, client->getFd(), EPOLLIN);
@@ -114,7 +108,7 @@ void	Server::_handleClientConnection(int fd)
  */
 void	Server::_handleClientDisconnection(int fd)
 {
-	Logger::log(Logger::DEBUG, "Client disconnected on file descriptor %d", fd);
+	Logger::log(Logger::DEBUG, "[Server::_handleClientDisconnection] Client disconnected on file descriptor %d", fd);
 	deleteSocketEpoll(this->_epollFD, fd);
 	std::map<int, Client*>::iterator it = this->_clients.find(fd);
 	if (it != this->_clients.end())
@@ -143,16 +137,16 @@ void Server::run(void)
 
 		Logger::log(Logger::INFO, "Waiting for connections...");
 		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
-		Logger::log(Logger::DEBUG, "There are %d file descriptors ready for I/O after epoll wait", nfds);
+		Logger::log(Logger::DEBUG, "[Server::run] There are %d file descriptors ready for I/O after epoll wait", nfds);
 		
 		for (int i = 0; i < nfds; i++)
 		{
 			int fd = events[i].data.fd;
 			uint32_t event = events[i].events;
 			
-			if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
-				Logger::log(Logger::DEBUG, "Something went wrong with file descriptor %d", fd);
-			}
+			// if (!(event & EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
+			// 	Logger::log(Logger::DEBUG, "[Server::run] Something went wrong with file descriptor %d", fd);
+			// }
 			if (event & EPOLLIN){
 				if (this->_clients.find(fd) == this->_clients.end()) // New client connection
 					_handleClientConnection(fd);

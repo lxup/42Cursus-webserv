@@ -88,6 +88,9 @@ public:
 	void addServerName(std::vector<std::string>& token);
 	void addIndexes(std::vector<std::string>& token);
 
+	// Finders
+	BlocLocation*	findLocation(const std::string &uri);
+
 	// Print
 	void printServer(void);
 	void printListens();

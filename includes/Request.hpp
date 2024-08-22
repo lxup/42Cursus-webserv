@@ -48,6 +48,10 @@ class Request
 		void	_setError(int code);
 
 		void	_findServer(void);
+
+		/* CHECKERS */
+		int 	_checkClientMaxBodySize(void);
+		int		_checkMethod(void);
 	public:
 		Request(void);
 		Request(Client *client);

@@ -86,6 +86,8 @@ class BlocLocation
 		void printVector(const std::string& label, const std::vector<std::string>& vec);
 		void printMap(const std::string& label, const std::map<std::string, std::string>& map);
 
+		// Is
+		bool	isMethodAllowed(e_Methods method);
 };
 
 #endif

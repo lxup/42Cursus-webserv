@@ -251,3 +251,10 @@ void BlocLocation::printLocation(void)
     }
 
 }
+
+// ------------------------------- IS --------------------------------
+
+bool BlocLocation::isMethodAllowed(e_Methods method)
+{
+	return (std::find(_allowedMethods.begin(), _allowedMethods.end(), method) != _allowedMethods.end());
+}

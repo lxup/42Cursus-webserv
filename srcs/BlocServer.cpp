@@ -239,6 +239,24 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 	return (*this);
 }
 
+// =========== FINDERS ===========
+
+/**
+ * @brief find a location by uri
+ * 
+ * @param uri 
+ * @return BlocLocation* 
+ */
+BlocLocation* BlocServer::findLocation(const std::string &uri)
+{
+	for (std::vector<BlocLocation>::iterator it = _locations.begin(); it != _locations.end(); ++it)
+	{
+		if (uri.find(it->getPath()) == 0)
+			return &(*it);
+	}
+	return NULL;
+}
+
 
 
 
