@@ -1,11 +1,11 @@
 #include "Request.hpp"
 
-Request::Request(void) : _client(NULL), _server(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _state(Request::INIT), _stateCode(0)
+Request::Request(void) : _client(NULL), _server(NULL), _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(0)
 {
 
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1), _state(Request::INIT), _stateCode(0)
+Request::Request(Client *client) : _client(client), _server(NULL),  _rawRequest(""), _method(""), _uri(""), _httpVersion(""), _body(""), _version(""), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(0)
 {
 }
 
@@ -31,6 +31,7 @@ Request &Request::operator=(const Request &rhs)
 		this->_headers = rhs._headers;
 		this->_isChunked = rhs._isChunked;
 		this->_contentLength = rhs._contentLength;
+		this->_chunkSize = rhs._chunkSize;
 		this->_state = rhs._state;
 		this->_stateCode = rhs._stateCode;
 	}
@@ -153,32 +154,13 @@ void	Request::_parseBody(void)
 		return (Logger::log(Logger::DEBUG, "Body already parsed"));
 
 	if (this->isChunked())
-		this->_parseChunkedBody();
+		return (this->_parseChunkedBody());
 
 	Logger::log(Logger::DEBUG, "Expected content length: %d", this->_contentLength);
 	this->_body += this->_rawRequest.substr(0, this->_contentLength - this->_body.size());
+	this->_rawRequest.erase(0, this->_contentLength - this->_body.size());
 	if ((int)this->_body.size() == this->_contentLength)
-		this->_setState(Request::FINISH);
-	// if (step == Request::BODY)
-	// {
-	// 	if (this->_isChunked)
-	// 	{
-	// 		Logger::log(Logger::DEBUG, "[Request] Chunked body\n");
-	// 		this->_parseChunkedBody(iss, line, step);
-	// 	}
-	// 	else
-	// 	{
-	// 		Logger::log(Logger::DEBUG, "[Request] Body\n");
-	// 		std::ostringstream oss;
-	// 		while (std::getline(iss, line))
-	// 			oss << line << std::endl;
-	// 		this->_body = oss.str();
-	// 	}
-	// 	Logger::log(Logger::DEBUG, "Body: %s\n", this->_body.c_str());
-	// 	step = Request::FINISH;
-	// }
-	// else
-	// 	Logger::log(Logger::WARNING, "Invalid step: %d\n", step);
+		return (this->_setState(Request::FINISH));
 }
 
 /*
@@ -190,6 +172,38 @@ void	Request::_parseBody(void)
 */
 void Request::_parseChunkedBody(void)
 {
+	while (!this->_rawRequest.empty())
+	{
+		if (this->_chunkSize == -1)
+		{
+			size_t pos = this->_rawRequest.find("\r\n");
+			if (pos == std::string::npos)
+				return ; // Waiting for more data
+			std::string line = this->_rawRequest.substr(0, pos);
+			std::cout << "Line: " << line << std::endl;
+			std::istringstream iss(line);
+			if (!(iss >> std::hex >> this->_chunkSize))
+			{
+				this->_setError(400);
+				return (Logger::log(Logger::ERROR, "[_parseChunkedBody] Error parsing chunk size"));
+			}
+			this->_rawRequest.erase(0, pos + 2);
+			if (this->_chunkSize == 0)
+				return (this->_setState(Request::FINISH));
+			Logger::log(Logger::DEBUG, "[_parseChunkedBody] Chunk size: %d", this->_chunkSize);
+		}
+		size_t pos = this->_rawRequest.find("\r\n");
+		if (pos == std::string::npos)
+			return ; // Waiting for more data
+		if (pos != (size_t)this->_chunkSize)
+		{
+			this->_setError(400);
+			return (Logger::log(Logger::ERROR, "[_parseChunkedBody] Chunk size does not match"));
+		}
+		this->_body += this->_rawRequest.substr(0, this->_chunkSize);
+		this->_rawRequest.erase(0, this->_chunkSize + 2);
+		this->_chunkSize = -1;
+	}
 }
 
 /*
@@ -199,21 +213,32 @@ void Request::_parseChunkedBody(void)
 */
 void	Request::_setState(e_parse_state state)	
 {
+	if (this->_state == Request::FINISH)
+		return (Logger::log(Logger::DEBUG, "[_setState] Request already finished"));
+	if (this->_state == state)
+		return (Logger::log(Logger::DEBUG, "[_setState] Request already in this state"));
 	this->_state = state;
 
 	if (state == Request::FINISH)
-		Logger::log(Logger::DEBUG, "Request state changed to FINISH");
+	{
+		if (this->_stateCode != 0)
+			Logger::log(Logger::DEBUG, "[_setState] Request state changed to FINISH with error code: %d", this->_stateCode);
+		else
+			Logger::log(Logger::DEBUG, "[_setState] Request state changed to FINISH");
+	}
 	else if (state == Request::INIT)
-		Logger::log(Logger::DEBUG, "Request state changed to INIT");
+		Logger::log(Logger::DEBUG, "[_setState] Request state changed to INIT");
 	else if (state == Request::HEADERS)
-		Logger::log(Logger::DEBUG, "Request state changed to HEADERS");
+		Logger::log(Logger::DEBUG, "[_setState] Request state changed to HEADERS");
 	else if (state == Request::BODY)
 	{
 		this->_setHeaderState(); // Set the header state
-		if (this->_method != "POST") // If the method is not POST, the body is empty
+		if (this->_state == Request::FINISH)
+			return ;
+		if (this->_method != "POST" && this->_method != "PUT")
 			this->_setState(Request::FINISH);
 		else
-			Logger::log(Logger::DEBUG, "Request state changed to BODY");
+			Logger::log(Logger::DEBUG, "[_setState] Request state changed to BODY");
 	}
 	else
 		Logger::log(Logger::DEBUG, "Invalid state: %d\n", state);
@@ -224,7 +249,6 @@ void	Request::_setState(e_parse_state state)
 */
 void	Request::_setHeaderState(void)
 {
-	// Check if the body is chunked
 	if (this->_headers.find("Transfer-Encoding") != this->_headers.end() && this->_headers["Transfer-Encoding"] == "chunked")
 		this->_isChunked = true;
 	if (this->_headers.find("Content-Length") != this->_headers.end())
@@ -233,24 +257,19 @@ void	Request::_setHeaderState(void)
 		iss >> this->_contentLength;
 	}
 
-	//raf modif pour faire les response
 	this->_findServer();
-	// fin des modif de raf 
-
-	// CEST LOUP QUI DOIT FAIRE ICI PAS TOUCHEEEEEEEEEEEE => j'ai touche tu vas faire quoi ?
-	// this->_findServer();
-	// if (this->_server == NULL)
-	// {
-	// 	Logger::log(Logger::ERROR, "[_setHeaderState] Server is NULL");
-	// 	this->_setError(500);
-	// 	return ;
-	// }
-	// if (this->_server->getClientMaxBodySize() != -1 && this->_contentLength > (int)this->_server->getClientMaxBodySize())
-	// {
-	// 	Logger::log(Logger::ERROR, "[_setHeaderState] Content-Length too big");
-	// 	this->_setError(413);
-	// 	return ;
-	// }
+	if (this->_server == NULL)
+	{
+		Logger::log(Logger::ERROR, "[_setHeaderState] Server is NULL");
+		this->_setError(500);
+		return ;
+	}
+	if (this->_contentLength > (int)this->_server->getClientMaxBodySize())
+	{
+		Logger::log(Logger::ERROR, "[_setHeaderState] Content-Length too big, max body size: %d, content length: %d", this->_server->getClientMaxBodySize(), this->_contentLength);
+		this->_setError(413);
+		return ;
+	}
 }
 
 /*
@@ -300,21 +319,21 @@ void	Request::_findServer(void)
 	}
 
 	BlocServer* serverFound = NULL;
-	std::vector<BlocServer> servers = socket->getServers();
-	for (std::vector<BlocServer>::iterator it = servers.begin(); it != servers.end(); it++)
+	std::vector<BlocServer>* servers = socket->getServers();
+	for (std::vector<BlocServer>::iterator it = servers->begin(); it != servers->end(); ++it)
 	{
 		std::vector<std::string> serverNames = it->getServerNames();
-		for (std::vector<std::string>::iterator it2 = serverNames.begin(); it2 != serverNames.end(); it2++)
+		for (std::vector<std::string>::iterator it2 = serverNames.begin(); it2 != serverNames.end(); ++it2)
 		{
 			if (*it2 == host)
 			{
 				serverFound = &(*it);
-				break;
+				break ;
 			}
 		}
 	}
 	if (serverFound == NULL) // If the server is not found, set the first BlocServer
-		serverFound = &servers.front();
+		serverFound = &servers->front();
 	this->_server = serverFound;
 	Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
 }

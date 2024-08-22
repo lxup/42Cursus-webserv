@@ -34,6 +34,7 @@ class Request
 		std::map<std::string, std::string>	_params;
 		bool								_isChunked;
 		int									_contentLength;
+		int									_chunkSize;
 		e_parse_state						_state;
 		int									_stateCode;
 
