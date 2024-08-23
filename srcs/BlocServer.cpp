@@ -68,7 +68,7 @@ void BlocServer::addIndexes(std::vector<std::string>& token){
 	}
 }
 
-void BlocServer::addErrorPages(unsigned int errorCode, std::string file)
+void BlocServer::addErrorPages(int errorCode, std::string file)
 { 
 	if (errorCode < 400 || errorCode > 599)
 		Logger::log(Logger::FATAL, "Invalid error code: %d in file %s:%d", errorCode, _filename.c_str(), ConfigParser::countLineFile);
@@ -109,7 +109,7 @@ void BlocServer::cleanPaths()
 		_root.erase(_root.size() - 1);
 
 	// clean all error pages path
-	for (std::map<unsigned int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it){
+	for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it){
 		if (it->second != "/" && it->second[it->second.size() - 1] == '/')
 			it->second.erase(it->second.size() - 1);
 	}
@@ -280,10 +280,10 @@ void BlocServer::printVector(const std::string& label, const std::vector<std::st
         std::cout << "\t- " << *it << std::endl;
 }
 
-void BlocServer::printMap(const std::string& label, const std::map<unsigned int, std::string>& map)
+void BlocServer::printMap(const std::string& label, const std::map<int, std::string>& map)
 {
     std::cout << std::left << label << ": " << (map.empty() ? "none" : "") << std::endl;
-    for (std::map<unsigned int, std::string>::const_iterator it = map.begin(); it != map.end(); ++it)
+    for (std::map<int, std::string>::const_iterator it = map.begin(); it != map.end(); ++it)
         std::cout << "\t- " << it->first << ": " << it->second << std::endl;
 }
 

@@ -15,7 +15,8 @@
 class Request;
 
 # define RESPONSE_READ_BUFFER_SIZE 1000
-# define THRESHOLD_LARGE_FILE 100000 // 100KB
+//# define THRESHOLD_LARGE_FILE 1000000 // 1MB
+# define THRESHOLD_LARGE_FILE 1000 // 1KB
 
 class Response
 {

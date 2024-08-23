@@ -172,7 +172,7 @@ void addSocketEpoll(int epollFD, int sockFD, uint32_t flags)
 	epoll_event ev;
 	ev.events = flags;
 	ev.data.fd = sockFD;
-	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function");
+	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_ADD, sockFD, &ev), "Error with epoll_ctl function", false);
 }
 
 /**
@@ -185,31 +185,120 @@ void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags)
 	epoll_event ev;
 	ev.events = flags;
 	ev.data.fd = sockFD;
-	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_MOD, sockFD, &ev), "Error with epoll_ctl function");
+	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_MOD, sockFD, &ev), "Error with epoll_ctl function", false);
 }
 
 void deleteSocketEpoll(int epollFD, int sockFD)
 {
 	epoll_event ev;
 	ev.data.fd = sockFD;
-	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function");
+	protectedCall(epoll_ctl(epollFD, EPOLL_CTL_DEL, sockFD, &ev), "Error with epoll_ctl function", false);
 }
 
-std::string getRedirectionMessage(int code)
+std::string getErrorMessage(int code)
 {
 	switch (code)
 	{
-	case 301:
-		return "Moved Permanently";
-	case 302:
-		return "Found";
-	case 303:
-		return "See Other";
-	case 307:
-		return "Temporary Redirect";
-	case 308:
-		return "Permanent Redirect";
-	default:
-		return "Unknown";
+		// 2xx Success
+		case 200:
+			return "OK";
+		case 201:
+			return "Created";
+		case 202:
+			return "Accepted";
+		case 204:
+			return "No Content";
+		
+		// 3xx Redirection
+		case 301:
+			return "Moved Permanently";
+		case 302:
+			return "Found";
+		case 303:
+			return "See Other";
+		case 304:
+			return "Not Modified";
+		case 307:
+			return "Temporary Redirect";
+		case 308:
+			return "Permanent Redirect";
+		
+		// 4xx Client Errors
+		case 400:
+			return "Bad Request";
+		case 401:
+			return "Unauthorized";
+		case 403:
+			return "Forbidden";
+		case 404:
+			return "Not Found";
+		case 405:
+			return "Method Not Allowed";
+		case 408:
+			return "Request Timeout";
+		case 409:
+			return "Conflict";
+		case 410:
+			return "Gone";
+		case 413:
+			return "Payload Too Large";
+		case 414:
+			return "URI Too Long";
+		case 415:
+			return "Unsupported Media Type";
+		case 429:
+			return "Too Many Requests";
+
+		// 5xx Server Errors
+		case 500:
+			return "Internal Server Error";
+		case 501:
+			return "Not Implemented";
+		case 502:
+			return "Bad Gateway";
+		case 503:
+			return "Service Unavailable";
+		case 504:
+			return "Gateway Timeout";
+		case 505:
+			return "HTTP Version Not Supported";
+		
+		default:
+			return "Unknown Error";
 	}
+}
+
+
+/**
+ * @brief Fonction pour obtenir le type MIME basé sur l'extension de fichier
+ */
+std::string getMimeType(const std::string &path)
+{
+	std::map<std::string, std::string> mimeTypes;
+
+	mimeTypes[".html"] = "text/html";
+	mimeTypes[".htm"] = "text/html";
+	mimeTypes[".css"] = "text/css";
+	mimeTypes[".js"] = "application/javascript";
+	mimeTypes[".jpg"] = "image/jpeg";
+	mimeTypes[".jpeg"] = "image/jpeg";
+	mimeTypes[".png"] = "image/png";
+	mimeTypes[".gif"] = "image/gif";
+	mimeTypes[".svg"] = "image/svg+xml";
+	mimeTypes[".json"] = "application/json";
+	mimeTypes[".txt"] = "text/plain";
+	mimeTypes[".pdf"] = "application/pdf";
+	mimeTypes[".zip"] = "application/zip";
+	// todo ajouter d'autre extension
+
+	std::string::size_type idx = path.rfind('.');
+	if (idx != std::string::npos)
+	{
+		std::string ext = path.substr(idx);
+		if (mimeTypes.find(ext) != mimeTypes.end())
+		{
+			return mimeTypes[ext];
+		}
+	}
+	return "application/octet-stream"; // Type par défaut si l'extension est inconnue
 }

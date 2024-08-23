@@ -27,7 +27,7 @@ private:
 	std::string _root;
 	size_t _clientMaxBodySize;
 	std::vector<BlocLocation> _locations;
-	std::map<unsigned int, std::string> _errorPages;
+	std::map<int, std::string> _errorPages;
 
 	// divers
 	std::string _filename;
@@ -54,7 +54,7 @@ public:
 	BlocServer getServerConfig(std::ifstream &file_config);
 
 	// Getters
-	const std::map<unsigned int, std::string> &getErrorPages() const { return _errorPages; }
+	const std::map<int, std::string> &getErrorPages() const { return _errorPages; }
 	const std::vector<std::string> &getServerNames() const { return _serverNames; }
 	// const std::vector<BlocLocation> &getLocations() const { return _locations; }
 	std::vector<BlocLocation>* getLocations() { return &_locations; }
@@ -80,10 +80,10 @@ public:
 	}
 	void setDefaultValue();
 	void setLocations(const std::vector<BlocLocation> &locations) { _locations = locations; }
-	void setErrorPages(const std::map<unsigned int, std::string> &errorPage) { _errorPages = errorPage; }
+	void setErrorPages(const std::map<int, std::string> &errorPage) { _errorPages = errorPage; }
 
 	// Adders
-	void addErrorPages(unsigned int errorCode, std::string file);
+	void addErrorPages(int errorCode, std::string file);
 	void addLocation(const BlocLocation &locations) { _locations.push_back(locations); }
 	void addListen(std::string &token);
 	void addServerName(std::vector<std::string>& token);
@@ -98,7 +98,7 @@ public:
 	void printPair(const std::string& label, const std::string& value);
 	void printInt(const std::string& label, int value);
 	void printVector(const std::string& label, const std::vector<std::string>& vec);
-	void printMap(const std::string& label, const std::map<unsigned int, std::string>& map);
+	void printMap(const std::string& label, const std::map<int, std::string>& map);
 
 
 };

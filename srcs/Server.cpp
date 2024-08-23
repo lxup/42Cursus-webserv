@@ -33,7 +33,10 @@ Server::~Server(){
 void Server::sendResponse(Client* client){
 	std::string response = client->getResponse()->getRawResponse();
 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
-	int bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
+	
+	int bytesSent = -1;
+	if (client->getFd() != -1)
+		bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
 	
 	if (bytesSent < 0)
 		Logger::log(Logger::ERROR, "Error with send function");
@@ -134,13 +137,18 @@ void Server::handleEvent(epoll_event *events, int i){
 	uint32_t event = events[i].events;
 	int fd = events[i].data.fd;
 	
+	if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)){
+		Logger::log(Logger::WARNING, "[Server::handleEvent] Client %d disconnected", fd);
+		_handleClientDisconnection(fd);
+		return ;
+	}
 	if (event & EPOLLIN){
-		if (this->_clients.find(fd) == this->_clients.end()) // New client connection
+		if (this->_clients.find(fd) == this->_clients.end())
 			_handleClientConnection(fd);
 		else if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
 				_handleClientDisconnection(fd);
 	}
-	if (event & EPOLLOUT){
+	else if (event & EPOLLOUT){
 		this->sendResponse(_clients[fd]);
 	}
 }

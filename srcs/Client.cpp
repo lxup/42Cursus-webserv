@@ -15,10 +15,8 @@ Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(t
 	struct sockaddr_in	addr;
 	socklen_t			addrLen = sizeof(addr);
 
-	this->_fd = protectedCall(accept(fd, (struct sockaddr *)&addr, &addrLen), "Error with accept function");
-	protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "[Client] Error with fcntl function");
-
-	
+	this->_fd = protectedCall(accept(fd, (struct sockaddr *)&addr, &addrLen), "Error with accept function", false);
+	protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "[Client] Error with fcntl function", false);
 }
 
 Client::~Client(void)

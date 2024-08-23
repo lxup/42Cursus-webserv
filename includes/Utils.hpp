@@ -30,12 +30,14 @@ int protectedCall(int ret, std::string msg, bool isFatal = true);
 std::string extractIp(std::string ipPort);
 unsigned int extractPort(std::string ipPort);
 bool isEmptyFile();
-std::string getRedirectionMessage(int code);
+std::string getErrorMessage(int code);
+std::string intToHexa(ssize_t num);
+std::string getMimeType(const std::string &path);
 
 // epoll utils
 void addSocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void deleteSocketEpoll(int epollFD, int sockFD);
-std::string intToHexa(ssize_t num);
+
 
 #endif // UTILS_HPP

@@ -27,40 +27,6 @@ Response::~Response()
 // UTIL RESPONSE ==============================
 
 /**
- * @brief Fonction pour obtenir le type MIME basé sur l'extension de fichier
- */
-std::string getMimeType(const std::string &path)
-{
-	std::map<std::string, std::string> mimeTypes;
-
-	mimeTypes[".html"] = "text/html";
-	mimeTypes[".htm"] = "text/html";
-	mimeTypes[".css"] = "text/css";
-	mimeTypes[".js"] = "application/javascript";
-	mimeTypes[".jpg"] = "image/jpeg";
-	mimeTypes[".jpeg"] = "image/jpeg";
-	mimeTypes[".png"] = "image/png";
-	mimeTypes[".gif"] = "image/gif";
-	mimeTypes[".svg"] = "image/svg+xml";
-	mimeTypes[".json"] = "application/json";
-	mimeTypes[".txt"] = "text/plain";
-	mimeTypes[".pdf"] = "application/pdf";
-	mimeTypes[".zip"] = "application/zip";
-	// todo ajouter d'autre extension
-
-	std::string::size_type idx = path.rfind('.');
-	if (idx != std::string::npos)
-	{
-		std::string ext = path.substr(idx);
-		if (mimeTypes.find(ext) != mimeTypes.end())
-		{
-			return mimeTypes[ext];
-		}
-	}
-	return "application/octet-stream"; // Type par défaut si l'extension est inconnue
-}
-
-/**
  * @brief check if the folder exist and if he does not have a / at the end
  */
 bool Response::isRedirect()
@@ -74,7 +40,7 @@ bool Response::isRedirect()
 	if (isLoc && !_blocLocation->getRewrite().second.empty())
 	{
 		std::pair<int, std::string> rewrite = _blocLocation->getRewrite();
-		_response = "HTTP/1.1 " + intToString(rewrite.first) + " " + getRedirectionMessage(rewrite.first) + "\r\n";
+		_response = "HTTP/1.1 " + intToString(rewrite.first) + " " + getErrorMessage(rewrite.first) + "\r\n";
 		_response += "Location:" + rewrite.second + "\r\n";
 		_response += "Content-Length: 0\r\n";
 		_response += "\r\n";
@@ -224,11 +190,11 @@ void Response::manageNotFound(std::string directoryToCheck)
 
 	if (directoryExist(directoryToCheck.c_str()))
 	{
-		page = ErrorPage::getPage(403);
+		page = ErrorPage::getPage(403, _blocServer->getErrorPages());
 	}
 	else
 	{
-		page = ErrorPage::getPage(404);
+		page = ErrorPage::getPage(404, _blocServer->getErrorPages());
 	}
 
 	_response = page;
