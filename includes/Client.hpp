@@ -9,7 +9,7 @@
 # include "Socket.hpp"
 # include "Response.hpp"
 
-# define CLIENT_READ_BUFFER_SIZE 10 // 4096
+# define CLIENT_READ_BUFFER_SIZE 4096
 
 class Request;
 class Response;
@@ -22,6 +22,7 @@ class Client
 		Socket*					_socket;
 		Request*				_request;
 		Response*				_response;
+
 	public:
 		Client(void);
 		Client(int fd, Socket* socket);

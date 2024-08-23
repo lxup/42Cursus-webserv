@@ -10,7 +10,34 @@ BlocLocation::BlocLocation(std::string filename) : _autoindex(FALSE), _filename(
 	_counterView["upload_path"] = 0;
 }
 
-BlocLocation::~BlocLocation() {}
+BlocLocation::BlocLocation(const BlocLocation &other)
+{
+	*this = other;
+}
+
+BlocLocation::~BlocLocation()
+{
+	std::cout << "Destructor BlocLocation" << std::endl;
+}
+
+BlocLocation &BlocLocation::operator=(const BlocLocation &other)
+{
+	if (this != &other)
+	{
+		_path = other._path;
+		_root = other._root;
+		_rewrite = other._rewrite;
+		_alias = other._alias;
+		_indexes = other._indexes;
+		_allowedMethods = other._allowedMethods;
+		_autoindex = other._autoindex;
+		_cgiExtension = other._cgiExtension;
+		_uploadPath = other._uploadPath;
+		_counterView = other._counterView;
+		_filename = other._filename;
+	}
+	return (*this);
+}
 
 // ------------------------------- UTIL --------------------------------
 void BlocLocation::addAllowedMethods(std::vector<std::string> &tokens)
@@ -250,4 +277,24 @@ void BlocLocation::printLocation(void)
         std::cout << std::endl;
     }
 
+}
+
+// ------------------------------- IS --------------------------------
+
+bool BlocLocation::isMethodAllowed(e_Methods method)
+{
+	return (std::find(_allowedMethods.begin(), _allowedMethods.end(), method) != _allowedMethods.end());
+}
+
+// ------------------------------- UTILS --------------------------------
+e_Methods	BlocLocation::converStrToMethod(const std::string &method)
+{
+	if (method == "GET")
+		return (GET);
+	if (method == "POST")
+		return (POST);
+	if (method == "DELETE")
+		return (DELETE);
+	else 
+		return (UNKNOWN);
 }

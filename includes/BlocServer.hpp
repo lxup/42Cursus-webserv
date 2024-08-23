@@ -12,6 +12,8 @@
 # include "BlocLocation.hpp"
 # include "ListenConfig.hpp"
 
+# define BS_DEFAULT_CLIENT_MAX_BODY_SIZE 1048576
+
 class BlocLocation;
 class ListenConfig;
 
@@ -23,9 +25,9 @@ private:
 	std::vector<std::string> _serverNames;
 	std::vector<std::string> _indexes;
 	std::string _root;
-	int _clientMaxBodySize;
+	size_t _clientMaxBodySize;
 	std::vector<BlocLocation> _locations;
-	std::map<unsigned int, std::string> _errorPages;
+	std::map<int, std::string> _errorPages;
 
 	// divers
 	std::string _filename;
@@ -41,18 +43,23 @@ private:
 
 public:
 	BlocServer(std::string filename);
-	BlocServer();
-	~BlocServer();
+	BlocServer(void);
+	BlocServer(const BlocServer &other);
+	~BlocServer(void);
+
+	BlocServer &operator=(const BlocServer &other);
+
 
 	// parsing
 	BlocServer getServerConfig(std::ifstream &file_config);
 
 	// Getters
-	const std::map<unsigned int, std::string> &getErrorPages() const { return _errorPages; }
+	const std::map<int, std::string> &getErrorPages() const { return _errorPages; }
 	const std::vector<std::string> &getServerNames() const { return _serverNames; }
-	const std::vector<BlocLocation> &getLocations() const { return _locations; }
+	// const std::vector<BlocLocation> &getLocations() const { return _locations; }
+	std::vector<BlocLocation>* getLocations() { return &_locations; }
 	const std::string &getRoot() const { return _root; }
-	unsigned int getClientMaxBodySize() const { return _clientMaxBodySize; }
+	size_t getClientMaxBodySize() const { return _clientMaxBodySize; }
 	const std::map<std::string, ListenConfig> &getListens() const { return _listens; }
 	const std::vector<std::string> &getIndexes() const { return _indexes; }
 
@@ -73,14 +80,17 @@ public:
 	}
 	void setDefaultValue();
 	void setLocations(const std::vector<BlocLocation> &locations) { _locations = locations; }
-	void setErrorPages(const std::map<unsigned int, std::string> &errorPage) { _errorPages = errorPage; }
+	void setErrorPages(const std::map<int, std::string> &errorPage) { _errorPages = errorPage; }
 
 	// Adders
-	void addErrorPages(unsigned int errorCode, std::string file);
+	void addErrorPages(int errorCode, std::string file);
 	void addLocation(const BlocLocation &locations) { _locations.push_back(locations); }
 	void addListen(std::string &token);
 	void addServerName(std::vector<std::string>& token);
 	void addIndexes(std::vector<std::string>& token);
+
+	// Finders
+	BlocLocation*	findLocation(const std::string &uri);
 
 	// Print
 	void printServer(void);
@@ -88,7 +98,7 @@ public:
 	void printPair(const std::string& label, const std::string& value);
 	void printInt(const std::string& label, int value);
 	void printVector(const std::string& label, const std::vector<std::string>& vec);
-	void printMap(const std::string& label, const std::map<unsigned int, std::string>& map);
+	void printMap(const std::string& label, const std::map<int, std::string>& map);
 
 
 };

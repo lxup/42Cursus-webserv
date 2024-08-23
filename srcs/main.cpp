@@ -16,19 +16,16 @@ int main(int ac, char **av)
 	if (args.isOption("--help"))
 		return (args.help(), args.getState());
 
-
-	ConfigParser configs(args.getConfigFilePath());
 	Server server;
 	serverInstance = &server;
 	
 	signal(SIGINT, signalHandler);
 	try{
 		// 1- Parsing
-		configs.parse();
-		configs.printServers();
-
+		server.getConfigParser().parse(args.getConfigFilePath());
+		server.getConfigParser().printServers();
 		// 2- Initialisation et lancement du Server
-		server.init(configs.getConfigs());
+		server.init();
 		server.run();
 	}
 	catch (const std::exception &e){

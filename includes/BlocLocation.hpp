@@ -15,7 +15,8 @@ enum e_Methods
 {
 	GET,
 	POST,
-	DELETE
+	DELETE,
+	UNKNOWN
 };
 
 enum e_boolMod
@@ -27,8 +28,7 @@ enum e_boolMod
 class BlocLocation
 {
 	private:
-		// config bloc location
-		std::string _path;
+		std::string	_path;
 		std::string _root;
 		std::pair<int, std::string> _rewrite;
 		std::string _alias;
@@ -42,12 +42,6 @@ class BlocLocation
 		std::map<std::string, int> _counterView;
 		std::string _filename;
 
-	public:
-		BlocLocation(std::string filename);
-		~BlocLocation();
-
-		// parsing
-		BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
 		bool isValidLineLocation(std::vector<std::string>& tokens, std::string& key);
 
 		// Methods
@@ -55,12 +49,22 @@ class BlocLocation
 		void checkDoubleLine();
 		void setDefaultValues();
 		e_boolMod strToBool(std::string &str);
-		void cleanPaths();
 
 		// Adders
 		void addAllowedMethods(std::vector<std::string> &tokens);
 		void addIndexes(std::vector<std::string>& token);
 		void addCgiExtension(std::vector<std::string>& token);
+
+
+	public:
+		BlocLocation(std::string filename);
+		BlocLocation(const BlocLocation &other);
+		~BlocLocation();
+
+		BlocLocation &operator=(const BlocLocation &other);
+
+		// parsing
+		BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
 
 		// Setters
 		void setPath(const std::string &path) { _path = path; }
@@ -78,7 +82,7 @@ class BlocLocation
 		const std::vector<std::string> &getFiles() const { return _indexes; }
 		const std::vector<e_Methods> &getAllowedMethods() const { return _allowedMethods; }
 		e_boolMod getAutoIndex() const { return _autoindex; }
-
+		const std::vector<std::string> &getIndexes() const { return _indexes; }
 		// Print
 		void printLocation(void);
 		void printPair(const std::string& label, const std::string& value);
@@ -86,6 +90,10 @@ class BlocLocation
 		void printVector(const std::string& label, const std::vector<std::string>& vec);
 		void printMap(const std::string& label, const std::map<std::string, std::string>& map);
 
+		// Utils
+		static e_Methods	converStrToMethod(const std::string &method);
+		void cleanPaths();
+		bool	isMethodAllowed(e_Methods method);
 };
 
 #endif

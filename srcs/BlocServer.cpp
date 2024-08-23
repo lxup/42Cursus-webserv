@@ -2,16 +2,41 @@
 
 // ============ GENERAL ============
 
-BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(-1), _filename(filename)
+BlocServer::BlocServer(void) : _clientMaxBodySize(BS_DEFAULT_CLIENT_MAX_BODY_SIZE), _filename("")
 {
 	_counterView["root"] = 0;
 	_counterView["clientMaxBodySize"] = 0;
 }
 
-BlocServer::~BlocServer(){}
+BlocServer::BlocServer(std::string filename) : _clientMaxBodySize(BS_DEFAULT_CLIENT_MAX_BODY_SIZE), _filename(filename)
+{
+	_counterView["root"] = 0;
+	_counterView["clientMaxBodySize"] = 0;
+}
 
-BlocServer::BlocServer(){}
+BlocServer::BlocServer(const BlocServer &other)
+{
+	*this = other;
+}
 
+BlocServer::~BlocServer(void){}
+
+BlocServer &BlocServer::operator=(const BlocServer &other)
+{
+	if (this != &other)
+	{
+		_listens = other._listens;
+		_serverNames = other._serverNames;
+		_indexes = other._indexes;
+		_root = other._root;
+		_clientMaxBodySize = other._clientMaxBodySize;
+		_locations = other._locations;
+		_errorPages = other._errorPages;
+		_filename = other._filename;
+		_counterView = other._counterView;
+	}
+	return *this;
+}
 
 // ============ UTILS ============
 bool BlocServer::isStartBlocLocation(std::vector<std::string>& tokens)
@@ -43,7 +68,7 @@ void BlocServer::addIndexes(std::vector<std::string>& token){
 	}
 }
 
-void BlocServer::addErrorPages(unsigned int errorCode, std::string file)
+void BlocServer::addErrorPages(int errorCode, std::string file)
 { 
 	if (errorCode < 400 || errorCode > 599)
 		Logger::log(Logger::FATAL, "Invalid error code: %d in file %s:%d", errorCode, _filename.c_str(), ConfigParser::countLineFile);
@@ -84,7 +109,7 @@ void BlocServer::cleanPaths()
 		_root.erase(_root.size() - 1);
 
 	// clean all error pages path
-	for (std::map<unsigned int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it){
+	for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); ++it){
 		if (it->second != "/" && it->second[it->second.size() - 1] == '/')
 			it->second.erase(it->second.size() - 1);
 	}
@@ -214,6 +239,24 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 	return (*this);
 }
 
+// =========== FINDERS ===========
+
+/**
+ * @brief find a location by uri
+ * 
+ * @param uri 
+ * @return BlocLocation* 
+ */
+BlocLocation* BlocServer::findLocation(const std::string &uri)
+{
+	for (std::vector<BlocLocation>::iterator it = _locations.begin(); it != _locations.end(); ++it)
+	{
+		if (uri.find(it->getPath()) == 0)
+			return &(*it);
+	}
+	return NULL;
+}
+
 
 
 
@@ -237,10 +280,10 @@ void BlocServer::printVector(const std::string& label, const std::vector<std::st
         std::cout << "\t- " << *it << std::endl;
 }
 
-void BlocServer::printMap(const std::string& label, const std::map<unsigned int, std::string>& map)
+void BlocServer::printMap(const std::string& label, const std::map<int, std::string>& map)
 {
     std::cout << std::left << label << ": " << (map.empty() ? "none" : "") << std::endl;
-    for (std::map<unsigned int, std::string>::const_iterator it = map.begin(); it != map.end(); ++it)
+    for (std::map<int, std::string>::const_iterator it = map.begin(); it != map.end(); ++it)
         std::cout << "\t- " << it->first << ": " << it->second << std::endl;
 }
 

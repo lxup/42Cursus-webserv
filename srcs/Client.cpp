@@ -10,21 +10,19 @@ Client::Client(void) : _fd(-1), _socket(NULL), _request(new Request(this)), _res
 
 Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(NULL)
 {
-	Logger::log(Logger::DEBUG, "Initializing client with fd %d", fd);
+	Logger::log(Logger::DEBUG, "[Client] Initializing client with fd %d", fd);
 
 	struct sockaddr_in	addr;
 	socklen_t			addrLen = sizeof(addr);
 
-	this->_fd = protectedCall(accept(fd, (struct sockaddr *)&addr, &addrLen), "Error with accept function");
-	protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "Error with fcntl function");
-
-	
+	this->_fd = protectedCall(accept(fd, (struct sockaddr *)&addr, &addrLen), "Error with accept function", false);
+	protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "[Client] Error with fcntl function", false);
 }
 
 Client::~Client(void)
 {
 	if (this->_fd != -1)
-		protectedCall(close(this->_fd), "Faild to close client socket", false);
+		protectedCall(close(this->_fd), "[~Client] Faild to close client socket", false);
 	if (this->_request != NULL)
 		delete this->_request;
 	if (this->_response != NULL)
@@ -41,7 +39,13 @@ Client::~Client(void)
  */
 int	Client::handleRequest( int epollFD )
 {
-	Logger::log(Logger::DEBUG, "Handling request from client %d", this->_fd);
+	if (_response != NULL && _response->getState() != Response::FINISH)
+		return (Logger::log(Logger::DEBUG, "[handleRequest] Chunking resonse not completly sent"), 1);
+
+	if (this->_request->getState() == Request::FINISH) // skip if the request is already finished
+		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"), -1);
+
+	Logger::log(Logger::DEBUG, "[handleRequest] Handling request from client %d", this->_fd);
 	
 	char	buffer[CLIENT_READ_BUFFER_SIZE + 1];
 	int		bytesRead = 0;
@@ -50,17 +54,16 @@ int	Client::handleRequest( int epollFD )
 	bytesRead  = recv(this->_fd, buffer, CLIENT_READ_BUFFER_SIZE, 0);
 	if (bytesRead > 0)
 	{
-		Logger::log(Logger::DEBUG, "Received %d bytes from client %d", bytesRead, this->_fd);
+		Logger::log(Logger::DEBUG, "[handleRequest] Received %d bytes from client %d", bytesRead, this->_fd);
 		buffer[bytesRead] = '\0';
 	}
 	 else if (bytesRead < 0)
 	{
-		Logger::log(Logger::ERROR, "Error with recv function");
-		return (-1);
+		this->_request->setError(500);
+		return (Logger::log(Logger::ERROR, "[handleRequest] Error with recv function"), -1);
 	}
 	else if (bytesRead == 0)
 		return (0);
-
 	this->_request->parse(buffer);
 
 	if (this->_request->getState() == Request::FINISH)
@@ -76,7 +79,12 @@ int	Client::handleRequest( int epollFD )
  */
 void Client::handleResponse(int epollFD)
 {
-	this->_response = new Response();
+	if (this->_response != NULL)
+	{
+		Logger::log(Logger::DEBUG, "[handleResponse] Existing response, deleting it");
+		delete this->_response;
+	}
+	this->_response = new Response(this->_request);
 	// this->_response = Response(this->_request, ICI IL ME FAUT LE BLOC SERVER);
 
 	// mettre le socket en epollout car on a une reponse a envoyer
