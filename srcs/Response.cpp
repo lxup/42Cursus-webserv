@@ -359,12 +359,12 @@ std::string Response::getRawResponse(void)
 	if (!_response.empty())
 		_response.clear();
 
-	//if (_request.getStatusCode() != 200)
-	//{
-	//	_response = ErrorPage::getPage(_request.getErrorCode(), _blocServer->getErrorPages());
-	//	setState(Response::FINISH);
-	//	return _response;
-	//}
+	if (_request->getStatusCode() != REQUEST_DEFAULT_STATE_CODE)
+	{
+		_response = ErrorPage::getPage(_request->getStatusCode(), _blocServer->getErrorPages());
+		setState(Response::FINISH);
+		return _response;
+	}
 
 	if (_state != Response::CHUNK)
 		setState(Response::PROCESS);

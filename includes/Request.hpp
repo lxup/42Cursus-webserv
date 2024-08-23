@@ -9,7 +9,7 @@
 # include "Logger.hpp"
 # include "Client.hpp"
 
-# define REQUEST_DEFAULT_STATEC_ODE 200
+# define REQUEST_DEFAULT_STATE_CODE 200
 # define REQUEST_DEFAULT_UPLOAD_PATH "./www/upload/"
 
 class Client;
@@ -120,6 +120,7 @@ class Request
 		std::string getUri(void) const { return _uri; }
 		std::string getHttpVersion(void) const { return _httpVersion; }
 		std::string getBody(void) const { return _body; }
+		int getStatusCode(void) const { return _stateCode; }
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }
