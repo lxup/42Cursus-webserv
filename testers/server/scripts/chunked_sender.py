@@ -2,12 +2,12 @@ import socket
 
 # Connexion à ton serveur
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect(('localhost', 8080))
+sock.connect(('10.211.55.5', 8080))
 
 # Construction de la requête chunked
 request = (
     "POST / HTTP/1.1\r\n"
-    "Host: localhost\r\n"
+    "Host: 10.211.55.5\r\n"
     "Transfer-Encoding: chunked\r\n"
     "\r\n"
     "19\r\nBonjour je suis Wikipedia\r\n"

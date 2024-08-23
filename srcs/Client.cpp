@@ -42,6 +42,9 @@ int	Client::handleRequest( int epollFD )
 	if (_response != NULL && _response->getState() != Response::FINISH)
 		return (Logger::log(Logger::DEBUG, "[handleRequest] Chunking resonse not completly sent"), 1);
 
+	if (this->_request->getState() == Request::FINISH) // skip if the request is already finished
+		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"), -1);
+
 	Logger::log(Logger::DEBUG, "[handleRequest] Handling request from client %d", this->_fd);
 	
 	char	buffer[CLIENT_READ_BUFFER_SIZE + 1];
@@ -56,13 +59,11 @@ int	Client::handleRequest( int epollFD )
 	}
 	 else if (bytesRead < 0)
 	{
-		Logger::log(Logger::ERROR, "[handleRequest] Error with recv function");
-		return (-1);
+		this->_request->setError(500);
+		return (Logger::log(Logger::ERROR, "[handleRequest] Error with recv function"), -1);
 	}
 	else if (bytesRead == 0)
 		return (0);
-	if (this->_request->getState() == Request::FINISH) // if the request is already finished, we don't need to parse the buffer
-		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished, ignoring buffer"), bytesRead);
 	this->_request->parse(buffer);
 
 	if (this->_request->getState() == Request::FINISH)

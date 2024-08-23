@@ -9,12 +9,36 @@
 # include "Logger.hpp"
 # include "Client.hpp"
 
+# define REQUEST_DEFAULT_STATEC_ODE 200
+# define REQUEST_DEFAULT_UPLOAD_PATH "./www/upload/"
+
 class Client;
+
+/*class File
+{
+	private:
+		std::ofstream				_file;
+		std::string					_filename;
+		std::string					_path;
+	public:
+		File(void) : _filename(""), _path("") {}
+		File(const std::string &filename) : _filename(filename), _path("") {}
+		~File(void) { if (_file.is_open()) _file.close(); }
+
+		// GETTERS
+		std::ofstream*	getFile(void) { return &_file; }
+		std::string		getFilename(void) const { return _filename; }
+		std::string		getPath(void) const { return _path; }
+
+		// SETTERS
+		void	setFilename(const std::string &filename) { _filename = filename; }
+		void	setPath(const std::string &path) { _path = path; }
+};*/
 
 class Request
 {
 	public:
-		enum e_parse_state
+		enum	e_parse_state
 		{
 			INIT,
 			HEADERS,
@@ -28,14 +52,18 @@ class Request
 		std::string 						_rawRequest;
 		std::string 						_method;
 		std::string 						_uri;
+		std::string 						_path;
+		std::map<std::string, std::string>	_query;
 		std::string							_httpVersion;
 		std::string							_body;
-		std::string							_version;
+		size_t								_bodySize;
 		std::map<std::string, std::string>	_headers;
-		std::map<std::string, std::string>	_params;
+		std::map<std::string, std::string>	_envCGI;
+		// Chunked
 		bool								_isChunked;
 		int									_contentLength;
 		int									_chunkSize;
+		// File								_file;
 		e_parse_state						_state;
 		int									_stateCode;
 
@@ -46,16 +74,33 @@ class Request
 
 		void	_setState(e_parse_state state);
 		void	_setHeaderState(void);
-		void	_setError(int code);
+
+		/* PROCESS */
+		void	_processUri(void);
 
 		/* FINDERS */
-		int		_findServer(void);
-		int		_findLocation(void);
+		int			_findServer(void);
+		int			_findLocation(void);
+		// std::string	_findFilename(void);
 
 		/* CHECKERS */
+		int		_checkTransferEncoding(void);
 		int 	_checkClientMaxBodySize(void);
 		int		_checkMethod(void);
 		int		_checkPathsMatch(const std::string &path, const std::string &parentPath);
+		// int		_checkContentType(void);
+
+		/* HANDLE */
+		// int		_handleMultipartFormData(void);
+		// int		_handleOctetStream(void);
+
+		/* TOOLS */
+		// std::string	_extractContentType(const std::string &contentType);
+		// std::string	_getRandomFilename(void);
+		// void		_uploadFailed(void);
+
+		/* INIT */
+		void	_initServer(void);
 	public:
 		Request(void);
 		Request(Client *client);
@@ -75,11 +120,12 @@ class Request
 		std::string getUri(void) const { return _uri; }
 		std::string getHttpVersion(void) const { return _httpVersion; }
 		std::string getBody(void) const { return _body; }
-		std::string getVersion(void) const { return _version; }
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }
-		// bool isReady(void) const { return _isReady; }
+
+		/* SETTERS */
+		void	setError(int code);
 };
 
 #endif // REQUEST_HPP
