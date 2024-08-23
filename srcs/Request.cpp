@@ -1,12 +1,13 @@
 #include "Request.hpp"
 
-Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _path(""), _query(""), _httpVersion(""), _body(""), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATEC_ODE)
+Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATEC_ODE)
 {
 
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _query(""), _httpVersion(""), _body(""), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATEC_ODE)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATEC_ODE)
 {
+	this->_initServer();
 }
 
 Request::Request(const Request &src)
@@ -16,6 +17,8 @@ Request::Request(const Request &src)
 
 Request::~Request(void)
 {
+	// if (this->_file.getFile()->is_open())
+	// 	this->_file.getFile()->close();
 }
 
 Request &Request::operator=(const Request &rhs)
@@ -85,7 +88,7 @@ void	Request::_parseRequestLine(void)
 	std::istringstream	iss(line);
 	if (!(iss >> this->_method >> this->_uri >> this->_httpVersion))
 	{
-		this->_setError(400);
+		this->setError(400);
 		return (Logger::log(Logger::ERROR, "Error parsing request line"));
 	}
 	this->_method.erase(std::remove_if(this->_method.begin(), this->_method.end(), ::isspace), this->_method.end());
@@ -97,17 +100,17 @@ void	Request::_parseRequestLine(void)
 
 	if (this->_httpVersion != "HTTP/1.1")
 	{
-		this->_setError(400);
+		this->setError(400);
 		return (Logger::log(Logger::ERROR, "HTTP Version not supported: %s", this->_httpVersion.c_str()));
 	}
 	if (this->_method != "GET" && this->_method != "POST" && this->_method != "DELETE")
 	{
-		this->_setError(400);
+		this->setError(400);
 		return (Logger::log(Logger::ERROR, "Method not implemented: %s", this->_method.c_str()));
 	}
 	if (this->_uri.empty())
 	{
-		this->_setError(400);
+		this->setError(400);
 		return (Logger::log(Logger::ERROR, "Empty URI"));
 	}
 	this->_processUri();
@@ -146,7 +149,7 @@ void	Request::_parseHeaders(void)
 		std::size_t colonPos = line.find(':');
 		if (colonPos == std::string::npos)
 		{
-			this->_setError(400); // TODO : Set right error code
+			this->setError(400); // TODO : Set right error code
 			return (Logger::log(Logger::ERROR, "Malformed header: %s", line.c_str()));
 		}
 		std::string key = line.substr(0, colonPos);
@@ -179,11 +182,18 @@ void	Request::_parseBody(void)
 	if (this->isChunked())
 		return (this->_parseChunkedBody());
 
-	Logger::log(Logger::DEBUG, "Expected content length: %d", this->_contentLength);
-	this->_body += this->_rawRequest.substr(0, this->_contentLength - this->_body.size());
-	this->_rawRequest.erase(0, this->_contentLength - this->_body.size());
-	std::cout << "Body: " << this->_body << std::endl;
-	if ((int)this->_body.size() == this->_contentLength)
+	std::string newContent = this->_rawRequest.substr(0, this->_contentLength - this->_bodySize);
+	// if (this->_file.getFile()->is_open()) // It's an upload
+	// {
+	// 	if (!(this->_file.getFile()->write(newContent.c_str(), newContent.size())))
+	// 		return (this->_uploadFailed());
+	// }
+	// else
+	// 	this->_body += newContent;
+	this->_body += newContent;
+	this->_bodySize += newContent.size();
+	this->_rawRequest.erase(0, this->_contentLength - this->_bodySize);
+	if ((int)_bodySize == this->_contentLength)
 		return (this->_setState(Request::FINISH));
 }
 
@@ -207,7 +217,7 @@ void Request::_parseChunkedBody(void)
 			std::istringstream iss(line);
 			if (!(iss >> std::hex >> this->_chunkSize))
 			{
-				this->_setError(400);
+				this->setError(400);
 				return (Logger::log(Logger::ERROR, "[_parseChunkedBody] Error parsing chunk size"));
 			}
 			this->_rawRequest.erase(0, pos + 2);
@@ -220,14 +230,23 @@ void Request::_parseChunkedBody(void)
 			return ; // Waiting for more data
 		if (pos != (size_t)this->_chunkSize)
 		{
-			this->_setError(400);
+			this->setError(400);
 			return (Logger::log(Logger::ERROR, "[_parseChunkedBody] Chunk size does not match"));
 		}
+		// std::string newContent = this->_rawRequest.substr(0, this->_chunkSize);
+		// if (this->_file.getFile()->is_open())
+		// {
+		// 	if (!(this->_file.getFile()->write(newContent.c_str(), newContent.size())))
+		// 		return (this->_uploadFailed());
+		// }
+		// else
+			// this->_body += newContent;
 		this->_body += this->_rawRequest.substr(0, this->_chunkSize);
+		this->_bodySize += this->_chunkSize;
 		this->_rawRequest.erase(0, this->_chunkSize + 2);
 		this->_chunkSize = -1;
-		if (this->_body.size() > (size_t)this->_server->getClientMaxBodySize()) // Check the client max body size
-			return (this->_setError(413));
+		if (this->_bodySize > (size_t)this->_server->getClientMaxBodySize()) // Check the client max body size
+			return (this->setError(413));
 	}
 }
 
@@ -274,26 +293,10 @@ void	Request::_setState(e_parse_state state)
 */
 void	Request::_setHeaderState(void)
 {
-	if (this->_headers.find("Transfer-Encoding") != this->_headers.end() && this->_headers["Transfer-Encoding"] == "chunked")
-		this->_isChunked = true;
-	if (this->_headers.find("Content-Length") != this->_headers.end())
-	{
-		std::istringstream iss(this->_headers["Content-Length"]);
-		iss >> this->_contentLength;
-	}
-
 	if (this->_findServer() == -1 || this->_findLocation() == -1)
 		return ;
-	// if (this->_server == NULL)
-	// {
-	// 	Logger::log(Logger::ERROR, "[_setHeaderState] Server is NULL");
-	// 	this->_setError(500);
-	// 	return ;
-	// }
-	
-	if (this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1)
+	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1)
 		return ;
-
 }
 
 /*
@@ -301,7 +304,7 @@ void	Request::_setHeaderState(void)
 **
 ** @param code : The error code
 */
-void	Request::_setError(int code)
+void	Request::setError(int code)
 {
 	this->_stateCode = code;
 	this->_setState(Request::FINISH);
@@ -320,7 +323,15 @@ void	Request::_processUri(void)
 	if (pos != std::string::npos)
 	{
 		this->_path = this->_uri.substr(0, pos);
-		this->_query = this->_uri.substr(pos + 1);
+		std::string queries = this->_uri.substr(pos + 1);
+		std::istringstream iss(queries);
+		std::string query;
+		while (std::getline(iss, query, '&'))
+		{
+			pos = query.find('=');
+			if (pos != std::string::npos)
+				this->_query[query.substr(0, pos)] = query.substr(pos + 1);
+		}
 	}
 	else
 		this->_path = this->_uri;
@@ -338,20 +349,14 @@ int	Request::_findServer(void)
 	if (this->_client == NULL)
 	{
 		Logger::log(Logger::ERROR, "[_findServer] Client is NULL");
-		this->_setError(500);
+		this->setError(500);
 		return (-1);
 	}
-	if (this->_server != NULL)
-	{
-		Logger::log(Logger::DEBUG, "[_findServer] Server already set");
-		return (-1);
-	}
-
 	std::string host = this->_headers["Host"]; // Find the host in the headers
 	if (host.empty()) // If the host is empty, set the error code to 400
 	{
 		Logger::log(Logger::ERROR, "[_findServer] Host not found in headers");
-		this->_setError(400);
+		this->setError(400);
 		return (-1);
 	}
 	
@@ -361,11 +366,11 @@ int	Request::_findServer(void)
 	if (socket == NULL)
 	{
 		Logger::log(Logger::ERROR, "[_findServer] Socket is NULL");
-		this->_setError(500);
+		this->setError(500);
 		return (-1);
 	}
 
-	BlocServer* serverFound = NULL;
+	// BlocServer* serverFound = NULL;
 	std::vector<BlocServer>* servers = socket->getServers();
 	for (std::vector<BlocServer>::iterator it = servers->begin(); it != servers->end(); ++it)
 	{
@@ -374,22 +379,23 @@ int	Request::_findServer(void)
 		{
 			if (*it2 == host)
 			{
-				serverFound = &(*it);
+				// serverFound = &(*it);
+				this->_server = &(*it);
 				break ;
 			}
 		}
 	}
-	if (serverFound == NULL) // If the server is not found, set the first BlocServer
-	{
-		if (servers->empty())
-		{
-			Logger::log(Logger::ERROR, "[_findServer] No server found");
-			this->_setError(500);
-			return (-1);
-		}
-		serverFound = &servers->front();
-	}
-	this->_server = serverFound;
+	// if (serverFound == NULL) // If the server is not found, set the first BlocServer
+	// {
+	// 	if (servers->empty())
+	// 	{
+	// 		Logger::log(Logger::ERROR, "[_findServer] No server found");
+	// 		this->setError(500);
+	// 		return (-1);
+	// 	}
+	// 	serverFound = &servers->front();
+	// }
+	// this->_server = serverFound;
 	return (1);
 	
 	// Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
@@ -403,7 +409,7 @@ int	Request::_findLocation(void)
 	if (this->_server == NULL)
 	{
 		Logger::log(Logger::ERROR, "[_findLocation] Server is NULL");
-		this->_setError(500);
+		this->setError(500);
 		return (-1);
 	}
 	
@@ -428,8 +434,68 @@ int	Request::_findLocation(void)
 }
 
 /*
+** @brief Find the filename
+**
+** @return The filename
+*/
+// std::string	Request::_findFilename(void)
+// {
+// 	std::string filename;
+// 	// search in headers
+// 	if (this->_headers.find("Content-Disposition") != this->_headers.end())
+// 	{
+// 		std::string contentDisposition = this->_headers["Content-Disposition"];
+// 		size_t pos = contentDisposition.find("filename=");
+// 		if (pos != std::string::npos)
+// 		{
+// 			filename = contentDisposition.substr(pos + 9);
+// 			pos = filename.find(";");
+// 			if (pos != std::string::npos)
+// 				filename = filename.substr(0, pos);
+// 		}
+// 	}
+// 	// search in query
+// 	else if (this->_query.find("filename") != this->_query.end())
+// 		filename = this->_query["filename"];
+// 	// search in path
+// 	else
+// 	{
+// 		size_t pos = this->_path.find_last_of('/');
+// 		filename = this->_path.substr(pos + 1);
+// 	}
+
+// 	if (filename.empty())
+// 		filename = this->_getRandomFilename();
+	
+// 	this->_file.setPath(REQUEST_DEFAULT_UPLOAD_PATH + this->_path + filename);
+
+// 	return (filename);
+// }
+
+/*
 ** --------------------------------- CHECKERS ---------------------------------
 */
+
+/*
+** @brief Check the transfer encoding
+**
+** @return 0 if the check is successful, -1 otherwise
+*/
+int	Request::_checkTransferEncoding(void)
+{
+	if (this->_headers.find("Transfer-Encoding") != this->_headers.end())
+	{
+		if (this->_headers["Transfer-Encoding"] == "chunked")
+			this->_isChunked = true;
+		else
+		{
+			Logger::log(Logger::ERROR, "[_checkTransferEncoding] Transfer-Encoding not supported: %s", this->_headers["Transfer-Encoding"].c_str());
+			this->setError(501);
+			return (-1);
+		}
+	}
+	return (0);
+}
 
 /*
 ** @brief Check the client max body size
@@ -438,10 +504,15 @@ int	Request::_findLocation(void)
 */
 int	Request::_checkClientMaxBodySize(void)
 {
+	if (this->_headers.find("Content-Length") != this->_headers.end())
+	{
+		std::istringstream iss(this->_headers["Content-Length"]);
+		iss >> this->_contentLength;
+	}
 	if (this->_contentLength > (int)this->_server->getClientMaxBodySize())
 	{
 		Logger::log(Logger::ERROR, "[_checkClientMaxBodySize] Content-Length too big, max body size: %d, content length: %d", this->_server->getClientMaxBodySize(), this->_contentLength);
-		this->_setError(413);
+		this->setError(413);
 		return -1;
 	}
 	return 0;
@@ -452,8 +523,6 @@ int	Request::_checkClientMaxBodySize(void)
 **
 ** @return 0 if the check is successful, -1 otherwise
 */
-
-
 int	Request::_checkMethod(void)
 {
 	if (this->_location == NULL) // if the location is not found, allow all methods
@@ -461,7 +530,7 @@ int	Request::_checkMethod(void)
 	if (this->_location->isMethodAllowed(BlocLocation::converStrToMethod(this->_method)))
 		return (0);
 	Logger::log(Logger::ERROR, "[_checkMethod] Method not allowed: %s", this->_method.c_str());
-	this->_setError(405);
+	this->setError(405);
 	return (-1);
 }
 
@@ -481,4 +550,155 @@ int	Request::_checkPathsMatch(const std::string &path, const std::string &parent
 		if (pathSize== parentPathSize || path[parentPathSize] == '/')
 			return (1);
 	return (0);
+}
+
+/*
+** @brief Check the content type
+**
+** @return 0 if the check is successful, -1 otherwise
+*/
+// int	Request::_checkContentType(void)
+// {
+// 	if (this->_headers.find("Content-Type") == this->_headers.end())
+// 		return (0);
+// 	std::string contentType = this->_extractContentType(this->_headers["Content-Type"]);
+// 	// if (contentType == "application/octet-stream")
+// 	// 	return (this->_handleOctetStream());
+// 	if (contentType == "multipart/form-data")
+// 		return (this->_handleMultipartFormData());
+// 	else if (contentType == "x-www-form-urlencoded")
+// 		return (0);
+// 	else
+// 	{
+// 		Logger::log(Logger::ERROR, "[_checkContentType] Content-Type not supported: %s", contentType.c_str());
+// 		this->setError(415);
+// 		return (-1);
+// 	}
+// 	return (0);
+// }
+
+/*
+** --------------------------------- HANDLE -----------------------------------
+*/
+
+/*
+** @brief Handle the multipart form data
+**
+** @return 0 if the handle is successful, -1 otherwise
+*/
+// int	Request::_handleMultipartFormData(void)
+// {
+// 	return (0);
+// }
+
+/*
+** @brief Handle the octet stream
+*/
+// int	Request::_handleOctetStream(void)
+// {
+// 	Logger::log(Logger::DEBUG, "[_handleOctetStream] Handling octet stream");
+
+// 	if (this->_method != "POST" && this->_method != "PUT")
+// 		return (0);
+
+// 	// Try to get filename from headers, path or query
+// 	this->_file.setFilename(this->_findFilename());
+// 	std::cout << "Filename: " << this->_file.getFilename() << std::endl;
+// 	if (std::ifstream(this->_file.getPath().c_str()))
+// 	{
+// 		this->setError(409);
+// 		return (Logger::log(Logger::ERROR, "[_handleOctetStream] File already exists: %s", this->_file.getFilename().c_str()), -1);
+// 	}
+// 	// open the file
+// 	this->_file.getFile()->open(this->_file.getPath().c_str(), std::ios::out | std::ios::binary);
+// 	if (!this->_file.getFile()->is_open())
+// 	{
+// 		this->setError(500);
+// 		return (Logger::log(Logger::ERROR, "[_handleOctetStream] Error opening file: %s", this->_file.getPath().c_str()), -1);
+// 	}
+// 	return (0);
+// }
+
+/*
+** --------------------------------- TOOLS ------------------------------------
+*/
+
+/*
+** @brief Extract the content type
+**
+** @param contentType : The content type
+**
+** @return The extracted content type
+*/
+// std::string	Request::_extractContentType(const std::string &contentType)
+// {
+// 	size_t pos = contentType.find(';');
+// 	if (pos != std::string::npos)
+// 		return (contentType.substr(0, pos));
+// 	return (contentType);
+// }
+
+/*
+** @brief Get a random filename
+**
+** @return The random filename
+*/
+// std::string	Request::_getRandomFilename(void)
+// {
+// 	std::string filename = "upload_";
+// 	std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+// 	// add 10 random characters to the filename and check if the file already exists
+// 	do
+// 	{
+// 		for (int i = 0; i < 10; i++)
+// 			filename += charset[rand() % charset.size()];
+// 	} while (std::ifstream((REQUEST_DEFAULT_UPLOAD_PATH + this->_path + filename).c_str()));
+
+// 	return (filename);
+// }
+
+/*
+** @brief Upload failed
+*/
+// void	Request::_uploadFailed(void)
+// {
+// 	if (this->_file.getFile()->is_open())
+// 	{
+// 		this->_file.getFile()->close();
+// 		remove(this->_file.getPath().c_str());
+// 	}
+// 	this->setError(500);
+// 	return (Logger::log(Logger::ERROR, "[_uploadFailed] Upload failed"));
+// }
+
+/*
+** --------------------------------- INIT -------------------------------------
+*/
+
+/*
+** @brief Init the server
+*/
+void	Request::_initServer(void)
+{
+	if (this->_client == NULL)
+	{
+		Logger::log(Logger::ERROR, "[_initServer] Client is NULL");
+		this->setError(500);
+		return ;
+	}
+	Socket* socket = this->_client->getSocket();
+	if (socket == NULL)
+	{
+		Logger::log(Logger::ERROR, "[_initServer] Socket is NULL");
+		this->setError(500);
+		return ;
+	}
+	std::vector<BlocServer>* servers = socket->getServers();
+	if (servers->empty())
+	{
+		Logger::log(Logger::ERROR, "[_initServer] No server found");
+		this->setError(500);
+		return ;
+	}
+	this->_server = &servers->front();
 }
