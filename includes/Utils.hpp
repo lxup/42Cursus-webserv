@@ -12,9 +12,16 @@
 #include <fstream>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
+#include <iostream>
+#include <sys/types.h>
+#include <dirent.h>
+#include <filesystem>
+
+
 
 #include "Logger.hpp"
 #include "ConfigParser.hpp"
+#include "ErrorPage.hpp"
 
 /* UTILS */
 void printMsg(std::ostream &os, const char *msg, ...);
@@ -38,6 +45,13 @@ std::string getMimeType(const std::string &path);
 void addSocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void deleteSocketEpoll(int epollFD, int sockFD);
+
+// list directory
+std::string buildPage(std::vector<std::string> files, std::string path);
+void cleanPath(std::string& path);
+bool is_path_within_root(const std::string& root, std::string& path) ;
+std::string listDirectory(std::string path, std::string root);
+
 
 
 #endif // UTILS_HPP

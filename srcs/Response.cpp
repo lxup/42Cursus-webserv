@@ -304,8 +304,15 @@ void Response::manageLocation()
 
 	std::vector<std::string> allPathsLocation = getAllPathsLocation();
 	std::string path = findGoodPath(allPathsLocation);
-	if (path.empty())
+
+	if (path.empty()){
+		if (_blocLocation->getAutoIndex() == TRUE){
+			_response = listDirectory(root + _request->getUri(), root);
+			setState(Response::FINISH);
+			return ;
+		}
 		return manageNotFound(root + _request->getUri());
+	}
 
 	if (isLargeFile(path)){
 		prepareChunkedResponse(path);

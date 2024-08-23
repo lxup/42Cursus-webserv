@@ -3,7 +3,8 @@
 
 
 std::string ErrorPage::getErrorPagesCustom(int statusCode, std::map<int, std::string> errorPagesCustom){
-
+	if (errorPagesCustom.empty())
+		return "";
 	std::map<int, std::string>::iterator it = errorPagesCustom.find(statusCode);
 	if (it == errorPagesCustom.end())
 		return "";

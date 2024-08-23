@@ -16,7 +16,7 @@ class ErrorPage
 private:
 
 public:
-	static std::string getPage(int statusCode, std::map<int, std::string> errorPagesCustom);
+	static std::string getPage(int statusCode, std::map<int, std::string> errorPagesCustom = std::map<int, std::string>());
 	static std::string getErrorPagesCustom(int statusCode, std::map<int, std::string> errorPagesCustom);
 };
 

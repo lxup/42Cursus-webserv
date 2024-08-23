@@ -42,6 +42,20 @@ class BlocLocation
 		std::map<std::string, int> _counterView;
 		std::string _filename;
 
+		bool isValidLineLocation(std::vector<std::string>& tokens, std::string& key);
+
+		// Methods
+		void incrementCounter(const std::string& key) { _counterView[key]++; }
+		void checkDoubleLine();
+		void setDefaultValues();
+		e_boolMod strToBool(std::string &str);
+
+		// Adders
+		void addAllowedMethods(std::vector<std::string> &tokens);
+		void addIndexes(std::vector<std::string>& token);
+		void addCgiExtension(std::vector<std::string>& token);
+
+
 	public:
 		BlocLocation(std::string filename);
 		BlocLocation(const BlocLocation &other);
@@ -51,19 +65,6 @@ class BlocLocation
 
 		// parsing
 		BlocLocation getLocationConfig(std::ifstream &configFile, std::string &path);
-		bool isValidLineLocation(std::vector<std::string>& tokens, std::string& key);
-
-		// Methods
-		void incrementCounter(const std::string& key) { _counterView[key]++; }
-		void checkDoubleLine();
-		void setDefaultValues();
-		e_boolMod strToBool(std::string &str);
-		void cleanPaths();
-
-		// Adders
-		void addAllowedMethods(std::vector<std::string> &tokens);
-		void addIndexes(std::vector<std::string>& token);
-		void addCgiExtension(std::vector<std::string>& token);
 
 		// Setters
 		void setPath(const std::string &path) { _path = path; }
@@ -89,11 +90,10 @@ class BlocLocation
 		void printVector(const std::string& label, const std::vector<std::string>& vec);
 		void printMap(const std::string& label, const std::map<std::string, std::string>& map);
 
-		// Is
-		bool	isMethodAllowed(e_Methods method);
-
-		/* UTILS */
+		// Utils
 		static e_Methods	converStrToMethod(const std::string &method);
+		void cleanPaths();
+		bool	isMethodAllowed(e_Methods method);
 };
 
 #endif
