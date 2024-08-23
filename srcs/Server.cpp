@@ -31,16 +31,22 @@ Server::~Server(){
 * @TODO : handle the case where the response is too big to be sent in one time
  */
 void Server::sendResponse(Client* client){
-	Logger::log(Logger::DEBUG, "Sending response to client %d", client->getFd());
 	std::string response = client->getResponse()->getRawResponse();
-	Logger::log(Logger::DEBUG, "Response: %s", response.c_str());
+	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
 	int bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
+	
 	if (bytesSent < 0)
 		Logger::log(Logger::ERROR, "Error with send function");
 	else
 		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
-}
 
+	if (client->getResponse()->getState() == Response::FINISH)
+	{
+		Logger::log(Logger::DEBUG, "Response sent to client %d", client->getFd());
+		client->clearRequest();
+		modifySocketEpoll(_epollFD, client->getFd(), REQUEST_FLAGS);
+	}
+}
 
 void Server::stop( void ) {
 	this->setState(S_STATE_STOP);
@@ -122,6 +128,25 @@ void	Server::_handleClientDisconnection(int fd)
 
 
 /**
+ * @brief Handle the event that occured on the file descriptor
+ */
+void Server::handleEvent(epoll_event *events, int i){
+	uint32_t event = events[i].events;
+	int fd = events[i].data.fd;
+	
+	if (event & EPOLLIN){
+		if (this->_clients.find(fd) == this->_clients.end()) // New client connection
+			_handleClientConnection(fd);
+		else if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
+				_handleClientDisconnection(fd);
+	}
+	if (event & EPOLLOUT){
+		this->sendResponse(_clients[fd]);
+	}
+}
+
+
+/**
  * @brief Main loop of Webserv
  * listen with epoll_wait an event and then handle it
  * either it's a new connection either it's already a knowned client	
@@ -142,26 +167,7 @@ void Server::run(void)
 		Logger::log(Logger::DEBUG, "[Server::run] There are %d file descriptors ready for I/O after epoll wait", nfds);
 		
 		for (int i = 0; i < nfds; i++)
-		{
-			int fd = events[i].data.fd;
-			uint32_t event = events[i].events;
-			
-			//if (!(event | EPOLLIN) || event & EPOLLERR || event & EPOLLHUP){
-			//	Logger::log(Logger::DEBUG, "Something went wrong with file descriptor %d", fd);
-			//}
-			if (event & EPOLLIN){
-				if (this->_clients.find(fd) == this->_clients.end()) // New client connection
-					_handleClientConnection(fd);
-				else
-					if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
-						_handleClientDisconnection(fd);
-			}
-			if (event & EPOLLOUT){
-				this->sendResponse(_clients[fd]);
-				modifySocketEpoll(_epollFD, fd, REQUEST_FLAGS);
-				_clients[fd]->clearRequest();
-			}
-		}
+			handleEvent(events, i);
 	}
 }
 

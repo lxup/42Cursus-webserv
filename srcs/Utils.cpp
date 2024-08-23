@@ -47,10 +47,9 @@ bool directoryExist(const char *path)
 /**
  * @brief renvoie true si le fichier existe
  */
-bool fileExist(const std::string &name)
-{
-	std::ifstream file(name.c_str());
-	return (file.good());
+bool fileExist(const std::string& path) {
+    struct stat buffer;
+    return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
 }
 
 /**
@@ -155,6 +154,12 @@ bool isEmptyFile(){
 	return (ConfigParser::countLineFile == 0);
 }
 
+
+std::string intToHexa(ssize_t num) {
+    std::stringstream stream;
+    stream << std::hex << num;
+    return stream.str();
+}
 
 
 // _____________________________ MODIFY EPOLL _____________________________

@@ -41,6 +41,9 @@ Client::~Client(void)
  */
 int	Client::handleRequest( int epollFD )
 {
+	if (_response != NULL && _response->getState() != Response::FINISH)
+		return (Logger::log(Logger::DEBUG, "[handleRequest] Chunking resonse not completly sent"), 1);
+
 	Logger::log(Logger::DEBUG, "[handleRequest] Handling request from client %d", this->_fd);
 	
 	char	buffer[CLIENT_READ_BUFFER_SIZE + 1];

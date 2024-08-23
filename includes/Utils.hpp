@@ -36,5 +36,6 @@ std::string getRedirectionMessage(int code);
 void addSocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void deleteSocketEpoll(int epollFD, int sockFD);
+std::string intToHexa(ssize_t num);
 
 #endif // UTILS_HPP

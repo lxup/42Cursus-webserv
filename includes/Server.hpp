@@ -38,16 +38,11 @@ class Server
 		void setState(int state);
 		void setEpollFD(int epollFD) { _epollFD = epollFD; }
 
-
-		// uint32_t 	_currentFlagEpoll;
-
-		// std::vector<BlocServer> 				_serversConfig; // all the Configuration for each server
-		// std::map<std::string, int>				_listeningSockets; // ip:port map to the server socket
-		
-		// std::map<int, std::queue<std::string> > _clientRequests; // TODO : format Reponse instead of string
-
+		/* UTILS */
 		void showIpPortClient(int clientFD);
 		void sendResponse(Client* client);
+		void handleEvent(epoll_event *events, int i);
+
 
 		/* HANDLE */
 		void	_handleClientConnection(int fd);
