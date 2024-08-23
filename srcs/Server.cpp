@@ -28,7 +28,6 @@ Server::~Server(){
 
 /**
 * @brief Sent the response to the client
-* @TODO : handle the case where the response is too big to be sent in one time
  */
 void Server::sendResponse(Client* client){
 	std::string response = client->getResponse()->getRawResponse();
