@@ -128,6 +128,7 @@ class Request
 
 		/* SETTERS */
 		void	setError(int code);
+		void setStateCode(int code) { _stateCode = code; }
 };
 
 #endif // REQUEST_HPP
