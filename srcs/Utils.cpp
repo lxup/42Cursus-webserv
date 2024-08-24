@@ -409,8 +409,10 @@ std::string listDirectory(std::string path, std::string root){
 
 	std::vector<std::string> files;
 	DIR *dir = opendir(path.c_str());
-	if (dir == NULL)
+	if (dir == NULL){
 		Logger::log(Logger::ERROR, "Failed to open directory: %s", path.c_str());
+		return ErrorPage::getPage(404);
+	}
 	struct dirent *ent;
 	while ((ent = readdir(dir)) != NULL)
 	{

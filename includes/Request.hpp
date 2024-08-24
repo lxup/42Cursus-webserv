@@ -118,6 +118,7 @@ class Request
 		std::string	getRawRequest(void) const { return _rawRequest; }
 		std::string getMethod(void) const { return _method; }
 		std::string getUri(void) const { return _uri; }
+		std::string getPath(void) const { return _path; }
 		std::string getHttpVersion(void) const { return _httpVersion; }
 		std::string getBody(void) const { return _body; }
 		int getStatusCode(void) const { return _stateCode; }
@@ -127,6 +128,7 @@ class Request
 
 		/* SETTERS */
 		void	setError(int code);
+		void setStateCode(int code) { _stateCode = code; }
 };
 
 #endif // REQUEST_HPP

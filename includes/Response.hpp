@@ -42,7 +42,6 @@ class Response
 		void handleGetRequest();
 		bool isRedirect();
 		std::vector<std::string> getAllPathsServer();
-		std::vector<std::string> getAllPathsLocation();
 		void manageServer();
 		void manageLocation();
 		void manageNotFound(std::string directoryToCheck);
@@ -65,6 +64,7 @@ class Response
 		// Getters
 		int getState() const { return _state; }
 		std::string getRawResponse();
+		std::vector<std::string> getAllPathsLocation();
 
 };
 
