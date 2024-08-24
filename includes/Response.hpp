@@ -7,11 +7,14 @@
 #include <sys/stat.h>
 
 #include "Request.hpp"
+#include "Client.hpp"
 #include "BlocServer.hpp"
 #include "Utils.hpp"
 #include "BlocLocation.hpp"
 #include "ErrorPage.hpp"
+#include "CgiHandler.hpp"
 
+class Client;
 class Request;
 
 # define RESPONSE_READ_BUFFER_SIZE 1000
@@ -30,13 +33,13 @@ class Response
 			};
 	
 	private:
-		const Request *_request;
-		// const BlocServer *_blocServer;
-		// const BlocLocation* _blocLocation;
-		std::string _response;
-		e_response_state _state;
+		Client*				_client;
+		const Request*		_request;
+		CgiHandler			_cgiHandler;
+		std::string 		_response;
+		e_response_state	_state;
+		int					_fileFd;
 
-		int _fileFd;
 
 		// Methods
 		void handleGetRequest();
@@ -58,13 +61,16 @@ class Response
 
 	public:
 		// Response();
-		Response(Request *request);
+		Response(Client* client);
 		~Response();
 
 		
 		// Getters
 		int getState() const { return _state; }
 		std::string getRawResponse();
+
+		// Handle
+		int	handleCGIResponse(int epollFD);
 
 };
 

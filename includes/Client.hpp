@@ -24,7 +24,7 @@ class Client
 		Response*				_response;
 
 	public:
-		Client(void);
+		// Client(void);
 		Client(int fd, Socket* socket);
 		~Client(void);
 

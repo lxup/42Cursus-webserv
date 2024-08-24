@@ -8,7 +8,7 @@
 // {
 // }
 
-Response::Response(Request *request) : _request(request), _state(Response::INIT), _fileFd(-1)
+Response::Response(Client* client) : _client(client), _request(client->getRequest()), _state(Response::INIT), _fileFd(-1)
 {
 }
 
@@ -31,7 +31,7 @@ Response::~Response()
  */
 bool Response::isRedirect()
 {
-	std::string uri = _request->getUri();
+	std::string path = _request->getPath();
 	std::string root;
 	bool isLoc;
 
@@ -53,16 +53,16 @@ bool Response::isRedirect()
 		root = this->_request->getServer()->getRoot();
 
 	// si l'uri fini par / ou est egal a / on ne redirige pas
-	if (uri[uri.size() - 1] == '/' || uri == "/")
+	if (path[path.size() - 1] == '/' || path == "/")
 	{
 		return false;
 	}
 
-	if (directoryExist((root + uri).c_str()) || (isLoc && directoryExist(this->_request->getLocation()->getAlias().c_str())))
+	if (directoryExist((root + path).c_str()) || (isLoc && directoryExist(this->_request->getLocation()->getAlias().c_str())))
 	{
 		std::string host = _request->getHeaders()["Host"];
 		_response = "HTTP/1.1 301 Moved Permanently\r\n";
-		_response += "Location: http://" + host + uri + "/\r\n";
+		_response += "Location: http://" + host + path + "/\r\n";
 		_response += "Content-Length: 0\r\n";
 		_response += "\r\n";
 
@@ -84,7 +84,7 @@ std::vector<std::string> Response::getAllPathsLocation()
 {
 
 	std::vector<std::string> allPathsLocations;
-	std::string uri = _request->getUri();
+	std::string path = _request->getPath();
 	std::string root = this->_request->getLocation()->getRoot();
 	std::string alias = this->_request->getLocation()->getAlias();
 	std::vector<std::string> indexes = this->_request->getLocation()->getIndexes();
@@ -103,21 +103,21 @@ std::vector<std::string> Response::getAllPathsLocation()
 		root = this->_request->getServer()->getRoot();
 
 	// cas ou la requete demande un fichier direct
-	if (uri[uri.size() - 1] != '/')
-		allPathsLocations.push_back(root + uri);
+	if (path[path.size() - 1] != '/')
+		allPathsLocations.push_back(root + path);
 
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
 		std::string path;
-		if (uri == "/"){
+		if (path == "/"){
 			path = root + "/" + index;
 		}
 		else if (isAlias){
 			path = root + "/" + index;
 		}
 		else{
-			path = root + uri + index;
+			path = root + path + index;
 		}
 		allPathsLocations.push_back(path);
 	}
@@ -135,27 +135,27 @@ std::vector<std::string> Response::getAllPathsLocation()
 
 std::vector<std::string> Response::getAllPathsServer(void)
 {
-	std::string uri = _request->getUri();
+	std::string path = _request->getPath();
 	std::string root = this->_request->getServer()->getRoot();
 	std::vector<std::string> indexes = this->_request->getServer()->getIndexes();
 	std::vector<std::string> allPaths;
 
 	// cas ou la requete demande un fichier direct
-	if (uri[uri.size() - 1] != '/')
-		allPaths.push_back(root + uri);
+	if (path[path.size() - 1] != '/')
+		allPaths.push_back(root + path);
 
 	// cas ou la requete demande un dossier
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
 		std::string path;
-		if (uri == "/")
+		if (path == "/")
 		{
 			path = root + "/" + index;
 		}
 		else
 		{
-			path = root + uri + index;
+			path = root + path + index;
 		}
 		allPaths.push_back(path);
 	}
@@ -307,11 +307,11 @@ void Response::manageLocation()
 
 	if (path.empty()){
 		if (this->_request->getLocation()->getAutoIndex() == TRUE){
-			_response = listDirectory(root + _request->getUri(), root);
+			_response = listDirectory(root + _request->getPath(), root);
 			setState(Response::FINISH);
 			return ;
 		}
-		return manageNotFound(root + _request->getUri());
+		return manageNotFound(root + _request->getPath());
 	}
 
 	if (isLargeFile(path)){
@@ -334,7 +334,7 @@ void Response::manageServer()
 	std::string path = findGoodPath(allPathsServer);
 
 	if (path.empty())
-		return manageNotFound(this->_request->getServer()->getRoot() + _request->getUri());
+		return manageNotFound(this->_request->getServer()->getRoot() + _request->getPath());
 
 	if (isLargeFile(path)){
 		prepareChunkedResponse(path);
@@ -419,3 +419,31 @@ void Response::setState(e_response_state state)
 }
 
 /* ************************************************************************** */
+
+/*
+** --------------------------------- HANDLE ---------------------------------
+*/
+
+/**
+ * @brief Handle the CGI response
+ * 
+ */
+int Response::handleCGIResponse(int epollFD)
+{
+	if (pipe(this->_cgiHandler.getPipe()) == -1)
+	{
+		Logger::log(Logger::ERROR, "Failed to create pipe");
+		return (-1);
+	}
+	if (this->_cgiHandler.init(this->_request))
+	{
+		Logger::log(Logger::ERROR, "Failed to init CGI handler");
+		return (-1);
+	}
+	if (this->_cgiHandler.execute())
+	{
+		Logger::log(Logger::ERROR, "Failed to execute CGI handler");
+		return (-1);
+	}
+	return (0);
+}
