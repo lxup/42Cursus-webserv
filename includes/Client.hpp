@@ -30,9 +30,9 @@ class Client
 
 		/* HANDLE */
 		int	handleRequest( int epollFD );
-		void handleResponse(int epollFD);
+		int handleResponse(int epollFD);
 		
-		void clearRequest(void);
+		void reset(void);
 
 		/* GETTERS */
 		int getFd(void) const { return _fd; }

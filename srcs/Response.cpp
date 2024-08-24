@@ -4,11 +4,11 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Response::Response() : _request(NULL), _blocServer(NULL), _blocLocation(NULL), _state(INIT), _fileFd(-1)
-{
-}
+// Response::Response() : _request(NULL), _blocServer(NULL), _blocLocation(NULL), _state(INIT), _fileFd(-1)
+// {
+// }
 
-Response::Response(Request *request) : _request(request), _blocServer(request->getServer()), _blocLocation(request->getLocation()), _state(Response::INIT), _fileFd(-1)
+Response::Response(Request *request) : _request(request), _state(Response::INIT), _fileFd(-1)
 {
 }
 
@@ -35,11 +35,11 @@ bool Response::isRedirect()
 	std::string root;
 	bool isLoc;
 
-	isLoc = _blocLocation == NULL ? false : true;
+	isLoc = this->_request->getLocation() == NULL ? false : true;
 
-	if (isLoc && !_blocLocation->getRewrite().second.empty())
+	if (isLoc && !this->_request->getLocation()->getRewrite().second.empty())
 	{
-		std::pair<int, std::string> rewrite = _blocLocation->getRewrite();
+		std::pair<int, std::string> rewrite = this->_request->getLocation()->getRewrite();
 		_response = "HTTP/1.1 " + intToString(rewrite.first) + " " + getErrorMessage(rewrite.first) + "\r\n";
 		_response += "Location:" + rewrite.second + "\r\n";
 		_response += "Content-Length: 0\r\n";
@@ -47,10 +47,10 @@ bool Response::isRedirect()
 		return (true);
 	}
 
-	if (isLoc && !_blocLocation->getRoot().empty())
-		root = _blocLocation->getRoot();
+	if (isLoc && !this->_request->getLocation()->getRoot().empty())
+		root = this->_request->getLocation()->getRoot();
 	else
-		root = _blocServer->getRoot();
+		root = this->_request->getServer()->getRoot();
 
 	// si l'uri fini par / ou est egal a / on ne redirige pas
 	if (uri[uri.size() - 1] == '/' || uri == "/")
@@ -58,7 +58,7 @@ bool Response::isRedirect()
 		return false;
 	}
 
-	if (directoryExist((root + uri).c_str()) || (isLoc && directoryExist(_blocLocation->getAlias().c_str())))
+	if (directoryExist((root + uri).c_str()) || (isLoc && directoryExist(this->_request->getLocation()->getAlias().c_str())))
 	{
 		std::string host = _request->getHeaders()["Host"];
 		_response = "HTTP/1.1 301 Moved Permanently\r\n";
@@ -85,12 +85,12 @@ std::vector<std::string> Response::getAllPathsLocation()
 
 	std::vector<std::string> allPathsLocations;
 	std::string uri = _request->getUri();
-	std::string root = _blocLocation->getRoot();
-	std::string alias = _blocLocation->getAlias();
-	std::vector<std::string> indexes = _blocLocation->getIndexes();
+	std::string root = this->_request->getLocation()->getRoot();
+	std::string alias = this->_request->getLocation()->getAlias();
+	std::vector<std::string> indexes = this->_request->getLocation()->getIndexes();
 	bool isAlias = false;
 
-	if (_blocLocation == NULL)
+	if (this->_request->getLocation() == NULL)
 		return std::vector<std::string>();
 
 	if (!alias.empty())
@@ -100,7 +100,7 @@ std::vector<std::string> Response::getAllPathsLocation()
 	}
 
 	if (root.empty())
-		root = _blocServer->getRoot();
+		root = this->_request->getServer()->getRoot();
 
 	// cas ou la requete demande un fichier direct
 	if (uri[uri.size() - 1] != '/')
@@ -136,8 +136,8 @@ std::vector<std::string> Response::getAllPathsLocation()
 std::vector<std::string> Response::getAllPathsServer(void)
 {
 	std::string uri = _request->getUri();
-	std::string root = _blocServer->getRoot();
-	std::vector<std::string> indexes = _blocServer->getIndexes();
+	std::string root = this->_request->getServer()->getRoot();
+	std::vector<std::string> indexes = this->_request->getServer()->getIndexes();
 	std::vector<std::string> allPaths;
 
 	// cas ou la requete demande un fichier direct
@@ -190,11 +190,11 @@ void Response::manageNotFound(std::string directoryToCheck)
 
 	if (directoryExist(directoryToCheck.c_str()))
 	{
-		page = ErrorPage::getPage(403, _blocServer->getErrorPages());
+		page = ErrorPage::getPage(403, this->_request->getServer()->getErrorPages());
 	}
 	else
 	{
-		page = ErrorPage::getPage(404, _blocServer->getErrorPages());
+		page = ErrorPage::getPage(404, this->_request->getServer()->getErrorPages());
 	}
 
 	_response = page;
@@ -300,13 +300,13 @@ void Response::prepareStandardResponse(const std::string &path)
 void Response::manageLocation()
 {
 	std::string root;
-	_blocLocation->getRoot().empty() ? root = _blocServer->getRoot() : root = _blocLocation->getRoot();
+	this->_request->getLocation()->getRoot().empty() ? root = this->_request->getServer()->getRoot() : root = this->_request->getLocation()->getRoot();
 
 	std::vector<std::string> allPathsLocation = getAllPathsLocation();
 	std::string path = findGoodPath(allPathsLocation);
 
 	if (path.empty()){
-		if (_blocLocation->getAutoIndex() == TRUE){
+		if (this->_request->getLocation()->getAutoIndex() == TRUE){
 			_response = listDirectory(root + _request->getUri(), root);
 			setState(Response::FINISH);
 			return ;
@@ -334,7 +334,7 @@ void Response::manageServer()
 	std::string path = findGoodPath(allPathsServer);
 
 	if (path.empty())
-		return manageNotFound(_blocServer->getRoot() + _request->getUri());
+		return manageNotFound(this->_request->getServer()->getRoot() + _request->getUri());
 
 	if (isLargeFile(path)){
 		prepareChunkedResponse(path);
@@ -351,7 +351,8 @@ void Response::manageServer()
  */
 void Response::handleGetRequest(void)
 {
-	if (_blocLocation != NULL)
+	// if (_blocLocation != NULL)
+	if (this->_request->getLocation() != NULL)
 		manageLocation();
 	else
 		manageServer();
@@ -368,7 +369,7 @@ std::string Response::getRawResponse(void)
 
 	if (_request->getStatusCode() != REQUEST_DEFAULT_STATE_CODE)
 	{
-		_response = ErrorPage::getPage(_request->getStatusCode(), _blocServer->getErrorPages());
+		_response = ErrorPage::getPage(_request->getStatusCode(), this->_request->getServer()->getErrorPages());
 		setState(Response::FINISH);
 		return _response;
 	}

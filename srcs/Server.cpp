@@ -29,26 +29,26 @@ Server::~Server(){
 /**
 * @brief Sent the response to the client
  */
-void Server::sendResponse(Client* client){
-	std::string response = client->getResponse()->getRawResponse();
-	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
+// void Server::sendResponse(Client* client){
+// 	std::string response = client->getResponse()->getRawResponse();
+// 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
 	
-	int bytesSent = -1;
-	if (client->getFd() != -1)
-		bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
+// 	int bytesSent = -1;
+// 	if (client->getFd() != -1)
+// 		bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
 	
-	if (bytesSent < 0)
-		Logger::log(Logger::ERROR, "Error with send function");
-	else
-		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
+// 	if (bytesSent < 0)
+// 		Logger::log(Logger::ERROR, "Error with send function");
+// 	else
+// 		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
 
-	if (client->getResponse()->getState() == Response::FINISH)
-	{
-		Logger::log(Logger::DEBUG, "Response sent to client %d", client->getFd());
-		client->clearRequest();
-		modifySocketEpoll(_epollFD, client->getFd(), REQUEST_FLAGS);
-	}
-}
+// 	if (client->getResponse()->getState() == Response::FINISH)
+// 	{
+// 		Logger::log(Logger::DEBUG, "Response sent to client %d", client->getFd());
+// 		client->clearRequest();
+// 		modifySocketEpoll(_epollFD, client->getFd(), REQUEST_FLAGS);
+// 	}
+// }
 
 void Server::stop( void ) {
 	this->setState(S_STATE_STOP);
@@ -148,7 +148,9 @@ void Server::handleEvent(epoll_event *events, int i){
 				_handleClientDisconnection(fd);
 	}
 	else if (event & EPOLLOUT){
-		this->sendResponse(_clients[fd]);
+		if (this->_clients[fd]->handleResponse(this->_epollFD) == -1)
+			_handleClientDisconnection(fd);
+		// this->sendResponse(_clients[fd]);
 	}
 }
 

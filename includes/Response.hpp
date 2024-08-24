@@ -31,10 +31,10 @@ class Response
 	
 	private:
 		const Request *_request;
-		const BlocServer *_blocServer;
-		const BlocLocation* _blocLocation;
+		// const BlocServer *_blocServer;
+		// const BlocLocation* _blocLocation;
 		std::string _response;
-		e_response_state _state;	
+		e_response_state _state;
 
 		int _fileFd;
 
@@ -57,7 +57,7 @@ class Response
 
 
 	public:
-		Response();
+		// Response();
 		Response(Request *request);
 		~Response();
 

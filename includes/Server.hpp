@@ -40,7 +40,7 @@ class Server
 
 		/* UTILS */
 		void showIpPortClient(int clientFD);
-		void sendResponse(Client* client);
+		// void sendResponse(Client* client);
 		void handleEvent(epoll_event *events, int i);
 
 
