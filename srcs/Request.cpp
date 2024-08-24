@@ -377,7 +377,7 @@ int	Request::_findServer(void)
 		std::vector<std::string> serverNames = it->getServerNames();
 		for (std::vector<std::string>::iterator it2 = serverNames.begin(); it2 != serverNames.end(); ++it2)
 		{
-			if (*it2 == host)
+			if (*it2 == host.substr(0, host.find(":")))
 			{
 				// serverFound = &(*it);
 				this->_server = &(*it);
@@ -547,7 +547,7 @@ int	Request::_checkPathsMatch(const std::string &path, const std::string &parent
 	size_t	pathSize = path.size();
 	size_t	parentPathSize = parentPath.size();
 	if (path.compare(0, parentPathSize, parentPath) == 0)
-		if (pathSize== parentPathSize || path[parentPathSize] == '/')
+		if (pathSize== parentPathSize || path[parentPathSize] == '/' || parentPath == "/")
 			return (1);
 	return (0);
 }

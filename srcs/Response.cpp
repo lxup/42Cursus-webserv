@@ -230,7 +230,6 @@ void Response::setHeaderChunked(const std::string &path)
 		Logger::log(Logger::ERROR, "Failed to open file: %s", path.c_str());
 		return manageNotFound(path);
 	}
-	std::cout << "on est rentre dans le header de chunked" << std::endl;
 }
 
 /**

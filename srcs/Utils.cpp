@@ -399,8 +399,8 @@ std::string listDirectory(std::string path, std::string root){
 	cleanPath(path);
 	if (path[0] != '.')
 		path.insert(0, ".");
-	std::cout << "Root: " << root << std::endl;
-	std::cout << "Path: " << path << std::endl;
+	Logger::log(Logger::DEBUG, "Root: %s", root.c_str());
+	Logger::log(Logger::DEBUG, "Path: %s", path.c_str());
 
 	if (!is_path_within_root(root, path)) {
 		Logger::log(Logger::ERROR, "Path asked is not within root");
