@@ -109,7 +109,6 @@ std::vector<std::string> Response::getAllPathsLocation()
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
-		std::string path;
 		if (path == "/"){
 			path = root + "/" + index;
 		}
@@ -145,10 +144,11 @@ std::vector<std::string> Response::getAllPathsServer(void)
 		allPaths.push_back(root + path);
 
 	// cas ou la requete demande un dossier
+	std::cout << "root: " << root << std::endl;
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
-		std::string path;
+
 		if (path == "/")
 		{
 			path = root + "/" + index;
@@ -373,6 +373,8 @@ std::string Response::getRawResponse(void)
 		return _response;
 	}
 
+	std::cout << "path: " << _request->getPath() << std::endl;
+
 	if (_state != Response::CHUNK)
 		setState(Response::PROCESS);
 
@@ -427,22 +429,22 @@ void Response::setState(e_response_state state)
  * @brief Handle the CGI response
  * 
  */
-int Response::handleCGIResponse(int epollFD)
-{
-	if (pipe(this->_cgiHandler.getPipe()) == -1)
-	{
-		Logger::log(Logger::ERROR, "Failed to create pipe");
-		return (-1);
-	}
-	if (this->_cgiHandler.init(this->_request))
-	{
-		Logger::log(Logger::ERROR, "Failed to init CGI handler");
-		return (-1);
-	}
-	if (this->_cgiHandler.execute())
-	{
-		Logger::log(Logger::ERROR, "Failed to execute CGI handler");
-		return (-1);
-	}
-	return (0);
-}
+//int Response::handleCGIResponse(int epollFD)
+//{
+//	if (pipe(this->_cgiHandler.getPipe()) == -1)
+//	{
+//		Logger::log(Logger::ERROR, "Failed to create pipe");
+//		return (-1);
+//	}
+//	if (this->_cgiHandler.init(this->_request))
+//	{
+//		Logger::log(Logger::ERROR, "Failed to init CGI handler");
+//		return (-1);
+//	}
+//	if (this->_cgiHandler.execute())
+//	{
+//		Logger::log(Logger::ERROR, "Failed to execute CGI handler");
+//		return (-1);
+//	}
+//	return (0);
+//}

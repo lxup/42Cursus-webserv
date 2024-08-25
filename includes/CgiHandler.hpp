@@ -6,6 +6,8 @@
 
 # include "Request.hpp"
 
+class Request;
+
 class CgiHandler
 {
 	private:

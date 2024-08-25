@@ -118,8 +118,8 @@ bool Client::isCGI(){
 int Client::handleResponse(int epollFD)
 {
 	// Check if CGI
-	if (this->_response->handleCGIResponse(epollFD) != -1)
-		return (0);
+	//if (this->_response->handleCGIResponse(epollFD) != -1)
+	//	return (0);
 	// Otherwise send classic response
 	std::string response = this->_response->getRawResponse();
 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());

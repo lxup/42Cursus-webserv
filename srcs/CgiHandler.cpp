@@ -25,13 +25,14 @@ int		CgiHandler::init(Request* request)
 	_env["SERVER_NAME"] = request->getHeaders()["Host"];
 	_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	_env["SERVER_PROTOCOL"] = request->getHttpVersion();
-	_env["SERVER_PORT"] = request->getServer()->getPort();
+	//_env["SERVER_PORT"] = request->getServer()->getPort();
 	_env["REQUEST_METHOD"] = request->getMethod();
 	_env["PATH_INFO"] = request->getPath();
 	_env["PATH_TRANSLATED"] = request->getPath(); // Not implemented
 	_env["SCRIPT_NAME"] = this->_execPath; // TODO
 	// _env["QUERY_STRING"] = request->getQueryString();
-
+	
+	return 0;
 }
 
 /*

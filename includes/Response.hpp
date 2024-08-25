@@ -12,10 +12,11 @@
 #include "Utils.hpp"
 #include "BlocLocation.hpp"
 #include "ErrorPage.hpp"
-#include "CgiHandler.hpp"
+//#include "CgiHandler.hpp"
 
 class Client;
 class Request;
+//class CgiHandler;
 
 # define RESPONSE_READ_BUFFER_SIZE 1000
 //# define THRESHOLD_LARGE_FILE 1000000 // 1MB
@@ -35,7 +36,7 @@ class Response
 	private:
 		Client*				_client;
 		const Request*		_request;
-		CgiHandler			_cgiHandler;
+		//CgiHandler			_cgiHandler;
 		std::string 		_response;
 		e_response_state	_state;
 		int					_fileFd;
