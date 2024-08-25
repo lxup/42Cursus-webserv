@@ -4,11 +4,11 @@
 ** --------------------------------- PRIVATE METHODS ---------------------------
 */
 
-Client::Client(void) : _fd(-1), _socket(NULL), _request(new Request(this)), _response(new Response(this->getRequest()))
-{
-}
+// Client::Client(void) : _fd(-1), _socket(NULL), _request(new Request(this)), _response(new Response(this->getRequest()))
+// {
+// }
 
-Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(new Response(this->getRequest()))
+Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(new Response(this))
 {
 	Logger::log(Logger::DEBUG, "[Client] Initializing client with fd %d", fd);
 
@@ -117,11 +117,10 @@ bool Client::isCGI(){
  */
 int Client::handleResponse(int epollFD)
 {
-	if (isCGI()){
-		Logger::log(Logger::DEBUG, "[handleResponse] CGI detected");
-		//TODO appeler la classe CGIHandler
-	}
-
+	// Check if CGI
+	if (this->_response->handleCGIResponse(epollFD) != -1)
+		return (0);
+	// Otherwise send classic response
 	std::string response = this->_response->getRawResponse();
 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
 	
@@ -153,5 +152,5 @@ void Client::reset(void)
 	this->_request = new Request(this);
 	// Reset response
 	delete this->_response;
-	this->_response = new Response(this->getRequest());
+	this->_response = new Response(this);
 }
