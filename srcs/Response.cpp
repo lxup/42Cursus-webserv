@@ -8,7 +8,7 @@
 // {
 // }
 
-Response::Response(Client* client) : _client(client), _request(client->getRequest()), _state(Response::INIT), _fileFd(-1)
+Response::Response(Client* client) : _client(client), _request(client->getRequest()), _cgi(NULL), _state(Response::INIT), _fileFd(-1)
 {
 }
 
@@ -18,6 +18,8 @@ Response::Response(Client* client) : _client(client), _request(client->getReques
 
 Response::~Response()
 {
+	if (_cgi)
+		delete _cgi;
 }
 
 /*
@@ -109,7 +111,6 @@ std::vector<std::string> Response::getAllPathsLocation()
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
-		std::string path;
 		if (path == "/"){
 			path = root + "/" + index;
 		}
@@ -145,10 +146,11 @@ std::vector<std::string> Response::getAllPathsServer(void)
 		allPaths.push_back(root + path);
 
 	// cas ou la requete demande un dossier
+	std::cout << "root: " << root << std::endl;
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
-		std::string path;
+
 		if (path == "/")
 		{
 			path = root + "/" + index;
@@ -230,7 +232,6 @@ void Response::setHeaderChunked(const std::string &path)
 		Logger::log(Logger::ERROR, "Failed to open file: %s", path.c_str());
 		return manageNotFound(path);
 	}
-	std::cout << "on est rentre dans le header de chunked" << std::endl;
 }
 
 /**
@@ -381,6 +382,17 @@ std::string Response::getRawResponse(void)
 		setState(Response::FINISH);
 		return _response;
 	}
+
+	// Check if the request is a CGI
+	if (this->_request->isCGI())
+	{
+		Logger::log(Logger::ERROR, "ITS A CGI");
+		// handleCGI(epollFD);
+		this->handleCGI();
+		return _response;
+	}
+	Logger::log(Logger::ERROR, "ITS NOT A CGI");
+
 	if (_request->getMethod() == "GET")
 		handleGetRequest();
 	else
@@ -421,6 +433,67 @@ void Response::setState(e_response_state state)
 /* ************************************************************************** */
 
 /*
+** --------------------------------- SETTERS ---------------------------------
+*/
+
+void	Response::setError(int code)
+{
+	this->_request->setStateCode(code);
+	this->_response = ErrorPage::getPage(code, this->_request->getServer()->getErrorPages());
+	this->setState(Response::FINISH);
+}
+
+/*
+** --------------------------------- CHECK ---------------------------------
+*/
+
+/**
+ * @brief Check if the request is a CGI
+ * 
+ * @return int : 0 if the check is successful, -1 otherwise
+ */
+int	Response::checkCgi(void)
+{
+	if (this->_request->getLocation() == NULL)
+		return (0);
+
+	std::vector<std::string> allPathsLocations = this->getAllPathsLocation();
+	
+	for (size_t i = 0; i < allPathsLocations.size(); i++){
+		if (this->_checkCgiPath(allPathsLocations[i]))
+			return (this->_request->setCgi(true, allPathsLocations[i], this->_request->getLocation()->getCgiPath(getExtension(allPathsLocations[i]))), 0);
+	}
+
+	return (0);
+}
+
+bool Response::_checkCgiPath(std::string path)
+{
+	std::map<std::string, std::string>::const_iterator it;
+
+	for (it = this->_request->getLocation()->getCGI().begin(); it != this->_request->getLocation()->getCGI().end(); ++it)
+	{
+		if (path.size() > it->first.size() && path.compare(path.size() - it->first.size(), it->first.size(), it->first) == 0){
+			if (!fileExist(it->second)){
+				Logger::log(Logger::ERROR, "CGI file not found: %s", it->second.c_str());
+				// TODO verifer si c'est une 404 ??
+				this->_request->setStateCode(404);
+				return false;
+			}
+			if (!fileExist(path)){
+				Logger::log(Logger::ERROR, "CGI executable not found: %s", path.c_str());
+				this->_request->setStateCode(403);
+				return false;
+			}
+			// TODO set cgi path et cgi extension dans la class CGIHandler
+			return true;
+		}
+	}
+	return false;
+}
+
+
+/*
 ** --------------------------------- HANDLE ---------------------------------
 */
 
@@ -428,22 +501,118 @@ void Response::setState(e_response_state state)
  * @brief Handle the CGI response
  * 
  */
-int Response::handleCGIResponse(int epollFD)
+int Response::handleCGI(void)
 {
-	if (pipe(this->_cgiHandler.getPipe()) == -1)
-	{
-		Logger::log(Logger::ERROR, "Failed to create pipe");
-		return (-1);
-	}
-	if (this->_cgiHandler.init(this->_request))
-	{
-		Logger::log(Logger::ERROR, "Failed to init CGI handler");
-		return (-1);
-	}
-	if (this->_cgiHandler.execute())
-	{
-		Logger::log(Logger::ERROR, "Failed to execute CGI handler");
-		return (-1);
+	this->_cgi = new CgiHandler(this->_request);
+	// CgiHandler cgiHandler(this->_request);
+
+	try {
+		this->_cgi->init();
+		this->_cgi->execute();
+		if (this->_cgi->getBody().empty())
+			throw std::runtime_error("empty body");
+		this->_cgi->setHeaders();
+		this->_response = this->_cgi->getBodyWithHeaders();
+		this->setState(Response::FINISH);
+	} catch (IntException &e) {
+		Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
+		this->setError(e.code());
+	} catch (std::exception &e) {
+		Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
+		this->setError(500);
 	}
 	return (0);
+	// pid_t		pid;
+	// int			saveStdin;
+	// int			saveStdout;
+	// char		**env;
+	// std::string	newBody;
+
+	// try {
+	// 	env = this->_getEnvAsCstrArray();
+	// }
+	// catch (std::bad_alloc &e) {
+	// 	std::cerr << C_RED << e.what() << C_RESET << std::endl;
+	// }
+
+	// // SAVING STDIN AND STDOUT IN ORDER TO TURN THEM BACK TO NORMAL LATER
+	// saveStdin = dup(STDIN_FILENO);
+	// saveStdout = dup(STDOUT_FILENO);
+
+	// FILE	*fIn = tmpfile();
+	// FILE	*fOut = tmpfile();
+	// long	fdIn = fileno(fIn);
+	// long	fdOut = fileno(fOut);
+	// int		ret = 1;
+
+	// write(fdIn, _body.c_str(), _body.size());
+	// lseek(fdIn, 0, SEEK_SET);
+
+	// pid = fork();
+
+	// if (pid == -1)
+	// {
+	// 	std::cerr << C_RED << "Fork crashed." << C_RESET << std::endl;
+	// 	return ("Status: 500\r\n\r\n");
+	// }
+	// else if (!pid)
+	// {
+	// 	char * const * nll = NULL;
+
+	// 	dup2(fdIn, STDIN_FILENO);
+	// 	dup2(fdOut, STDOUT_FILENO);
+	// 	execve(scriptName.c_str(), nll, env);
+	// 	std::cerr << C_RED << "Execve crashed." << C_RESET << std::endl;
+	// 	// write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
+	// 	exit(500);
+	// }
+	// else
+	// {
+	// 	char	buffer[CGI_READ_BUFFER_SIZE] = {0};
+
+	// 	waitpid(-1, NULL, 0);
+	// 	lseek(fdOut, 0, SEEK_SET);
+
+	// 	ret = 1;
+	// 	while (ret > 0)
+	// 	{
+	// 		memset(buffer, 0, CGI_READ_BUFFER_SIZE);
+	// 		ret = read(fdOut, buffer, CGI_READ_BUFFER_SIZE - 1);
+	// 		newBody += buffer;
+	// 	}
+	// }
+
+	// dup2(saveStdin, STDIN_FILENO);
+	// dup2(saveStdout, STDOUT_FILENO);
+	// fclose(fIn);
+	// fclose(fOut);
+	// close(fdIn);
+	// close(fdOut);
+	// close(saveStdin);
+	// close(saveStdout);
+
+	// for (size_t i = 0; env[i]; i++)
+	// 	delete[] env[i];
+	// delete[] env;
+
+	// if (!pid)
+	// 	exit(0);
+
+	// return (newBody);
+	// if (pipe(this->_cgiHandler.getPipe()) == -1)
+	// {
+	// 	Logger::log(Logger::ERROR, "Failed to create pipe");
+	// 	return (-1);
+	// }
+	// if (this->_cgiHandler.init(this->_request))
+	// {
+	// 	Logger::log(Logger::ERROR, "Failed to init CGI handler");
+	// 	return (-1);
+	// }
+	// if (this->_cgiHandler.execute())
+	// {
+	// 	Logger::log(Logger::ERROR, "Failed to execute CGI handler");
+	// 	return (-1);
+	// }
+	// return (0);
 }

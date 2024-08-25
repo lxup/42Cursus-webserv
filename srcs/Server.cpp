@@ -20,6 +20,7 @@ Server::~Server(){
 	for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 		delete it->second;
 	this->_clients.clear();
+	std::cout << "Server destructor" << std::endl;
 }
 
 /*

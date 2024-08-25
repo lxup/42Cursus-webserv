@@ -161,6 +161,27 @@ std::string intToHexa(ssize_t num) {
     return stream.str();
 }
 
+/**
+ * @brief get the extension of a file
+ */
+std::string getExtension(const std::string &path, bool includeDot)
+{
+	std::string ext;
+	std::string::size_type idx = path.rfind('.');
+	if (idx != std::string::npos)
+	{
+		if (includeDot)
+			ext = path.substr(idx);
+		else
+			ext = path.substr(idx + 1);
+	}
+	if ((includeDot && ext.size() <= 1) || (!includeDot && ext.empty()))
+		return "";
+	if (ext.find('/') != std::string::npos)
+		return "";
+	return ext;
+}
+
 
 // _____________________________ MODIFY EPOLL _____________________________
 /**
@@ -399,8 +420,8 @@ std::string listDirectory(std::string path, std::string root){
 	cleanPath(path);
 	if (path[0] != '.')
 		path.insert(0, ".");
-	std::cout << "Root: " << root << std::endl;
-	std::cout << "Path: " << path << std::endl;
+	Logger::log(Logger::DEBUG, "Root: %s", root.c_str());
+	Logger::log(Logger::DEBUG, "Path: %s", path.c_str());
 
 	if (!is_path_within_root(root, path)) {
 		Logger::log(Logger::ERROR, "Path asked is not within root");

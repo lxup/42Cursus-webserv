@@ -20,4 +20,3 @@ age = params.get('age', [''])[0]
 print("Content-Type: text/html")
 print()
 print(f"<html><body><h1>Bonjour {name}, tu as {age} ans!</h1></body></html>")
-# print(f"Status: 404")

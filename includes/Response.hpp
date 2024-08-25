@@ -16,10 +16,12 @@
 
 class Client;
 class Request;
+class CgiHandler;
 
 # define RESPONSE_READ_BUFFER_SIZE 1000
 //# define THRESHOLD_LARGE_FILE 1000000 // 1MB
 # define THRESHOLD_LARGE_FILE 1000 // 1KB
+# define CGI_READ_BUFFER_SIZE 1000
 
 class Response
 {
@@ -34,8 +36,8 @@ class Response
 	
 	private:
 		Client*				_client;
-		const Request*		_request;
-		CgiHandler			_cgiHandler;
+		Request*			_request;
+		CgiHandler*			_cgi;
 		std::string 		_response;
 		e_response_state	_state;
 		int					_fileFd;
@@ -57,6 +59,9 @@ class Response
 		void setState(e_response_state state);
 		void setHeaderChunked(const std::string &path);
 
+		// Check
+		bool	_checkCgiPath(std::string path);
+
 
 	public:
 		// Response();
@@ -69,8 +74,15 @@ class Response
 		std::string getRawResponse();
 		std::vector<std::string> getAllPathsLocation();
 
+		// Setters
+		void setError(int code);
+
+		// Check
+		int	checkCgi(void);
+
 		// Handle
-		int	handleCGIResponse(int epollFD);
+		int	handleCGI(void);
+		
 
 };
 

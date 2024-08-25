@@ -22,11 +22,6 @@ class Client
 		Socket*					_socket;
 		Request*				_request;
 		Response*				_response;
-
-		bool isCGI();
-		bool isCorrectCGIPath(std::string path);
-
-
 	public:
 		// Client(void);
 		Client(int fd, Socket* socket);

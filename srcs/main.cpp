@@ -1,10 +1,10 @@
 #include "Webserv.hpp"
 
-Server* serverInstance = NULL;
+Server server;
 int ConfigParser::countLineFile = 0;
 
 void signalHandler(int signum) {
-	serverInstance->stop();
+	server.stop();
 	Logger::log(Logger::DEBUG, "interrupt signal (%d) received.", signum);
 }
 
@@ -15,9 +15,6 @@ int main(int ac, char **av)
 	
 	if (args.isOption("--help"))
 		return (args.help(), args.getState());
-
-	Server server;
-	serverInstance = &server;
 	
 	signal(SIGINT, signalHandler);
 	try{
