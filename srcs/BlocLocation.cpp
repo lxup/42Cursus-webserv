@@ -153,6 +153,8 @@ void BlocLocation::setDefaultValues()
 		_allowedMethods.push_back(POST);
 		_allowedMethods.push_back(DELETE);
 	}
+	if (_indexes.size() == 0)
+		_indexes.push_back("index.html");
 }
 
 /**

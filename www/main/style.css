@@ -29,18 +29,19 @@ h1, h2, h3, h4, h5, h6{
 	flex-direction: column;
 }
 
-a {
-	text-decoration: none;
-}
 
 .button{
-	margin-top: 2rem;
+	margin-top: .5rem;
 	color: white;
 	padding: 1rem 2rem;
 	border-radius: 10px;
 	display: flex;
 	cursor: pointer;
 	justify-content: center;
+}
+
+.link{
+	text-decoration: none;
 }
 
 .button:hover{
@@ -61,6 +62,7 @@ a {
 	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 	gap: 2rem;
 	width: 100%;
+	line-height: 23px;
 }
 
 
@@ -88,6 +90,9 @@ a {
 .wrapper{
 	border-radius: 20px;
 	padding: 2rem 3rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .line{

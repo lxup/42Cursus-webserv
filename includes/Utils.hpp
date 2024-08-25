@@ -47,7 +47,7 @@ void modifySocketEpoll(int epollFD, int sockFD, uint32_t flags);
 void deleteSocketEpoll(int epollFD, int sockFD);
 
 // list directory
-std::string buildPage(std::vector<std::string> files, std::string path);
+std::string buildPage(std::vector<std::string> files, std::string path, std::string root);
 void cleanPath(std::string& path);
 bool is_path_within_root(const std::string& root, std::string& path) ;
 std::string listDirectory(std::string path, std::string root);
