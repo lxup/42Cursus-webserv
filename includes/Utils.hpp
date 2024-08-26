@@ -72,7 +72,7 @@ public:
 	}
 };
 
-class ChildProcessException : public std::exception {};
+class ChildProcessException : private std::exception {};
 
 
 #endif // UTILS_HPP

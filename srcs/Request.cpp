@@ -73,7 +73,7 @@ Request &Request::operator=(const Request &rhs)
 		this->_isChunked = rhs._isChunked;
 		this->_contentLength = rhs._contentLength;
 		this->_chunkSize = rhs._chunkSize;
-		this->_cgi = rhs._cgi;
+		// this->_cgi = rhs._cgi;
 		this->_state = rhs._state;
 		this->_stateCode = rhs._stateCode;
 	}

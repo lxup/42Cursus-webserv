@@ -1,7 +1,7 @@
 #include "CgiHandler.hpp"
 #include "Webserv.hpp"
 
-CgiHandler::CgiHandler(Request* request) : _request(request), _env(), _output(), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpIn(NULL), _tmpOut(NULL), _fdIn(-1), _fdOut(-1)
+CgiHandler::CgiHandler(Response* response, Request* request) : _response(response), _request(request), _env(), _output(), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpIn(NULL), _tmpOut(NULL), _fdIn(-1), _fdOut(-1), _state(CgiHandler::INIT)
 {
 }
 
@@ -87,10 +87,10 @@ char	**CgiHandler::_envToChar(void)
 char	**CgiHandler::_buildArgv(void)
 {
 	char	**argv = new char*[3];
-	argv[0] = new char[this->_request->getCgiExecPath().size() + 1];
-	strcpy(argv[0], this->_request->getCgiExecPath().c_str());
-	argv[1] = new char[this->_request->getCgiPath().size() + 1];
-	strcpy(argv[1], this->_request->getCgiPath().c_str());
+	argv[0] = new char[this->_response->getCgiExecPath().size() + 1];
+	strcpy(argv[0], this->_response->getCgiExecPath().c_str());
+	argv[1] = new char[this->_response->getCgiPath().size() + 1];
+	strcpy(argv[1], this->_response->getCgiPath().c_str());
 	argv[2] = NULL;
 	return argv;
 }
@@ -126,10 +126,10 @@ void		CgiHandler::init(void)
 	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	//this->_env["SERVER_PORT"] = request->getServer()->getPort();
 	this->_env["REQUEST_METHOD"] = this->_request->getMethod();
-	this->_env["PATH_INFO"] = this->_request->getCgiPath();
-	this->_env["PATH_TRANSLATED"] = this->_request->getCgiPath(); // Not implemented
-	this->_env["SCRIPT_NAME"] = this->_request->getCgiExecPath();
-	this->_env["SCRIPT_FILENAME"] = this->_request->getCgiExecPath();
+	this->_env["PATH_INFO"] = this->_response->getCgiPath();
+	this->_env["PATH_TRANSLATED"] = this->_response->getCgiPath(); // Not implemented
+	this->_env["SCRIPT_NAME"] = this->_response->getCgiExecPath();
+	this->_env["SCRIPT_FILENAME"] = this->_response->getCgiExecPath();
 	this->_env["QUERY_STRING"] = this->_request->getQuery();
 
 	this->_env["CONTENT_LENGTH"] = intToString(this->_request->getBodySize());
@@ -189,12 +189,98 @@ void	CgiHandler::execute(void)
 	}
 	else
 	{
+		this->_state = CgiHandler::PROCESS;
+	}
+	// else
+	// {
+	// 	char	buffer[CGI_READ_BUFFER_SIZE] = {0};
+
+	// 	waitpid(-1, NULL, 0);
+	// 	if (lseek(this->_fdOut, 0, SEEK_SET) == -1)
+	// 		throw std::invalid_argument("Error with lseek");
+
+	// 	int ret = 1;
+	// 	while (ret > 0)
+	// 	{
+	// 		memset(buffer, 0, CGI_READ_BUFFER_SIZE);
+	// 		ret = read(this->_fdOut, buffer, CGI_READ_BUFFER_SIZE - 1);
+	// 		this->_output += buffer;
+	// 	}
+	// }
+
+	// if (dup2(this->_StdinBackup, STDIN_FILENO) == -1)
+	// 	throw std::invalid_argument("Error with dup2");
+	// if (dup2(this->_StdoutBackup, STDOUT_FILENO) == -1)
+	// 	throw std::invalid_argument("Error with dup2");
+	// {if (this->_tmpIn != NULL)
+	// {
+	// 	fclose(this->_tmpIn);
+	// 	this->_tmpIn = NULL;
+	// }
+	// if (this->_tmpOut != NULL)
+	// {
+	// 	fclose(this->_tmpOut);
+	// 	this->_tmpOut = NULL;
+	// }
+	// if (this->_fdIn != -1)
+	// {
+	// 	close(this->_fdIn);
+	// 	this->_fdIn = -1;
+	// }
+	// if (this->_fdOut != -1)
+	// {
+	// 	close(this->_fdOut);
+	// 	this->_fdOut = -1;
+	// }
+	// if (this->_StdinBackup != -1)
+	// {
+	// 	close(this->_StdinBackup);
+	// 	this->_StdinBackup = -1;
+	// }
+	// if (this->_StdoutBackup != -1)
+	// {
+	// 	close(this->_StdoutBackup);
+	// 	this->_StdoutBackup = -1;
+	// }
+	// if (this->_envp)
+	// {
+	// 	for (size_t i = 0; this->_envp[i]; i++)
+	// 		delete[] this->_envp[i];
+	// 	delete[] this->_envp;
+	// 	this->_envp = NULL;
+	// }
+	// if (this->_argv)
+	// {
+	// 	for (size_t i = 0; this->_argv[i]; i++)
+	// 		delete[] this->_argv[i];
+	// 	delete[] this->_argv;
+	// 	this->_argv = NULL;
+	// }}
+	// this->_parseHeaders();
+	// return ;
+}
+
+/*
+** @brief Check the state of the CGI
+**
+** @return void
+*/
+void	CgiHandler::checkState(void)
+{
+	int status;
+	pid_t wpid = waitpid(this->_pid, &status, WNOHANG);
+	if (wpid == -1)
+		throw IntException(500);
+	if (wpid == 0)
+		return ;
+	if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+	{
+		// read output
 		char	buffer[CGI_READ_BUFFER_SIZE] = {0};
 
-		waitpid(-1, NULL, 0);
 		if (lseek(this->_fdOut, 0, SEEK_SET) == -1)
 			throw std::invalid_argument("Error with lseek");
-
+		
 		int ret = 1;
 		while (ret > 0)
 		{
@@ -202,58 +288,14 @@ void	CgiHandler::execute(void)
 			ret = read(this->_fdOut, buffer, CGI_READ_BUFFER_SIZE - 1);
 			this->_output += buffer;
 		}
+		this->_parseHeaders();
+		this->_state = CgiHandler::FINISH;
 	}
-
-	if (dup2(this->_StdinBackup, STDIN_FILENO) == -1)
-		throw std::invalid_argument("Error with dup2");
-	if (dup2(this->_StdoutBackup, STDOUT_FILENO) == -1)
-		throw std::invalid_argument("Error with dup2");
-	{if (this->_tmpIn != NULL)
+	else
 	{
-		fclose(this->_tmpIn);
-		this->_tmpIn = NULL;
+		Logger::log(Logger::ERROR, "CGI process exited abnormally");
+		throw IntException(500);
 	}
-	if (this->_tmpOut != NULL)
-	{
-		fclose(this->_tmpOut);
-		this->_tmpOut = NULL;
-	}
-	if (this->_fdIn != -1)
-	{
-		close(this->_fdIn);
-		this->_fdIn = -1;
-	}
-	if (this->_fdOut != -1)
-	{
-		close(this->_fdOut);
-		this->_fdOut = -1;
-	}
-	if (this->_StdinBackup != -1)
-	{
-		close(this->_StdinBackup);
-		this->_StdinBackup = -1;
-	}
-	if (this->_StdoutBackup != -1)
-	{
-		close(this->_StdoutBackup);
-		this->_StdoutBackup = -1;
-	}
-	if (this->_envp)
-	{
-		for (size_t i = 0; this->_envp[i]; i++)
-			delete[] this->_envp[i];
-		delete[] this->_envp;
-		this->_envp = NULL;
-	}
-	if (this->_argv)
-	{
-		for (size_t i = 0; this->_argv[i]; i++)
-			delete[] this->_argv[i];
-		delete[] this->_argv;
-		this->_argv = NULL;
-	}}
-	this->_parseHeaders();
-	return ;
 }
 
 /*

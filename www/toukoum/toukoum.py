@@ -2,11 +2,12 @@
 import os
 import sys
 import urllib.parse
+import time
 
 # make infinite loop
 # while True:
 # 	pass
-
+time.sleep(5)
 # Lire le corps de la requête depuis l'entrée standard (stdin)
 content_length = int(os.environ.get('CONTENT_LENGTH', 0))
 # post_data = sys.stdin.read(content_length)
@@ -19,7 +20,7 @@ name = params.get('name', [''])[0].capitalize() # Rendre la première lettre en 
 age = params.get('age', [''])[0]
 
 # Générer la réponse HTML
-print("Status: 201\r\n")
+print("Status: 200\r\n")
 print("Content-Type: text/html\r\n\r\n")
 print(f"<html><body><h1>Bonjour {name}, tu as {age} ans!</h1></body></html>")
 # print(f"Status: 404")

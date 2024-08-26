@@ -8,7 +8,7 @@
 // {
 // }
 
-Response::Response(Client* client) : _client(client), _request(client->getRequest()), _cgi(NULL), _state(Response::INIT), _fileFd(-1)
+Response::Response(Client* client) : _client(client), _request(client->getRequest()), _cgiHandler(NULL), _state(Response::INIT), _fileFd(-1)
 {
 }
 
@@ -18,8 +18,8 @@ Response::Response(Client* client) : _client(client), _request(client->getReques
 
 Response::~Response()
 {
-	if (_cgi)
-		delete _cgi;
+	if (_cgiHandler)
+		delete _cgiHandler;
 }
 
 /*
@@ -372,40 +372,33 @@ void Response::handleGetRequest(void)
 /**
  * @brief main function to return the response of the request _request
  */
-std::string Response::getRawResponse(void)
+void Response::generateResponse(int epollFD)
 {
 	if (!_response.empty())
 		_response.clear();
 
 	if (_request->getStateCode() != REQUEST_DEFAULT_STATE_CODE)
-	{
-		_response = ErrorPage::getPage(_request->getStateCode(), this->_request->getServer()->getErrorPages());
-		setState(Response::FINISH);
-		return _response;
-	}
+		return (this->setError(_request->getStateCode()));
 
 	if (_state != Response::CHUNK)
-		setState(Response::PROCESS);
+		this->setState(Response::PROCESS);
 
-	if (isRedirect()){
-		setState(Response::FINISH);
-		return _response;
-	}
+	if (isRedirect())
+		this->setState(Response::FINISH);
 
 	// Check if the request is a CGI
-	if (this->_request->isCGI())
+	if (this->isCGI())
 	{
 		Logger::log(Logger::ERROR, "ITS A CGI");
-		// handleCGI(epollFD);
-		this->handleCGI();
-		return _response;
+		this->handleCGI(epollFD);
+		return ;
 	}
 	Logger::log(Logger::ERROR, "ITS NOT A CGI");
 
 	if (_request->getMethod() == "GET")
 		handleGetRequest();
 	else
-		_response = "HTTP/1.1 405 Method Not Allowed\r\n";
+		this->_response = "HTTP/1.1 405 Method Not Allowed\r\n";
 	// else if (_request.getMethod == "POST")
 	//     handlePostRequest();
 	// else if (_request.getMethod == "DELETE")
@@ -414,8 +407,6 @@ std::string Response::getRawResponse(void)
 	//     handlePutRequest();
 	// else
 	//     handleOtherRequest();
-
-	return _response;
 }
 
 /*
@@ -461,19 +452,20 @@ void	Response::setError(int code)
  * 
  * @return int : 0 if the check is successful, -1 otherwise
  */
-int	Response::checkCgi(void)
+void	Response::checkCgi(void)
 {
+	if (this->_cgi.isAlreadyChecked())
+		return ;
 	if (this->_request->getLocation() == NULL)
-		return (0);
+		return (this->_cgi.setAlreadyChecked(true));
 
 	std::vector<std::string> allPathsLocations = this->getAllPathsLocation();
 	
 	for (size_t i = 0; i < allPathsLocations.size(); i++){
 		if (this->_checkCgiPath(allPathsLocations[i]))
-			return (this->_request->setCgi(true, allPathsLocations[i], this->_request->getLocation()->getCgiPath(getExtension(allPathsLocations[i]))), 0);
+			return (this->setCgi(true, allPathsLocations[i], this->_request->getLocation()->getCgiPath(getExtension(allPathsLocations[i]))), this->_cgi.setAlreadyChecked(true));
 	}
-
-	return (0);
+	return (this->_cgi.setAlreadyChecked(true));
 }
 
 bool Response::_checkCgiPath(std::string path)
@@ -510,116 +502,66 @@ bool Response::_checkCgiPath(std::string path)
  * @brief Handle the CGI response
  * 
  */
-int Response::handleCGI(void)
+int Response::handleCGI(int epollFD)
 {
-	this->_cgi = new CgiHandler(this->_request);
-	try {
-		this->_cgi->init();
-		this->_cgi->execute();
-		this->_response = this->_cgi->buildResponse();
-		if (this->_response.empty())
-			throw std::invalid_argument("Empty response");
-		this->setState(Response::FINISH);
-	} catch (ChildProcessException &e) {
-		throw ChildProcessException();
-	} catch (IntException &e) {
-		this->setError(e.code());
-	} catch (std::exception &e) {
-		Logger::log(Logger::DEBUG, "Failed to handle CGI: %s", e.what());
-		this->setError(500);
+	if (this->_cgiHandler == NULL) // Create the CGI handler
+	{
+		try {
+			this->_cgiHandler = new CgiHandler(this, this->_request);
+			if (this->_cgiHandler == NULL)
+				throw std::bad_alloc();
+			this->_cgiHandler->init();
+			this->_cgiHandler->execute();
+			modifySocketEpoll(epollFD, this->_cgiHandler->getFdOut(), EPOLLIN);
+			return (0); // gci is running
+		} catch (ChildProcessException &e) {
+			throw ChildProcessException();
+		} catch (IntException &e) {
+			return (setError(e.code()), -1);
+		} catch (std::exception &e) {
+			Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
+			return (setError(500), -1);
+		}
+	}
+	else
+	{
+		try {
+			// Check if the CGI is finished
+			this->_cgiHandler->checkState();
+			if (this->_cgiHandler->getState() == CgiHandler::FINISH)
+			{
+				this->_response = this->_cgiHandler->buildResponse();
+				if (this->_response.empty())
+					throw std::invalid_argument("Empty response");
+				this->setState(Response::FINISH);
+				std::cout << C_RED << "CGI FINISSSSSHHHHHHHHHHHHHHHHH" << std::endl;
+				return (-1);
+			}
+		} catch (ChildProcessException &e) {
+			throw ChildProcessException();
+		} catch (IntException &e) {
+			return (setError(e.code()), -1);
+		} catch (std::exception &e) {
+			Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
+			return (setError(500), -1);
+		}
 	}
 	return (0);
-	// pid_t		pid;
-	// int			saveStdin;
-	// int			saveStdout;
-	// char		**env;
-	// std::string	newBody;
-
+	// this->_cgi = new CgiHandler(this->_request);
 	// try {
-	// 	env = this->_getEnvAsCstrArray();
-	// }
-	// catch (std::bad_alloc &e) {
-	// 	std::cerr << C_RED << e.what() << C_RESET << std::endl;
-	// }
-
-	// // SAVING STDIN AND STDOUT IN ORDER TO TURN THEM BACK TO NORMAL LATER
-	// saveStdin = dup(STDIN_FILENO);
-	// saveStdout = dup(STDOUT_FILENO);
-
-	// FILE	*fIn = tmpfile();
-	// FILE	*fOut = tmpfile();
-	// long	fdIn = fileno(fIn);
-	// long	fdOut = fileno(fOut);
-	// int		ret = 1;
-
-	// write(fdIn, _body.c_str(), _body.size());
-	// lseek(fdIn, 0, SEEK_SET);
-
-	// pid = fork();
-
-	// if (pid == -1)
-	// {
-	// 	std::cerr << C_RED << "Fork crashed." << C_RESET << std::endl;
-	// 	return ("Status: 500\r\n\r\n");
-	// }
-	// else if (!pid)
-	// {
-	// 	char * const * nll = NULL;
-
-	// 	dup2(fdIn, STDIN_FILENO);
-	// 	dup2(fdOut, STDOUT_FILENO);
-	// 	execve(scriptName.c_str(), nll, env);
-	// 	std::cerr << C_RED << "Execve crashed." << C_RESET << std::endl;
-	// 	// write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
-	// 	exit(500);
-	// }
-	// else
-	// {
-	// 	char	buffer[CGI_READ_BUFFER_SIZE] = {0};
-
-	// 	waitpid(-1, NULL, 0);
-	// 	lseek(fdOut, 0, SEEK_SET);
-
-	// 	ret = 1;
-	// 	while (ret > 0)
-	// 	{
-	// 		memset(buffer, 0, CGI_READ_BUFFER_SIZE);
-	// 		ret = read(fdOut, buffer, CGI_READ_BUFFER_SIZE - 1);
-	// 		newBody += buffer;
-	// 	}
-	// }
-
-	// dup2(saveStdin, STDIN_FILENO);
-	// dup2(saveStdout, STDOUT_FILENO);
-	// fclose(fIn);
-	// fclose(fOut);
-	// close(fdIn);
-	// close(fdOut);
-	// close(saveStdin);
-	// close(saveStdout);
-
-	// for (size_t i = 0; env[i]; i++)
-	// 	delete[] env[i];
-	// delete[] env;
-
-	// if (!pid)
-	// 	exit(0);
-
-	// return (newBody);
-	// if (pipe(this->_cgiHandler.getPipe()) == -1)
-	// {
-	// 	Logger::log(Logger::ERROR, "Failed to create pipe");
-	// 	return (-1);
-	// }
-	// if (this->_cgiHandler.init(this->_request))
-	// {
-	// 	Logger::log(Logger::ERROR, "Failed to init CGI handler");
-	// 	return (-1);
-	// }
-	// if (this->_cgiHandler.execute())
-	// {
-	// 	Logger::log(Logger::ERROR, "Failed to execute CGI handler");
-	// 	return (-1);
+	// 	this->_cgi->init();
+	// 	this->_cgi->execute();
+	// 	this->_response = this->_cgi->buildResponse();
+	// 	if (this->_response.empty())
+	// 		throw std::invalid_argument("Empty response");
+	// 	this->setState(Response::FINISH);
+	// } catch (ChildProcessException &e) {
+	// 	throw ChildProcessException();
+	// } catch (IntException &e) {
+	// 	this->setError(e.code());
+	// } catch (std::exception &e) {
+	// 	Logger::log(Logger::DEBUG, "Failed to handle CGI: %s", e.what());
+	// 	this->setError(500);
 	// }
 	// return (0);
 }

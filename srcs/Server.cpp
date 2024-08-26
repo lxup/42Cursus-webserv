@@ -32,7 +32,7 @@ Server::~Server(){
 * @brief Sent the response to the client
  */
 // void Server::sendResponse(Client* client){
-// 	std::string response = client->getResponse()->getRawResponse();
+// 	std::string response = client->getResponse()->generateResponse();
 // 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
 	
 // 	int bytesSent = -1;
@@ -127,32 +127,30 @@ void Server::handleEvent(epoll_event *events, int i){
 	int fd = events[i].data.fd;
 	
 	try {
-		if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)){
-			Logger::log(Logger::WARNING, "[Server::handleEvent] Client %d disconnected", fd);
-			// _handleClientDisconnection(fd);
-			// return ;
+		if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)) // Error with the file descriptor
 			throw std::exception();
-		}
 		if (event & EPOLLIN){
-			if (this->_clients.find(fd) == this->_clients.end())
+			if (this->_clients.find(fd) == this->_clients.end()) // New client connection
 				_handleClientConnection(fd);
 			else{
 				this->_clients[fd]->updateLastActivity();
-				if (this->_clients[fd]->handleRequest(this->_epollFD) == -1)
-					throw std::exception();
-						// _handleClientDisconnection(fd);
+				if (this->_clients[fd]->isCgiReady(this->_epollFD)) // Check if the CGI is ready
+					modifySocketEpoll(this->_epollFD, fd, EPOLLOUT);
+				else
+					this->_clients[fd]->handleRequest(this->_epollFD);
 			}
 		}
 		if (event & EPOLLOUT){
 			this->_clients[fd]->updateLastActivity();
-			if (this->_clients[fd]->handleResponse(this->_epollFD) == -1)
-				throw std::exception();
-				// _handleClientDisconnection(fd);
+			this->_clients[fd]->handleResponse(this->_epollFD);
 		}
-	} catch (ChildProcessException &e) {
+	} catch (ChildProcessException &e) { // Child process error (CGI)
 		throw ChildProcessException();
-	} catch (const std::exception &e) {
-		_handleClientDisconnection(fd);
+	} catch (ClientDisconnectedException &e) { // Client disconnected
+		this->_handleClientDisconnection(fd);
+	} catch (const std::exception &e) { // Other exceptions
+		Logger::log(Logger::ERROR, "[Server::handleEvent] Error with client %d : %s", fd, e.what());
+		this->_handleClientDisconnection(fd);
 	}
 }
 

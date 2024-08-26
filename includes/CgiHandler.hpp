@@ -7,14 +7,24 @@
 # include <sys/wait.h>
 
 # include "Request.hpp"
+# include "Response.hpp"
 
 class Request;
+class Response;
 
 # define CGI_READ_BUFFER_SIZE 4096
 
 class CgiHandler
 {
+	public:
+		enum e_cgi_state
+		{
+			INIT,
+			PROCESS,
+			FINISH
+		};
 	private:
+		Response*							_response;
 		Request*							_request;
 		std::map<std::string, std::string>	_env;
 		std::string							_body;
@@ -29,6 +39,7 @@ class CgiHandler
 		FILE								*_tmpOut;
 		long								_fdIn;
 		long								_fdOut;
+		e_cgi_state							_state;
 
 		// Utils
 		char	**_envToChar(void);
@@ -41,7 +52,7 @@ class CgiHandler
 		void	_checkHeaders(void);
 		
 	public:
-		CgiHandler(Request* request);
+		CgiHandler(Response* response, Request* request);
 		~CgiHandler(void);
 
 		/* GETTERS */
@@ -49,6 +60,13 @@ class CgiHandler
 		std::map<std::string, std::string> getEnv(void) const { return _env; }
 		std::string getBody(void) const { return _body; }
 		std::string getOutput(void) const { return _output; }
+
+		e_cgi_state getState(void) const { return _state; }
+		long	getFdIn(void) const { return _fdIn; }
+		long	getFdOut(void) const { return _fdOut; }
+
+		/* CHECKER */
+		void	checkState(void);
 		// std::map<std::string, std::string> getEnv(void) const { return _env; }
 		// pid_t getPid(void) const { return _pid; }
 		// int getPipe(int index) const { return _pipe[index]; }

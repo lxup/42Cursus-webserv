@@ -37,11 +37,8 @@ Client::~Client(void)
  * @brief Handle the request of the client
  * 
  */
-int	Client::handleRequest( int epollFD )
+void	Client::handleRequest( int epollFD )
 {
-	// if (this->_request->getState() == Request::FINISH)
-	// 	return (Logger::log(Logger::DEBUG, "[handleRequest] Request and response already finished"), 0);
-
 	Logger::log(Logger::DEBUG, "[handleRequest] Handling request from client %d", this->_fd);
 	
 	char	buffer[CLIENT_READ_BUFFER_SIZE + 1];
@@ -54,24 +51,22 @@ int	Client::handleRequest( int epollFD )
 		Logger::log(Logger::DEBUG, "[handleRequest] Received %d bytes from client %d", bytesRead, this->_fd);
 		buffer[bytesRead] = '\0';
 	}
-	 else if (bytesRead < 0)
-	{
-		this->_request->setError(500);
-		return (Logger::log(Logger::ERROR, "[handleRequest] Error with recv function"), 0);
-	}
+	else if (bytesRead < 0)
+		throw std::runtime_error("Error with recv function"); // TODO: throw exception or send 500 error to client
+	// {
+	// 	this->_request->setError(500);
+	// 	return (Logger::log(Logger::ERROR, "[handleRequest] Error with recv function"), 0);
+	// }
 	else if (bytesRead == 0)
-		return (-1);
+		throw ClientDisconnectedException();
 	
 	if (this->_request->getState() == Request::FINISH)
-		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"), 0);
+		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"));
 
 	this->_request->parse(buffer);
 
 	if (this->_request->getState() == Request::FINISH)
 		modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);
-		// this->handleResponse(epollFD);
-
-	return (bytesRead);
 }
 
 // bool Client::isCorrectCGIPath(std::string path){
@@ -119,23 +114,21 @@ int	Client::handleRequest( int epollFD )
 /**
  * @brief Handle the response of the client
  */
-int Client::handleResponse(int epollFD)
+void Client::handleResponse(int epollFD)
 {
-	// Check if CGI
-	//if (this->_response->handleCGI(epollFD) != -1)
-	//	return (0);
-	if (this->_response->checkCgi() == -1)
-		return (-1);
-	// Otherwise send classic response
-	std::string response = this->_response->getRawResponse();
-	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
+	this->_response->checkCgi();
+
+	this->_response->generateResponse(epollFD);
+
+	Logger::log(Logger::DEBUG, "Response to sent: \n%s", this->_response->getResponse().c_str());
 	
 	int bytesSent = -1;
 	if (this->getFd() != -1)
-		bytesSent = send(this->getFd(), response.c_str(), response.length(), 0);
+		bytesSent = send(this->getFd(), this->_response->getResponse().c_str(), this->_response->getResponseSize(), 0);
 	
 	if (bytesSent < 0)
-		Logger::log(Logger::ERROR, "Error with send function");
+		throw std::runtime_error("Error with send function");
+		// Logger::log(Logger::ERROR, "Error with send function");
 	else
 		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, this->getFd());
 
@@ -145,7 +138,6 @@ int Client::handleResponse(int epollFD)
 		this->reset();
 		modifySocketEpoll(epollFD, this->getFd(), REQUEST_FLAGS);
 	}
-	return (0);
 }
 
 /**
@@ -160,3 +152,24 @@ void Client::reset(void)
 	delete this->_response;
 	this->_response = new Response(this);
 }
+
+/*
+** --------------------------------- IS ---------------------------------
+*/
+
+/**
+ * @brief Check if got a cgi
+ * 	
+ * @return true if got a cgi ready, false otherwise
+ */
+bool Client::isCgiReady(int epollFD)
+{
+	if (this->_response == NULL)
+		return false;
+	if (!this->_response->isCGI())
+		return false;
+	if (this->_response->handleCGI(epollFD) != -1)
+		return false;
+	return true;
+}
+

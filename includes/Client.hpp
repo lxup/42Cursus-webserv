@@ -31,8 +31,8 @@ class Client
 		~Client(void);
 
 		/* HANDLE */
-		int	handleRequest( int epollFD );
-		int handleResponse(int epollFD);
+		void	handleRequest( int epollFD );
+		void handleResponse(int epollFD);
 		
 		void reset(void);
 
@@ -46,6 +46,18 @@ class Client
 		time_t getLastActivity() const { return _lastActivity; }
 		void updateLastActivity() { _lastActivity = time(NULL); }
 
+		// Is
+		bool	isCgiReady(int epollFD);
+
+};
+
+class ClientDisconnectedException : public std::exception
+{
+	public:
+		virtual const char* what() const throw()
+		{
+			return "Client disconnected";
+		}
 };
 
 
