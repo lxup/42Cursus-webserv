@@ -16,7 +16,8 @@ class CgiHandler
 		Request*							_request;
 		std::map<std::string, std::string>	_env;
 		std::string							_body;
-		std::string							_bodyWithHeaders;
+		std::map<std::string, std::string>	_headers;
+		std::string							_output;
 		pid_t								_pid;
 		char								**_envp;
 		char								**_argv;
@@ -31,8 +32,11 @@ class CgiHandler
 		char	**_envToChar(void);
 		char	**_buildArgv(void);
 
-		/* HANDLE */
-		void	_handleExitStatus(void);
+		/* PARSING */
+		void	_parseHeaders(void);
+
+		/* CHECKER */
+		void	_checkHeaders(void);
 		
 	public:
 		CgiHandler(Request* request);
@@ -42,7 +46,7 @@ class CgiHandler
 		Request* getRequest(void) const { return _request; }
 		std::map<std::string, std::string> getEnv(void) const { return _env; }
 		std::string getBody(void) const { return _body; }
-		std::string getBodyWithHeaders(void) const { return _bodyWithHeaders; }
+		std::string getOutput(void) const { return _output; }
 		// std::map<std::string, std::string> getEnv(void) const { return _env; }
 		// pid_t getPid(void) const { return _pid; }
 		// int getPipe(int index) const { return _pipe[index]; }
@@ -57,7 +61,7 @@ class CgiHandler
 		/* MAIN */
 		void	init(void);
 		void	execute(void);
-		void	setHeaders(void);
+		std::string	buildResponse(void);
 };
 
 #endif // CGIHANDLER_HPP

@@ -368,9 +368,9 @@ std::string Response::getRawResponse(void)
 	if (!_response.empty())
 		_response.clear();
 
-	if (_request->getStatusCode() != REQUEST_DEFAULT_STATE_CODE)
+	if (_request->getStateCode() != REQUEST_DEFAULT_STATE_CODE)
 	{
-		_response = ErrorPage::getPage(_request->getStatusCode(), this->_request->getServer()->getErrorPages());
+		_response = ErrorPage::getPage(_request->getStateCode(), this->_request->getServer()->getErrorPages());
 		setState(Response::FINISH);
 		return _response;
 	}
@@ -504,18 +504,17 @@ bool Response::_checkCgiPath(std::string path)
 int Response::handleCGI(void)
 {
 	this->_cgi = new CgiHandler(this->_request);
-	// CgiHandler cgiHandler(this->_request);
-
 	try {
 		this->_cgi->init();
 		this->_cgi->execute();
-		if (this->_cgi->getBody().empty())
-			throw std::runtime_error("empty body");
-		this->_cgi->setHeaders();
-		this->_response = this->_cgi->getBodyWithHeaders();
+		this->_response = this->_cgi->buildResponse();
+		if (this->_response.empty())
+			throw std::invalid_argument("Empty response");
 		this->setState(Response::FINISH);
 	} catch (IntException &e) {
-		Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
+		if (e.code() == -1)
+			throw std::exception();
+		// Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
 		this->setError(e.code());
 	} catch (std::exception &e) {
 		Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
