@@ -17,7 +17,6 @@ BlocLocation::BlocLocation(const BlocLocation &other)
 
 BlocLocation::~BlocLocation()
 {
-	std::cout << "Destructor BlocLocation" << std::endl;
 }
 
 BlocLocation &BlocLocation::operator=(const BlocLocation &other)
