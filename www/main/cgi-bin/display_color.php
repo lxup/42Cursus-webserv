@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 // En-têtes HTTP requis
-header('Content-Type: text/html; charset=utf-8');
+header('Content-Type: text/html; charset=utf-8\r\n');
 
 // Récupérer la couleur sélectionnée par l'utilisateur
 $color = isset($_POST['color']) ? $_POST['color'] : 'white';
@@ -19,6 +19,8 @@ if (!in_array($color, $valid_colors)) {
     <meta charset="UTF-8">
     <title>Color Page</title>
     <style>
+				@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
         body {
             font-family: 'Inter', sans-serif;
             background-color: <?= htmlspecialchars($color) ?>;

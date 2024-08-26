@@ -61,11 +61,21 @@
         function deleteResource() {
             const resource = document.getElementById('resource').value;
             
-            fetch('./cgi-bin/delete_resource.php?resource=' + encodeURIComponent(resource), {
+            fetch('./cgi-bin/delete_resource.py?resource=' + encodeURIComponent(resource), {
                 method: 'DELETE',
             })
             .then(response => response.text())
             .then(data => {
+
+								// si le mot error est dans la reponse, on affiche une erreur
+								if (data.includes('error') || data.includes('not exist')) {
+									document.getElementById('responseMessage').innerText = data;
+									jsConfetti.addConfetti({
+											emojis: ['❌'],
+									})
+									return;
+								}
+
 								jsConfetti.addConfetti({
 									confettiColors: ['#ff00ff', '#00ffff'],
 									confettiRadius: 8,
@@ -73,10 +83,6 @@
                 document.getElementById('responseMessage').innerText = data;
 
             })
-            .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('responseMessage').innerText = 'An error occurred.';
-            });
         }
     </script>
 </body>

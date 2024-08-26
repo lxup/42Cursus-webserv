@@ -117,7 +117,7 @@ void ArgsManager::_parse(void)
 			}
 			else
 			{
-				if (_configFilePath == "./config/default.conf")
+				if (_configFilePath == DEFAULT_CONFIG_FILE_PATH)
 					_configFilePath = arg;
 				else
 					Logger::log(Logger::DEBUG, "invalid argument -- %s (config file already set: \"%s\")", arg.c_str(), _configFilePath.c_str());}

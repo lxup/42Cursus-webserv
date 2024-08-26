@@ -484,18 +484,18 @@ bool Response::_checkCgiPath(std::string path)
 	for (it = this->_request->getLocation()->getCGI().begin(); it != this->_request->getLocation()->getCGI().end(); ++it)
 	{
 		if (path.size() > it->first.size() && path.compare(path.size() - it->first.size(), it->first.size(), it->first) == 0){
-			if (!fileExist(it->second)){
-				Logger::log(Logger::ERROR, "CGI file not found: %s", it->second.c_str());
-				// TODO verifer si c'est une 404 ??
-				this->_request->setStateCode(404);
-				return false;
-			}
+			std::cout << "path cgi:" << path << std::endl;
+			//if (!fileExist(it->second)){
+			//	Logger::log(Logger::ERROR, "CGI file not found: %s", it->second.c_str());
+			//	// TODO verifer si c'est une 404 ??
+			//	this->_request->setStateCode(404);
+			//	return false;
+			//}
 			if (!fileExist(path)){
 				Logger::log(Logger::ERROR, "CGI executable not found: %s", path.c_str());
 				this->_request->setStateCode(403);
 				return false;
 			}
-			// TODO set cgi path et cgi extension dans la class CGIHandler
 			return true;
 		}
 	}
