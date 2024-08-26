@@ -47,14 +47,16 @@ void BlocLocation::addAllowedMethods(std::vector<std::string> &tokens)
 	incrementCounter("allowedMethods");
 	for (size_t i = 1; i < tokens.size(); i++){
 		std::string token = tokens[i];
+		if (ConfigParser::isMethodSupported(token) == false)
+			Logger::log(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		if (token == "GET")
 			met = GET;
 		else if (token == "POST")
 			met = POST;
 		else if (token == "DELETE")
 			met = DELETE;
-		else
-			Logger::log(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		// else
+		// 	Logger::log(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		if (std::find(_allowedMethods.begin(), _allowedMethods.end(), met) != _allowedMethods.end())
 			Logger::log(Logger::FATAL, "Dupplicate method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		_allowedMethods.push_back(met);

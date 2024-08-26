@@ -8,11 +8,10 @@
 // {
 // }
 
-Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(new Response(this))
+Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(new Response(this)), _lastActivity(time(NULL))
 {
 	Logger::log(Logger::DEBUG, "[Client] Initializing client with fd %d", fd);
 
-	_lastActivity = time(NULL);
 	struct sockaddr_in	addr;
 	socklen_t			addrLen = sizeof(addr);
 
@@ -40,8 +39,8 @@ Client::~Client(void)
  */
 int	Client::handleRequest( int epollFD )
 {
-	if (this->_request->getState() == Request::FINISH) // skip if the request is already finished
-		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"), -1);
+	// if (this->_request->getState() == Request::FINISH)
+	// 	return (Logger::log(Logger::DEBUG, "[handleRequest] Request and response already finished"), 0);
 
 	Logger::log(Logger::DEBUG, "[handleRequest] Handling request from client %d", this->_fd);
 	
@@ -58,10 +57,14 @@ int	Client::handleRequest( int epollFD )
 	 else if (bytesRead < 0)
 	{
 		this->_request->setError(500);
-		return (Logger::log(Logger::ERROR, "[handleRequest] Error with recv function"), -1);
+		return (Logger::log(Logger::ERROR, "[handleRequest] Error with recv function"), 0);
 	}
 	else if (bytesRead == 0)
-		return (0);
+		return (-1);
+	
+	if (this->_request->getState() == Request::FINISH)
+		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"), 0);
+
 	this->_request->parse(buffer);
 
 	if (this->_request->getState() == Request::FINISH)

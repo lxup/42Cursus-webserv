@@ -1,5 +1,6 @@
 #include "Server.hpp"
 
+
 Server::Server() : _state(S_STATE_INIT), _epollFD(-1)
 {
 }
@@ -125,25 +126,33 @@ void Server::handleEvent(epoll_event *events, int i){
 	uint32_t event = events[i].events;
 	int fd = events[i].data.fd;
 	
-	if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)){
-		Logger::log(Logger::WARNING, "[Server::handleEvent] Client %d disconnected", fd);
-		_handleClientDisconnection(fd);
-		return ;
-	}
-	if (event & EPOLLIN){
-		if (this->_clients.find(fd) == this->_clients.end())
-			_handleClientConnection(fd);
-		else{
-			this->_clients[fd]->updateLastActivity();
-			if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
-					_handleClientDisconnection(fd);
-
+	try {
+		if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)){
+			Logger::log(Logger::WARNING, "[Server::handleEvent] Client %d disconnected", fd);
+			// _handleClientDisconnection(fd);
+			// return ;
+			throw std::exception();
 		}
-	}
-	else if (event & EPOLLOUT){
-		this->_clients[fd]->updateLastActivity();
-		if (this->_clients[fd]->handleResponse(this->_epollFD) == -1)
-			_handleClientDisconnection(fd);
+		if (event & EPOLLIN){
+			if (this->_clients.find(fd) == this->_clients.end())
+				_handleClientConnection(fd);
+			else{
+				this->_clients[fd]->updateLastActivity();
+				if (this->_clients[fd]->handleRequest(this->_epollFD) == -1)
+					throw std::exception();
+						// _handleClientDisconnection(fd);
+			}
+		}
+		if (event & EPOLLOUT){
+			this->_clients[fd]->updateLastActivity();
+			if (this->_clients[fd]->handleResponse(this->_epollFD) == -1)
+				throw std::exception();
+				// _handleClientDisconnection(fd);
+		}
+	} catch (ChildProcessException &e) {
+		throw ChildProcessException();
+	} catch (const std::exception &e) {
+		_handleClientDisconnection(fd);
 	}
 }
 
@@ -221,4 +230,3 @@ void	Server::setState(int state)
 		Logger::log(Logger::INFO, "Server is stopping...");
 	this->_state = state;
 }
-

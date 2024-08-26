@@ -8,13 +8,13 @@
 # include <arpa/inet.h>
 # include <algorithm>
 
+# include "ConfigParser.hpp"
 # include "Socket.hpp"
 # include "Client.hpp"
 # include "BlocServer.hpp"
 # include "Response.hpp"
 # include "Utils.hpp"
 # include "Request.hpp"
-# include "ConfigParser.hpp"
 
 #define TIMEOUT_CHECK_INTERVAL 10 // seconds
 #define INACTIVITY_TIMEOUT 10 // seconds
@@ -53,6 +53,7 @@ class Server
 		void	_handleClientDisconnection(int fd);
 
 	public:
+
 
 		Server(void);
 		~Server(void);

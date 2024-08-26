@@ -5,6 +5,39 @@
 
 // }
 
+std::string	Request::getParseStateStr(e_parse_state state) const
+{
+	switch (state)
+	{
+		case INIT:
+			return "INIT";
+		case REQUEST_LINE_METHOD:
+			return "REQUEST_LINE_METHOD";
+		case REQUEST_LINE_URI:
+			return "REQUEST_LINE_URI";
+		case REQUEST_LINE_HTTP_VERSION:
+			return "REQUEST_LINE_HTTP_VERSION";
+		case REQUEST_LINE_END:
+			return "REQUEST_LINE_END";
+		case HEADERS_INIT:
+			return "HEADERS_INIT";
+		case HEADERS_PARSE_KEY:
+			return "HEADERS_PARSE_KEY";
+		case HEADERS_PARSE_VALUE:
+			return "HEADERS_PARSE_VALUE";
+		case HEADERS_PARSE_END:
+			return "HEADERS_PARSE_END";
+		case HEADERS_END:
+			return "HEADERS_END";
+		case BODY:
+			return "BODY";
+		case FINISH:
+			return "FINISH";
+		default:
+			return "UNKNOWN";
+	}
+}
+
 Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 {
 	this->_initServer();
@@ -80,44 +113,183 @@ void	Request::parse(const std::string &rawRequest)
 */
 void	Request::_parseRequestLine(void)
 {
-	if (this->_state > Request::INIT)
+	if (this->_state > Request::REQUEST_LINE_END)
 		return (Logger::log(Logger::DEBUG, "Request line already parsed"));
-	std::size_t pos = this->_rawRequest.find("\r\n");
-	if (pos == std::string::npos)
-		return (Logger::log(Logger::DEBUG, "Incomplete request line, waiting for more data"));
-	std::string 		line = this->_rawRequest.substr(0, pos);
-	std::istringstream	iss(line);
-	if (!(iss >> this->_method >> this->_uri >> this->_httpVersion))
-	{
-		this->setError(400);
-		return (Logger::log(Logger::ERROR, "Error parsing request line"));
-	}
-	this->_method.erase(std::remove_if(this->_method.begin(), this->_method.end(), ::isspace), this->_method.end());
-	this->_uri.erase(std::remove_if(this->_uri.begin(), this->_uri.end(), ::isspace), this->_uri.end());
-	this->_httpVersion.erase(std::remove_if(this->_httpVersion.begin(), this->_httpVersion.end(), ::isspace), this->_httpVersion.end());
+	if (this->_state == Request::INIT)
+		this->_setState(Request::REQUEST_LINE_METHOD);
 
-	Logger::log(Logger::DEBUG, "Method: %s, URI: %s, HTTP Version: %s", this->_method.c_str(), this->_uri.c_str(), this->_httpVersion.c_str());
-	this->_rawRequest.erase(0, pos + 2); // Remove the request line from the raw request
-
-	if (this->_httpVersion != "HTTP/1.1")
+	if (this->_state == Request::REQUEST_LINE_METHOD)
+		this->_parseMethod();
+	if (this->_state == Request::REQUEST_LINE_URI)
+		this->_parseUri();
+	if (this->_state == Request::REQUEST_LINE_HTTP_VERSION)
+		this->_parseHttpVersion();
+	if (this->_state == Request::REQUEST_LINE_END)
 	{
-		this->setError(400);
-		return (Logger::log(Logger::ERROR, "HTTP Version not supported: %s", this->_httpVersion.c_str()));
-	}
-	if (this->_method != "GET" && this->_method != "POST" && this->_method != "DELETE")
-	{
-		this->setError(400);
-		return (Logger::log(Logger::ERROR, "Method not implemented: %s", this->_method.c_str()));
-	}
-	if (this->_uri.empty())
-	{
-		this->setError(400);
-		return (Logger::log(Logger::ERROR, "Empty URI"));
-	}
-	this->_processUri();
-
-	this->_setState(Request::HEADERS);
+		this->_rawRequest.erase(0, this->_rawRequest.find_first_not_of(" \t"));
+		if (this->_rawRequest.empty())
+			return ;
+		if (this->_rawRequest[0] == '\n')
+		{
+			this->_rawRequest.erase(0, 1);
+			return (this->_setState(Request::HEADERS_INIT));
+		}
+		if (this->_rawRequest[0] == '\r')
+		{
+			if (this->_rawRequest.size() < 2)
+				return ;
+			if (this->_rawRequest[1] == '\n')
+			{
+				this->_rawRequest.erase(0, 2);
+				return (this->_setState(Request::HEADERS_INIT));
+			}
+			return (this->setError(400));
+		}
+		return (this->setError(400));
+	}	
 }
+
+/*
+** @brief Parse the method
+**
+*/
+void	Request::_parseMethod(void)
+{
+	size_t	i = 0;
+	size_t	rawSize = this->_rawRequest.size();
+	bool	found = false;
+	while (i < rawSize && this->_rawRequest[i])
+	{
+		if (this->_rawRequest[i] == ' ')
+		{
+			found = true;
+			break;
+		}
+		if (!std::isalpha(this->_rawRequest[i]))
+			return (this->setError(400));
+		this->_method += this->_rawRequest[i];
+		i++;
+	}
+	this->_rawRequest.erase(0, found ? i + 1 : i);
+	if (found)
+	{
+		if (this->_method.empty())
+			return (this->setError(400));
+		if (ConfigParser::isMethodSupported(this->_method) == false)
+			return (this->setError(405));
+		Logger::log(Logger::DEBUG, "Method: %s", this->_method.c_str());
+		this->_setState(Request::REQUEST_LINE_URI);
+	}
+}
+
+/*
+** @brief Parse the URI
+**
+*/
+void	Request::_parseUri(void)
+{
+	size_t	i = 0;
+	size_t	rawSize = this->_rawRequest.size();
+	bool	found = false;
+	while (i < rawSize && this->_rawRequest[i])
+	{
+		if (this->_uri.empty() && (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t'))
+		{
+			i++;
+			continue;
+		}
+		if (this->_rawRequest[i] == ' ')
+		{
+			found = true;
+			break;
+		}
+		if (!std::isprint(this->_rawRequest[i]))
+			return (this->setError(400));
+		this->_uri += this->_rawRequest[i];
+		i++;
+	}
+	this->_rawRequest.erase(0, found ? i + 1 : i);
+	if (found)
+	{
+		if (this->_uri.empty())
+			return (this->setError(400));
+		// this->_uri.erase(std::remove_if(this->_uri.begin(), this->_uri.end(), ::isspace), this->_uri.end());
+		Logger::log(Logger::DEBUG, "URI: %s", this->_uri.c_str());
+		this->_processUri();
+		this->_setState(Request::REQUEST_LINE_HTTP_VERSION);
+	}
+	// size_t pos = this->_rawRequest.find(" ");
+	// if (pos == std::string::npos)
+	// {
+	// 	this->_uri += this->_rawRequest;
+	// 	this->_rawRequest.clear();
+	// 	return ;
+	// }
+	// this->_uri += this->_rawRequest.substr(0, pos);
+	// this->_rawRequest.erase(0, pos + 1);
+
+	// this->_uri.erase(std::remove_if(this->_uri.begin(), this->_uri.end(), ::isspace), this->_uri.end());
+
+	// Logger::log(Logger::DEBUG, "URI: %s", this->_uri.c_str());
+	// this->_setState(Request::REQUEST_LINE_HTTP_VERSION);
+	// this->_processUri();
+}
+
+/*
+** @brief Parse the HTTP version
+**
+*/
+void	Request::_parseHttpVersion(void)
+{
+	size_t	i = 0;
+	size_t	rawSize = this->_rawRequest.size();
+	bool	found = false;
+	while (i < rawSize && this->_rawRequest[i])
+	{
+		if (this->_httpVersion.empty() && (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t'))
+		{
+			i++;
+			continue;
+		}
+		if (this->_rawRequest[i] != 'H' && this->_rawRequest[i] != 'T' && this->_rawRequest[i] != 'P' && this->_rawRequest[i] != '/' && this->_rawRequest[i] != '.' && !std::isdigit(this->_rawRequest[i]))
+		{
+			found = true;
+			break;
+		}
+		this->_httpVersion += this->_rawRequest[i];
+		i++;
+	}
+	this->_rawRequest.erase(0, i);
+	// std::cout << C_YELLOW << "FOUND: " << found << C_RESET << std::endl;
+	// std::cout << C_YELLOW << "RAW REQUEST: '" << this->_rawRequest << "'" << C_RESET << std::endl;
+	// std::cout << C_YELLOW << "HTTP VERSION: '" << this->_httpVersion << "'" << C_RESET << std::endl;
+	if (found)
+	{
+		if (this->_httpVersion.empty())
+			return (this->setError(400));
+		// this->_httpVersion.erase(std::remove_if(this->_httpVersion.begin(), this->_httpVersion.end(), ::isspace), this->_httpVersion.end());
+		if (ConfigParser::isHttpVersionSupported(this->_httpVersion) == false)
+			return (this->setError(505));
+		this->_setState(Request::REQUEST_LINE_END);
+	}
+	// size_t pos = this->_rawRequest.find("\r\n");
+	// if (pos == std::string::npos)
+	// {
+	// 	this->_httpVersion += this->_rawRequest;
+	// 	this->_rawRequest.clear();
+	// 	return ;
+	// }
+	// this->_httpVersion += this->_rawRequest.substr(0, pos);
+	// this->_rawRequest.erase(0, pos + 2);
+
+	// this->_httpVersion.erase(std::remove_if(this->_httpVersion.begin(), this->_httpVersion.end(), ::isspace), this->_httpVersion.end());
+
+	// Logger::log(Logger::DEBUG, "HTTP Version: %s", this->_httpVersion.c_str());
+	// if (Server::isHttpVersionSupported(this->_httpVersion) == false)
+	// 	return (this->setError(505));
+	// this->_setState(Request::HEADERS);
+}
+
 
 /*
 ** @brief Parse the headers
@@ -128,40 +300,166 @@ void	Request::_parseRequestLine(void)
 */
 void	Request::_parseHeaders(void)
 {
-	if (this->_state < Request::HEADERS)
+	if (this->_state < Request::HEADERS_INIT)
 		return (Logger::log(Logger::DEBUG, "Request line not parsed yet"));
-	if (this->_state > Request::HEADERS)
+	if (this->_state > Request::HEADERS_END)
 		return (Logger::log(Logger::DEBUG, "Headers already parsed"));
 
-	std::size_t	pos = this->_rawRequest.find("\r\n");
-	if (pos == std::string::npos)
-		return (Logger::log(Logger::DEBUG, "Incomplete headers, waiting for more data"));
-	while (pos != std::string::npos)
+	if (this->_state == Request::HEADERS_INIT)
+		this->_setState(Request::HEADERS_PARSE_KEY);
+	
+	if (this->_state == Request::HEADERS_PARSE_KEY)
+		this->_parseHeadersKey();
+	if (this->_state == Request::HEADERS_PARSE_VALUE)
+		this->_parseHeadersValue();
+	if (this->_state == Request::HEADERS_PARSE_END)
 	{
-		std::string 		line = this->_rawRequest.substr(0, pos);
-		std::istringstream	iss(line);
-		if (line.empty()) // Empty line, end of headers
-		{
-			this->_rawRequest.erase(0, pos + 2); // Remove the empty line from the raw request
-			this->_setState(Request::BODY);
+		this->_rawRequest.erase(0, this->_rawRequest.find_first_not_of(" \t"));
+		if (this->_rawRequest.empty())
 			return ;
-		}
-
-		std::size_t colonPos = line.find(':');
-		if (colonPos == std::string::npos)
+		if (this->_rawRequest[0] == '\n')
 		{
-			this->setError(400); // TODO : Set right error code
-			return (Logger::log(Logger::ERROR, "Malformed header: %s", line.c_str()));
+			this->_rawRequest.erase(0, 1);
+			this->_setState(Request::HEADERS_PARSE_KEY);
+			return (this->_parseHeaders());
 		}
-		std::string key = line.substr(0, colonPos);
-		std::string value = line.substr(colonPos + 1);
+		if (this->_rawRequest[0] == '\r')
+		{
+			if (this->_rawRequest.size() < 2)
+				return ;
+			if (this->_rawRequest[1] == '\n')
+			{
+				this->_rawRequest.erase(0, 2);
+				this->_setState(Request::HEADERS_PARSE_KEY);
+				return (this->_parseHeaders());
+			}
+			return (this->setError(400));
+		}
+		return (this->setError(400));
+	}
 
-		key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
-		value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+	// std::size_t	pos = this->_rawRequest.find("\r\n");
+	// if (pos == std::string::npos)
+	// 	return (Logger::log(Logger::DEBUG, "Incomplete headers, waiting for more data"));
+	// while (pos != std::string::npos)
+	// {
+	// 	std::string 		line = this->_rawRequest.substr(0, pos);
+	// 	std::istringstream	iss(line);
+	// 	if (line.empty()) // Empty line, end of headers
+	// 	{
+	// 		this->_rawRequest.erase(0, pos + 2); // Remove the empty line from the raw request
+	// 		this->_setState(Request::BODY);
+	// 		return ;
+	// 	}
 
-		this->_headers[key] = value;
-		this->_rawRequest.erase(0, pos + 2); // Remove the line from the raw request
-		pos = this->_rawRequest.find("\r\n");
+	// 	std::size_t colonPos = line.find(':');
+	// 	if (colonPos == std::string::npos)
+	// 	{
+	// 		this->setError(400); // TODO : Set right error code
+	// 		return (Logger::log(Logger::ERROR, "Malformed header: %s", line.c_str()));
+	// 	}
+	// 	std::string key = line.substr(0, colonPos);
+	// 	std::string value = line.substr(colonPos + 1);
+
+	// 	key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
+	// 	value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+
+	// 	this->_headers[key] = value;
+	// 	this->_rawRequest.erase(0, pos + 2); // Remove the line from the raw request
+	// 	pos = this->_rawRequest.find("\r\n");
+	// }
+}
+
+/*
+** @brief Parse the headers key
+**
+*/
+void	Request::_parseHeadersKey(void)
+{
+	// detect end of headers
+	if (!this->_rawRequest.empty() && (this->_rawRequest[0] == '\r' || this->_rawRequest[0] == '\n'))
+	{
+		if (this->_rawRequest[0] == '\n')
+		{
+			this->_rawRequest.erase(0, 1);
+			return (this->_setState(Request::BODY));
+		}
+		if (this->_rawRequest.size() < 2)
+			return ;
+		if (this->_rawRequest[1] == '\n')
+		{
+			this->_rawRequest.erase(0, 2);
+			return (this->_setState(Request::BODY));
+		}
+		return (this->setError(400));
+	}
+	size_t	i = 0;
+	size_t	rawSize = this->_rawRequest.size();
+	bool	found = false;
+	while (i < rawSize && this->_rawRequest[i])
+	{
+		if (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t')
+			return (this->setError(400));
+		if (this->_rawRequest[i] == ':')
+		{
+			found = true;
+			break;
+		}
+		if (!std::isprint(this->_rawRequest[i]))
+			return (this->setError(400));
+		this->_tmpHeaderKey += this->_rawRequest[i];
+		i++;
+	}
+	this->_rawRequest.erase(0, found ? i + 1 : i);
+	if (found)
+	{
+		if (this->_tmpHeaderKey.empty())
+			return (this->setError(400));
+		this->_tmpHeaderKey.erase(std::remove_if(this->_tmpHeaderKey.begin(), this->_tmpHeaderKey.end(), ::isspace), this->_tmpHeaderKey.end());
+		Logger::log(Logger::DEBUG, "Header key: %s", this->_tmpHeaderKey.c_str());
+		this->_setState(Request::HEADERS_PARSE_VALUE);
+	}
+
+}
+
+/*
+** @brief Parse the headers value
+**
+*/
+void	Request::_parseHeadersValue(void)
+{
+	size_t	i = 0;
+	size_t	rawSize = this->_rawRequest.size();
+	bool	found = false;
+	while (i < rawSize && this->_rawRequest[i])
+	{
+		// skip space and tab
+		if (this->_tmpHeaderValue.empty() && (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t'))
+		{
+			i++;
+			continue;
+		}
+		if (!std::isprint(this->_rawRequest[i]))
+		{
+			found = true;
+			break;
+		}
+		this->_tmpHeaderValue += this->_rawRequest[i];
+		i++;
+	}
+	this->_rawRequest.erase(0, i);
+	if (found)
+	{
+		if (this->_tmpHeaderValue.empty())
+			return (this->setError(400));
+		this->_tmpHeaderValue.erase(std::remove_if(this->_tmpHeaderValue.begin(), this->_tmpHeaderValue.end(), ::isspace), this->_tmpHeaderValue.end());
+		if (this->_headers.find(this->_tmpHeaderKey) != this->_headers.end())
+			return (this->setError(400));
+		Logger::log(Logger::DEBUG, "Header value: %s", this->_tmpHeaderValue.c_str());
+		this->_headers[this->_tmpHeaderKey] = this->_tmpHeaderValue;
+		this->_tmpHeaderKey.clear();
+		this->_tmpHeaderValue.clear();
+		this->_setState(Request::HEADERS_PARSE_END);
 	}
 }
 
@@ -184,13 +482,6 @@ void	Request::_parseBody(void)
 		return (this->_parseChunkedBody());
 
 	std::string newContent = this->_rawRequest.substr(0, this->_contentLength - this->_bodySize);
-	// if (this->_file.getFile()->is_open()) // It's an upload
-	// {
-	// 	if (!(this->_file.getFile()->write(newContent.c_str(), newContent.size())))
-	// 		return (this->_uploadFailed());
-	// }
-	// else
-	// 	this->_body += newContent;
 	this->_body += newContent;
 	this->_bodySize += newContent.size();
 	this->_rawRequest.erase(0, this->_contentLength - this->_bodySize);
@@ -262,31 +553,15 @@ void	Request::_setState(e_parse_state state)
 		return (Logger::log(Logger::DEBUG, "[_setState] Request already finished"));
 	if (this->_state == state)
 		return (Logger::log(Logger::DEBUG, "[_setState] Request already in this state"));
-	this->_state = state;
 
-	if (state == Request::FINISH)
-	{
-		if (this->_stateCode != 0)
-			Logger::log(Logger::DEBUG, "[_setState] Request state changed to FINISH with error code: %d", this->_stateCode);
-		else
-			Logger::log(Logger::DEBUG, "[_setState] Request state changed to FINISH");
-	}
-	else if (state == Request::INIT)
-		Logger::log(Logger::DEBUG, "[_setState] Request state changed to INIT");
-	else if (state == Request::HEADERS)
-		Logger::log(Logger::DEBUG, "[_setState] Request state changed to HEADERS");
-	else if (state == Request::BODY)
-	{
+	Logger::log(Logger::DEBUG, "[_setState] Request state changed from %s to %s with state code: %d", this->getParseStateStr(this->_state).c_str(), this->getParseStateStr(state).c_str(), this->_stateCode);
+
+	if (state == Request::BODY)
 		this->_setHeaderState(); // Set the header state
-		if (this->_state == Request::FINISH)
-			return ;
-		if (this->_method != "POST" && this->_method != "PUT")
-			this->_setState(Request::FINISH);
-		else
-			Logger::log(Logger::DEBUG, "[_setState] Request state changed to BODY");
-	}
-	else
-		Logger::log(Logger::DEBUG, "Invalid state: %d\n", state);
+	if (this->_state == Request::FINISH)
+		return ;
+	
+	this->_state = state;
 }
 
 /*
@@ -298,6 +573,9 @@ void	Request::_setHeaderState(void)
 		return ;
 	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1) // || this->_checkCGI() == -1)
 		return ;
+	
+	if (this->_method != "POST" && this->_method != "PUT")
+		this->_setState(Request::FINISH);
 }
 
 /*
@@ -480,7 +758,7 @@ int	Request::_checkTransferEncoding(void)
 	{
 		if (this->_headers["Transfer-Encoding"] == "chunked")
 			this->_isChunked = true;
-		else
+		else if (this->_headers["Transfer-Encoding"] != "identity")
 		{
 			Logger::log(Logger::ERROR, "[_checkTransferEncoding] Transfer-Encoding not supported: %s", this->_headers["Transfer-Encoding"].c_str());
 			this->setError(501);

@@ -10,7 +10,7 @@
 # include "Socket.hpp"
 # include "Response.hpp"
 
-# define CLIENT_READ_BUFFER_SIZE 4096
+# define CLIENT_READ_BUFFER_SIZE 1 // 4096
 
 class Request;
 class Response;
@@ -24,11 +24,6 @@ class Client
 		Request*				_request;
 		Response*				_response;
 		time_t _lastActivity;
-
-
-		bool isCGI();
-		bool isCorrectCGIPath(std::string path);
-
 
 	public:
 		// Client(void);

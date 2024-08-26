@@ -8,6 +8,7 @@
 
 # include "Logger.hpp"
 # include "Client.hpp"
+# include "ConfigParser.hpp"
 
 # define REQUEST_DEFAULT_STATE_CODE 200
 # define REQUEST_DEFAULT_UPLOAD_PATH "./www/upload/"
@@ -62,10 +63,19 @@ class Request
 		enum	e_parse_state
 		{
 			INIT,
-			HEADERS,
+			REQUEST_LINE_METHOD,
+			REQUEST_LINE_URI,
+			REQUEST_LINE_HTTP_VERSION,
+			REQUEST_LINE_END,
+			HEADERS_INIT,
+			HEADERS_PARSE_KEY,
+			HEADERS_PARSE_VALUE,
+			HEADERS_PARSE_END,
+			HEADERS_END,
 			BODY,
 			FINISH
 		};
+		std::string	getParseStateStr(e_parse_state state) const;
 	private:
 		Client*								_client;
 		BlocServer*							_server;
@@ -79,7 +89,10 @@ class Request
 		std::string							_httpVersion;
 		std::string							_body;
 		size_t								_bodySize;
+
 		std::map<std::string, std::string>	_headers;
+		std::string							_tmpHeaderKey;
+		std::string							_tmpHeaderValue;
 		// std::map<std::string, std::string>	_envCGI;
 		// Chunked
 		bool								_isChunked;
@@ -90,8 +103,17 @@ class Request
 		e_parse_state						_state;
 		int									_stateCode;
 
+		/* PARSERS */
+		// Request line
 		void	_parseRequestLine(void);
+		void	_parseMethod(void);
+		void	_parseUri(void);
+		void	_parseHttpVersion(void);
+		// Headers
 		void	_parseHeaders(void);
+		void	_parseHeadersKey(void);
+		void	_parseHeadersValue(void);
+		// Body
 		void	_parseBody(void);
 		void	_parseChunkedBody(void);
 

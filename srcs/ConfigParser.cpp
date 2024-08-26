@@ -3,6 +3,10 @@
 // ConfigParser::ConfigParser(const std::string &filename) : _filename(filename){
 // }
 
+std::vector<std::string> ConfigParser::supportedMethods = ConfigParser::_getSupportedMethods();
+std::vector<std::string> ConfigParser::supportedHttpVersions = ConfigParser::_getSupportedHttpVersions();
+
+
 ConfigParser::ConfigParser(void) : _filename("") {}
 
 ConfigParser::~ConfigParser(void) {}
@@ -96,4 +100,59 @@ void ConfigParser::printServers(void){
 		_servers[i].printServer();
 		std::cout << std::endl;
 	}
+}
+
+/*
+** --------------------------------- STATIC ---------------------------------
+*/
+
+/**
+ * @brief Get the supported methods object
+ * 
+ * @return std::vector<std::string> 
+ */
+std::vector<std::string>	ConfigParser::_getSupportedMethods(void)
+{
+	std::vector<std::string> methods;
+	methods.push_back("GET");
+	methods.push_back("POST");
+	methods.push_back("DELETE");
+	return (methods);
+}
+
+/**
+ * @brief Check if the method is supported
+ * 
+ * @param method 
+ * @return true 
+ * @return false 
+ */
+bool	ConfigParser::isMethodSupported(std::string method)
+{
+	return (std::find(ConfigParser::supportedMethods.begin(), ConfigParser::supportedMethods.end(), method) != ConfigParser::supportedMethods.end());
+}
+
+/**
+ * @brief Get the supported Http Versions object
+ * 
+ * @return std::vector<std::string> 
+ */
+std::vector<std::string>	ConfigParser::_getSupportedHttpVersions(void)
+{
+	std::vector<std::string> versions;
+	versions.push_back("HTTP/1.0");
+	versions.push_back("HTTP/1.1");
+	return (versions);
+}
+
+/**
+ * @brief Check if the http version is supported
+ * 
+ * @param version 
+ * @return true 
+ * @return false 
+ */
+bool	ConfigParser::isHttpVersionSupported(std::string version)
+{
+	return (std::find(ConfigParser::supportedHttpVersions.begin(), ConfigParser::supportedHttpVersions.end(), version) != ConfigParser::supportedHttpVersions.end());
 }

@@ -520,13 +520,12 @@ int Response::handleCGI(void)
 		if (this->_response.empty())
 			throw std::invalid_argument("Empty response");
 		this->setState(Response::FINISH);
+	} catch (ChildProcessException &e) {
+		throw ChildProcessException();
 	} catch (IntException &e) {
-		if (e.code() == -1)
-			throw std::exception();
-		// Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
 		this->setError(e.code());
 	} catch (std::exception &e) {
-		Logger::log(Logger::ERROR, "Failed to handle CGI: %s", e.what());
+		Logger::log(Logger::DEBUG, "Failed to handle CGI: %s", e.what());
 		this->setError(500);
 	}
 	return (0);

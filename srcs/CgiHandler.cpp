@@ -181,16 +181,15 @@ void	CgiHandler::execute(void)
 	if (this->_pid == 0)
 	{
 		if (dup2(this->_fdIn, STDIN_FILENO) == -1)
-			throw IntException(-1);
+			throw ChildProcessException();
 		if (dup2(this->_fdOut, STDOUT_FILENO) == -1)
-			throw IntException(-1);
+			throw ChildProcessException();
 		execve(this->_argv[0], this->_argv, this->_envp);
-		throw IntException(-1);
+		throw ChildProcessException();
 	}
 	else
 	{
 		char	buffer[CGI_READ_BUFFER_SIZE] = {0};
-
 
 		waitpid(-1, NULL, 0);
 		if (lseek(this->_fdOut, 0, SEEK_SET) == -1)

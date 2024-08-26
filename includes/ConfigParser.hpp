@@ -33,11 +33,21 @@ class ConfigParser
 
 		// print
 		void printServers(void);
+
+		/* STATIC */
+		static	std::vector<std::string>	supportedMethods;
+		static	bool						isMethodSupported(std::string method);
+		static	std::vector<std::string>	supportedHttpVersions;
+		static	bool						isHttpVersionSupported(std::string version);
 	private:
 		std::string _filename;
 
 		std::vector<BlocServer> _servers;
 		std::map<std::string, std::vector<BlocServer> > _configs;
+
+		/* STATIC */
+		static std::vector<std::string>	_getSupportedMethods(void);
+		static std::vector<std::string>	_getSupportedHttpVersions(void);
 };
 
 #endif // CONFIGPARSER_HPP
