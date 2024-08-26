@@ -82,18 +82,6 @@ void Server::init(void)
 	this->setState(S_STATE_READY);
 }
 
-
-void Server::showIpPortClient(int clientFD){
-	char clientAdress[INET_ADDRSTRLEN];
-	struct sockaddr_in addr;
-	socklen_t addr_len = sizeof(addr);
-	getpeername(clientFD, (struct sockaddr*)&addr, &addr_len);
-	inet_ntop(AF_INET, &(addr.sin_addr), clientAdress, INET6_ADDRSTRLEN);
-	uint16_t clientPort = ntohs(addr.sin_port);
-	Logger::log(Logger::DEBUG, "New connection from %s:%u, SOCKET CLIENT %d", clientAdress, clientPort, clientFD);
-}
-
-
 /*
 ** --------------------------------- HANDLE ---------------------------------
 */
@@ -144,13 +132,41 @@ void Server::handleEvent(epoll_event *events, int i){
 	if (event & EPOLLIN){
 		if (this->_clients.find(fd) == this->_clients.end())
 			_handleClientConnection(fd);
-		else if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
-				_handleClientDisconnection(fd);
+		else{
+			this->_clients[fd]->updateLastActivity();
+			if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
+					_handleClientDisconnection(fd);
+
+		}
 	}
 	else if (event & EPOLLOUT){
+		this->_clients[fd]->updateLastActivity();
 		if (this->_clients[fd]->handleResponse(this->_epollFD) == -1)
 			_handleClientDisconnection(fd);
-		// this->sendResponse(_clients[fd]);
+	}
+}
+
+
+/**
+ * @brief fonction qui regarde pour chaque client si la dernière activité (EPOLLIN ou EPOLLOUT)
+ *  est supérieur à INACTIVITY_TIMEOUT
+ * si oui on le degage
+ */
+void Server::checkTimeouts(time_t currentTime){
+
+	std::map<int, Client*>::iterator it = this->_clients.begin();
+	while (it != this->_clients.end())
+	{
+		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
+		{
+			Logger::log(Logger::WARNING, "[Server::checkTimeouts] Client %d timed out", it->first);
+			Logger::log(Logger::DEBUG, "[Server::_handleClientDisconnection] Client disconnected on file descriptor %d", it->first);
+			deleteSocketEpoll(this->_epollFD, it->first);
+			delete it->second;
+			this->_clients.erase(it++);
+		}
+		else
+			++it;
 	}
 }
 
@@ -167,6 +183,8 @@ void Server::run(void)
 		Logger::log(Logger::FATAL, "Server is not ready to run");
 	this->setState(S_STATE_RUN);
 
+	time_t lastTimeoutCheck = time(NULL);
+
 	epoll_event	events[MAX_EVENTS];
 	while (this->getState() == S_STATE_RUN)
 	{
@@ -177,6 +195,12 @@ void Server::run(void)
 		
 		for (int i = 0; i < nfds; i++)
 			handleEvent(events, i);
+
+		time_t currentTime = time(NULL);
+		if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL){
+			checkTimeouts(currentTime);
+			lastTimeoutCheck = currentTime;
+		}
 	}
 }
 

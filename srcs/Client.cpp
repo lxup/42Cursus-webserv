@@ -12,6 +12,7 @@ Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(t
 {
 	Logger::log(Logger::DEBUG, "[Client] Initializing client with fd %d", fd);
 
+	_lastActivity = time(NULL);
 	struct sockaddr_in	addr;
 	socklen_t			addrLen = sizeof(addr);
 
