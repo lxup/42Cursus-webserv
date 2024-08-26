@@ -53,63 +53,20 @@ void	Client::handleRequest( int epollFD )
 	}
 	else if (bytesRead < 0)
 		throw std::runtime_error("Error with recv function"); // TODO: throw exception or send 500 error to client
-	// {
-	// 	this->_request->setError(500);
-	// 	return (Logger::log(Logger::ERROR, "[handleRequest] Error with recv function"), 0);
-	// }
 	else if (bytesRead == 0)
 		throw ClientDisconnectedException();
 	
 	if (this->_request->getState() == Request::FINISH)
 		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"));
 
-	this->_request->parse(buffer);
+	std::cout << C_RED << "BUFFER SIZE: " << strlen(buffer) << C_RESET << std::endl;
+	std::string str(buffer, bytesRead);
+	this->_request->parse(str);
+	// this->_request->parse(buffer);
 
 	if (this->_request->getState() == Request::FINISH)
 		modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);
 }
-
-// bool Client::isCorrectCGIPath(std::string path){
-// 	std::map<std::string, std::string>::const_iterator it;
-
-// 	for (it = this->_request->getLocation()->getCGI().begin(); it != this->_request->getLocation()->getCGI().end(); ++it)
-// 	{
-// 		if (path.size() > it->first.size() && path.compare(path.size() - it->first.size(), it->first.size(), it->first) == 0){
-// 			if (!fileExist(it->second)){
-// 				Logger::log(Logger::ERROR, "CGI file not found: %s", it->second.c_str());
-// 				// TODO verifer si c'est une 404 ??
-// 				this->_request->setStateCode(404);
-// 				return false;
-// 			}
-// 			if (!fileExist(path)){
-// 				Logger::log(Logger::ERROR, "CGI executable not found: %s", path.c_str());
-// 				this->_request->setStateCode(403);
-// 				return false;
-// 			}
-// 			// TODO set cgi path et cgi extension dans la class CGIHandler
-// 			return true;
-// 		}
-// 	}
-// 	return false;
-// }
-
-/**
- * @brief fontion qui determine si l'uri demande est un CGI a executer
- */
-// bool Client::isCGI(){
-
-// 	if (this->_request->getLocation() == NULL)
-// 		return false;
-
-// 	std::vector<std::string> allPathsLocations = this->_response->getAllPathsLocation();
-	
-// 	for (size_t i = 0; i < allPathsLocations.size(); i++){
-// 		if (isCorrectCGIPath(allPathsLocations[i]))
-// 			return true;
-// 	}
-
-// 	return false;
-// }
 
 /**
  * @brief Handle the response of the client
@@ -128,12 +85,13 @@ void Client::handleResponse(int epollFD)
 	
 	if (bytesSent < 0)
 		throw std::runtime_error("Error with send function");
-		// Logger::log(Logger::ERROR, "Error with send function");
 	else
 		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, this->getFd());
 
 	if (this->getResponse()->getState() == Response::FINISH)
 	{
+		if (this->_request->getStateCode() != Request::FINISH)
+			throw ClientDisconnectedException();
 		Logger::log(Logger::DEBUG, "Response sent to client %d", this->getFd());
 		this->reset();
 		modifySocketEpoll(epollFD, this->getFd(), REQUEST_FLAGS);

@@ -9,7 +9,7 @@ request = (
     "GET / HTTP/1.1\r\n"
     "Host:10.211.55.5    \n"
 	"Content-Length: 25\r\n"
-    "0\n"
+    "\r\n"
     "Bonjour je suis Wikipedia\r\n"
 )
 
