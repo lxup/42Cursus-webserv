@@ -147,7 +147,7 @@ class Request
 		std::string getHttpVersion(void) const { return _httpVersion; }
 		std::string getBody(void) const { return _body; }
 		size_t getBodySize(void) const { return _bodySize; }
-		int getStatusCode(void) const { return _stateCode; }
+		int getStateCode(void) const { return _stateCode; }
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }

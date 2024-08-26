@@ -63,9 +63,9 @@ public:
    IntException(int code) : _code(code) {}
    virtual ~IntException() throw() {}
 
-    virtual const char* what() const throw() {
-        return getErrorMessage(_code).c_str();
-    }
+    // virtual const char* what() const throw() {
+    //     return getErrorMessage(_code).c_str();
+    // }
 
     int code() const {
 		return _code;

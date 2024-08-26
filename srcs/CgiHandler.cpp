@@ -1,35 +1,55 @@
 #include "CgiHandler.hpp"
 #include "Webserv.hpp"
 
-CgiHandler::CgiHandler(Request* request) : _request(request), _env(), _body(), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpIn(NULL), _tmpOut(NULL), _fdIn(-1), _fdOut(-1)
+CgiHandler::CgiHandler(Request* request) : _request(request), _env(), _output(), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpIn(NULL), _tmpOut(NULL), _fdIn(-1), _fdOut(-1)
 {
 }
 
 CgiHandler::~CgiHandler(void)
 {
 	if (this->_tmpIn != NULL)
+	{
 		fclose(this->_tmpIn);
+		this->_tmpIn = NULL;
+	}
 	if (this->_tmpOut != NULL)
+	{
 		fclose(this->_tmpOut);
+		this->_tmpOut = NULL;
+	}
 	if (this->_fdIn != -1)
+	{
 		close(this->_fdIn);
+		this->_fdIn = -1;
+	}
 	if (this->_fdOut != -1)
+	{
 		close(this->_fdOut);
+		this->_fdOut = -1;
+	}
 	if (this->_StdinBackup != -1)
+	{
 		close(this->_StdinBackup);
+		this->_StdinBackup = -1;
+	}
 	if (this->_StdoutBackup != -1)
+	{
 		close(this->_StdoutBackup);
+		this->_StdoutBackup = -1;
+	}
 	if (this->_envp)
 	{
 		for (size_t i = 0; this->_envp[i]; i++)
 			delete[] this->_envp[i];
 		delete[] this->_envp;
+		this->_envp = NULL;
 	}
 	if (this->_argv)
 	{
 		for (size_t i = 0; this->_argv[i]; i++)
 			delete[] this->_argv[i];
 		delete[] this->_argv;
+		this->_argv = NULL;
 	}
 }
 
@@ -88,12 +108,12 @@ char	**CgiHandler::_buildArgv(void)
 */
 void		CgiHandler::init(void)
 {
-	std::string path = this->_request->getCgiPath();
-	std::string execPath = this->_request->getCgiExecPath();
+	// std::string path = this->_request->getCgiPath();
+	// std::string execPath = this->_request->getCgiExecPath();
 
-	std::cout << C_RED << "CgiHandler::init" << std::endl;
-	std::cout << "path: " << path << std::endl;
-	std::cout << "execPath: " << execPath << C_RESET << std::endl;
+	// std::cout << C_RED << "CgiHandler::init" << std::endl;
+	// std::cout << "path: " << path << std::endl;
+	// std::cout << "execPath: " << execPath << C_RESET << std::endl;
 
 	// Server
 	this->_env["SERVER_SOFTWARE"] = "webserv/1.0";
@@ -160,16 +180,12 @@ void	CgiHandler::execute(void)
 		throw std::invalid_argument("Error with fork");
 	if (this->_pid == 0)
 	{
-		try {
-			if (dup2(this->_fdIn, STDIN_FILENO) == -1)
-				throw std::exception();
-			if (dup2(this->_fdOut, STDOUT_FILENO) == -1)
-				throw std::exception();
-			execve(this->_argv[0], this->_argv, this->_envp);
-			write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
-		}	catch (std::exception &e) {
-			write(STDOUT_FILENO, "Status: 500\r\n\r\n", 15);
-		}
+		if (dup2(this->_fdIn, STDIN_FILENO) == -1)
+			throw IntException(-1);
+		if (dup2(this->_fdOut, STDOUT_FILENO) == -1)
+			throw IntException(-1);
+		execve(this->_argv[0], this->_argv, this->_envp);
+		throw IntException(-1);
 	}
 	else
 	{
@@ -185,7 +201,7 @@ void	CgiHandler::execute(void)
 		{
 			memset(buffer, 0, CGI_READ_BUFFER_SIZE);
 			ret = read(this->_fdOut, buffer, CGI_READ_BUFFER_SIZE - 1);
-			this->_body += buffer;
+			this->_output += buffer;
 		}
 	}
 
@@ -193,62 +209,160 @@ void	CgiHandler::execute(void)
 		throw std::invalid_argument("Error with dup2");
 	if (dup2(this->_StdoutBackup, STDOUT_FILENO) == -1)
 		throw std::invalid_argument("Error with dup2");
-	this->_handleExitStatus();
+	{if (this->_tmpIn != NULL)
+	{
+		fclose(this->_tmpIn);
+		this->_tmpIn = NULL;
+	}
+	if (this->_tmpOut != NULL)
+	{
+		fclose(this->_tmpOut);
+		this->_tmpOut = NULL;
+	}
+	if (this->_fdIn != -1)
+	{
+		close(this->_fdIn);
+		this->_fdIn = -1;
+	}
+	if (this->_fdOut != -1)
+	{
+		close(this->_fdOut);
+		this->_fdOut = -1;
+	}
+	if (this->_StdinBackup != -1)
+	{
+		close(this->_StdinBackup);
+		this->_StdinBackup = -1;
+	}
+	if (this->_StdoutBackup != -1)
+	{
+		close(this->_StdoutBackup);
+		this->_StdoutBackup = -1;
+	}
+	if (this->_envp)
+	{
+		for (size_t i = 0; this->_envp[i]; i++)
+			delete[] this->_envp[i];
+		delete[] this->_envp;
+		this->_envp = NULL;
+	}
+	if (this->_argv)
+	{
+		for (size_t i = 0; this->_argv[i]; i++)
+			delete[] this->_argv[i];
+		delete[] this->_argv;
+		this->_argv = NULL;
+	}}
+	this->_parseHeaders();
 	return ;
 }
 
 /*
-** @brief Set the headers of the response
+** @brief Build the response
+**
+** @return std::string : the response
+*/
+std::string	CgiHandler::buildResponse(void)
+{
+	std::string response = "HTTP/1.1 " + intToString(this->_request->getStateCode()) + " " + getErrorMessage(this->_request->getStateCode()) + "\r\n";
+	for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
+		response += it->first + ": " + it->second + "\r\n";
+	response += "\r\n";
+	response += this->_output;
+	return response;
+}
+
+
+
+/*
+** --------------------------------- PARSING ---------------------------------
+*/
+
+/*
+** @brief Parse the headers of the CGI
 **
 ** @return void
 */
-void	CgiHandler::setHeaders(void)
+void	CgiHandler::_parseHeaders(void)
 {
-	std::string header;
-	std::string body;
-
-	size_t pos = this->_body.find("\r\n\r\n");
+	std::cout << C_CYAN << "Output: " << this->_output << C_RESET << std::endl;
+	size_t pos = this->_output.find("\r\n\r\n");
 	if (pos != std::string::npos)
 	{
-		header = this->_body.substr(0, pos);
-		body = this->_body.substr(pos + 4);
+		std::string headers = this->_output.substr(0, pos + 2);
+		this->_output= this->_output.substr(pos + 4);
+		// trim whitespace output
+		// this->_output.erase(remove_if(this->_output.begin(), this->_output.end(), ::isspace), this->_output.end());
+
+		std::istringstream iss(headers);
+		std::string line;
+		while (std::getline(iss, line, '\n'))
+		{
+			if (line.empty())
+				continue;
+			// check if there is a \r at the end of the line
+			if (line[line.size() - 1] != '\r')
+				throw IntException(502); // TODO: check if it's should be considered as an error
+			line.erase(line.size() - 1);
+			size_t colonPos = line.find(":");
+			if (colonPos == std::string::npos)
+				throw IntException(502); // TODO: check if it's should be considered as an error
+			std::string key = line.substr(0, colonPos);
+			std::string value = line.substr(colonPos + 1);
+
+			key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
+			value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
+
+			if (key == "Status")
+			{
+				int statusInt = atoi(value.c_str());
+				this->_request->setStateCode(statusInt);
+				if (statusInt >= 400)
+					throw IntException(statusInt);
+			}
+			else
+				this->_headers[key] = value;
+		}
+		this->_checkHeaders();
 	}
 	else
 	{
-		header = this->_body;
-		body = "";
+		Logger::log(Logger::ERROR, "No headers found in CGI response");
+		throw IntException(502); // TODO: check if it's the right error code
 	}
-
-	this->_bodyWithHeaders = "HTTP/1.1 200 OK\r\n";
-	this->_bodyWithHeaders += header + "\r\n";
-	this->_bodyWithHeaders += "Content-Length: " + intToString(body.size()) + "\r\n";
-	this->_bodyWithHeaders += "\r\n";
-	this->_bodyWithHeaders += body;
 }
 
 /*
-** --------------------------------- HANDLE ---------------------------------
+** --------------------------------- CHECKER ---------------------------------
 */
 
 /*
-** @brief Handle the exit status of the CGI
+** @brief Check the headers of the CGI
 **
-** @param status
 ** @return void
 */
-void	CgiHandler::_handleExitStatus(void)
+void	CgiHandler::_checkHeaders(void)
 {
-	// TODO : MAKE A BETTER HANDLING
-	size_t pos = this->_body.find("Status: ");
-	if (pos != std::string::npos)
+	// printMap(this->_headers);
+	std::cout << C_CYAN << "Checking headers: " << C_RESET << std::endl;
+	for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
 	{
-		std::string status = this->_body.substr(pos + 8, 3);
-		this->_body = this->_body.substr(0, pos) + this->_body.substr(pos + 11);
-
-		int statusInt = atoi(status.c_str());
-		this->_request->setStateCode(statusInt);
-		if (statusInt != REQUEST_DEFAULT_STATE_CODE)
-			throw IntException(statusInt);
+		std::cout << C_CYAN << it->first << ": " << it->second << C_RESET << std::endl;
 	}
+	// array of string for allowed headers
+	// std::string allowedHeaders[] = {"Content-Type", "Content-Length", "Location", "Status"};
+	std::vector<std::string> allowedHeaders;
+	allowedHeaders.push_back("Content-Type");
+	allowedHeaders.push_back("Content-Length");
+	allowedHeaders.push_back("Location");
+	allowedHeaders.push_back("Status");
 
+	for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
+	{
+		if (std::find(allowedHeaders.begin(), allowedHeaders.end(), it->first) == allowedHeaders.end())
+			throw IntException(502); // TODO: check if it's the right error code
+	}
+	// add Content-Length if not present
+	if (this->_headers.find("Content-Length") == this->_headers.end())
+		this->_headers["Content-Length"] = intToString(this->_output.size());
 }
