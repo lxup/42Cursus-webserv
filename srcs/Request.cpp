@@ -1,9 +1,9 @@
 #include "Request.hpp"
 
-Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
-{
+// Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
+// {
 
-}
+// }
 
 Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 {
@@ -36,10 +36,11 @@ Request &Request::operator=(const Request &rhs)
 		this->_httpVersion = rhs._httpVersion;
 		this->_body = rhs._body;
 		this->_headers = rhs._headers;
-		this->_envCGI = rhs._envCGI;
+		// this->_envCGI = rhs._envCGI;
 		this->_isChunked = rhs._isChunked;
 		this->_contentLength = rhs._contentLength;
 		this->_chunkSize = rhs._chunkSize;
+		this->_cgi = rhs._cgi;
 		this->_state = rhs._state;
 		this->_stateCode = rhs._stateCode;
 	}
@@ -295,7 +296,7 @@ void	Request::_setHeaderState(void)
 {
 	if (this->_findServer() == -1 || this->_findLocation() == -1)
 		return ;
-	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1)
+	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1) // || this->_checkCGI() == -1)
 		return ;
 }
 
@@ -323,15 +324,7 @@ void	Request::_processUri(void)
 	if (pos != std::string::npos)
 	{
 		this->_path = this->_uri.substr(0, pos);
-		std::string queries = this->_uri.substr(pos + 1);
-		std::istringstream iss(queries);
-		std::string query;
-		while (std::getline(iss, query, '&'))
-		{
-			pos = query.find('=');
-			if (pos != std::string::npos)
-				this->_query[query.substr(0, pos)] = query.substr(pos + 1);
-		}
+		this->_query = this->_uri.substr(pos + 1);
 	}
 	else
 		this->_path = this->_uri;
@@ -551,6 +544,30 @@ int	Request::_checkPathsMatch(const std::string &path, const std::string &parent
 			return (1);
 	return (0);
 }
+
+/*
+** @brief Check the CGI
+**
+** @return 0 if the check is successful, -1 otherwise
+*/
+// int	Request::_checkCGI(void)
+// {
+// 	if (this->_location == NULL)
+// 		return (0);
+
+// 	std::string	pathExtension = this->_path.substr(this->_path.find_last_of('.'));
+// 	if (pathExtension.empty())
+// 		return (0);
+// 	if (this->_location->isCgi(pathExtension))
+// 	{
+// 		this->_cgi.setIsCGI(true);
+// 		this->_cgi.setExecPath(this->_location->getCgiPath(pathExtension));
+// 		this->_cgi.setPath(this->_path);
+// 	}
+// 	return (0);
+// }
+	
+	
 
 /*
 ** @brief Check the content type

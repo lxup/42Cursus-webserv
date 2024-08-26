@@ -49,6 +49,9 @@ public:
 	static std::string getLogLevelStr(LogLevel level);
 	static std::string getLogLevelColor(LogLevel level);
 
+	/* CLEANUP */
+	// static void cleanup(void);
+
 private:
 	static bool _logState;
 	static bool _logFileState;

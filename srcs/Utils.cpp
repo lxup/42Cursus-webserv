@@ -161,6 +161,27 @@ std::string intToHexa(ssize_t num) {
     return stream.str();
 }
 
+/**
+ * @brief get the extension of a file
+ */
+std::string getExtension(const std::string &path, bool includeDot)
+{
+	std::string ext;
+	std::string::size_type idx = path.rfind('.');
+	if (idx != std::string::npos)
+	{
+		if (includeDot)
+			ext = path.substr(idx);
+		else
+			ext = path.substr(idx + 1);
+	}
+	if ((includeDot && ext.size() <= 1) || (!includeDot && ext.empty()))
+		return "";
+	if (ext.find('/') != std::string::npos)
+		return "";
+	return ext;
+}
+
 
 // _____________________________ MODIFY EPOLL _____________________________
 /**

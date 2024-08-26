@@ -71,47 +71,47 @@ int	Client::handleRequest( int epollFD )
 	return (bytesRead);
 }
 
-bool Client::isCorrectCGIPath(std::string path){
-	std::map<std::string, std::string>::const_iterator it;
+// bool Client::isCorrectCGIPath(std::string path){
+// 	std::map<std::string, std::string>::const_iterator it;
 
-	for (it = this->_request->getLocation()->getCGI().begin(); it != this->_request->getLocation()->getCGI().end(); ++it)
-	{
-		if (path.size() > it->first.size() && path.compare(path.size() - it->first.size(), it->first.size(), it->first) == 0){
-			if (!fileExist(it->second)){
-				Logger::log(Logger::ERROR, "CGI file not found: %s", it->second.c_str());
-				// TODO verifer si c'est une 404 ??
-				this->_request->setStateCode(404);
-				return false;
-			}
-			if (!fileExist(path)){
-				Logger::log(Logger::ERROR, "CGI executable not found: %s", path.c_str());
-				this->_request->setStateCode(403);
-				return false;
-			}
-			// TODO set cgi path et cgi extension dans la class CGIHandler
-			return true;
-		}
-	}
-	return false;
-}
+// 	for (it = this->_request->getLocation()->getCGI().begin(); it != this->_request->getLocation()->getCGI().end(); ++it)
+// 	{
+// 		if (path.size() > it->first.size() && path.compare(path.size() - it->first.size(), it->first.size(), it->first) == 0){
+// 			if (!fileExist(it->second)){
+// 				Logger::log(Logger::ERROR, "CGI file not found: %s", it->second.c_str());
+// 				// TODO verifer si c'est une 404 ??
+// 				this->_request->setStateCode(404);
+// 				return false;
+// 			}
+// 			if (!fileExist(path)){
+// 				Logger::log(Logger::ERROR, "CGI executable not found: %s", path.c_str());
+// 				this->_request->setStateCode(403);
+// 				return false;
+// 			}
+// 			// TODO set cgi path et cgi extension dans la class CGIHandler
+// 			return true;
+// 		}
+// 	}
+// 	return false;
+// }
 
 /**
  * @brief fontion qui determine si l'uri demande est un CGI a executer
  */
-bool Client::isCGI(){
+// bool Client::isCGI(){
 
-	if (this->_request->getLocation() == NULL)
-		return false;
+// 	if (this->_request->getLocation() == NULL)
+// 		return false;
 
-	std::vector<std::string> allPathsLocations = this->_response->getAllPathsLocation();
+// 	std::vector<std::string> allPathsLocations = this->_response->getAllPathsLocation();
 	
-	for (size_t i = 0; i < allPathsLocations.size(); i++){
-		if (isCorrectCGIPath(allPathsLocations[i]))
-			return true;
-	}
+// 	for (size_t i = 0; i < allPathsLocations.size(); i++){
+// 		if (isCorrectCGIPath(allPathsLocations[i]))
+// 			return true;
+// 	}
 
-	return false;
-}
+// 	return false;
+// }
 
 /**
  * @brief Handle the response of the client
@@ -119,8 +119,10 @@ bool Client::isCGI(){
 int Client::handleResponse(int epollFD)
 {
 	// Check if CGI
-	//if (this->_response->handleCGIResponse(epollFD) != -1)
+	//if (this->_response->handleCGI(epollFD) != -1)
 	//	return (0);
+	if (this->_response->checkCgi() == -1)
+		return (-1);
 	// Otherwise send classic response
 	std::string response = this->_response->getRawResponse();
 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());

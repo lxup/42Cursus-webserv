@@ -33,7 +33,6 @@ class ConfigParser
 
 		// print
 		void printServers(void);
-
 	private:
 		std::string _filename;
 
