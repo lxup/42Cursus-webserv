@@ -60,7 +60,7 @@ bool Response::isRedirect()
 		return false;
 	}
 
-	if (directoryExist((root + path).c_str()) || (isLoc && directoryExist(this->_request->getLocation()->getAlias().c_str())))
+	if (directoryExist((root + path).c_str()) || (isLoc && directoryExist((this->_request->getLocation()->getAlias() + path.substr(this->_request->getLocation()->getPath().size())).c_str())))
 	{
 		std::string host = _request->getHeaders()["Host"];
 		_response = "HTTP/1.1 301 Moved Permanently\r\n";
@@ -95,18 +95,21 @@ std::vector<std::string> Response::getAllPathsLocation()
 	if (this->_request->getLocation() == NULL)
 		return std::vector<std::string>();
 
+	if (root.empty())
+		root = this->_request->getServer()->getRoot();
+
 	if (!alias.empty())
 	{
 		root = alias;
 		isAlias = true;
 	}
 
-	if (root.empty())
-		root = this->_request->getServer()->getRoot();
-
 	// cas ou la requete demande un fichier direct
-	if (path[path.size() - 1] != '/')
+	if (path[path.size() - 1] != '/'){
+		if (isAlias)
+			path = path.substr(this->_request->getLocation()->getPath().size());
 		allPathsLocations.push_back(root + path);
+	}
 
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
@@ -146,7 +149,6 @@ std::vector<std::string> Response::getAllPathsServer(void)
 		allPaths.push_back(root + path);
 
 	// cas ou la requete demande un dossier
-	std::cout << "root: " << root << std::endl;
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
@@ -308,7 +310,14 @@ void Response::manageLocation()
 
 	if (path.empty()){
 		if (this->_request->getLocation()->getAutoIndex() == TRUE){
-			_response = listDirectory(root + _request->getPath(), root);
+			std::string alias = this->_request->getLocation()->getAlias();
+			if (!alias.empty()){
+				// transforme le path en path court: /var/www/html/ -> /www/html/
+				std::string shortPath = _request->getPath().substr(_request->getLocation()->getPath().size());
+				_response = listDirectory(alias + shortPath, alias);
+			}
+			else
+				_response = listDirectory(root + _request->getPath(), root);
 			setState(Response::FINISH);
 			return ;
 		}

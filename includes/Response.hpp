@@ -18,10 +18,8 @@ class Client;
 class Request;
 class CgiHandler;
 
-# define RESPONSE_READ_BUFFER_SIZE 1000
-//# define THRESHOLD_LARGE_FILE 1000000 // 1MB
-# define THRESHOLD_LARGE_FILE 1000 // 1KB
-# define CGI_READ_BUFFER_SIZE 1000
+# define RESPONSE_READ_BUFFER_SIZE 4096
+# define THRESHOLD_LARGE_FILE 100000 // 100KB
 
 class Response
 {

@@ -3,6 +3,7 @@
 
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <ctime>
 
 # include "Utils.hpp"
 # include "Request.hpp"
@@ -22,6 +23,13 @@ class Client
 		Socket*					_socket;
 		Request*				_request;
 		Response*				_response;
+		time_t _lastActivity;
+
+
+		bool isCGI();
+		bool isCorrectCGIPath(std::string path);
+
+
 	public:
 		// Client(void);
 		Client(int fd, Socket* socket);
@@ -38,6 +46,12 @@ class Client
 		Request* getRequest(void) const { return _request; }
 		Socket* getSocket(void) const { return _socket; }
 		Response* getResponse(void) const { return _response; }
+
+		// timeout
+		time_t getLastActivity() const { return _lastActivity; }
+		void updateLastActivity() { _lastActivity = time(NULL); }
+
 };
+
 
 #endif // CLIENT_HPP
