@@ -83,14 +83,14 @@ void BlocLocation::addIndexes(std::vector<std::string> &token)
 
 void BlocLocation::addCgiExtension(std::vector<std::string> &token)
 {
-	std::vector<std::string> allowedExtensions;
-	allowedExtensions.push_back(".php");
-	allowedExtensions.push_back(".py");
+	// std::vector<std::string> allowedExtensions;
+	// allowedExtensions.push_back(".php");
+	// allowedExtensions.push_back(".py");
 
 	if (_cgiExtension.find(token[1]) != _cgiExtension.end())
 		Logger::log(Logger::FATAL, "Dupplicate cgi extension: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
-	if (std::find(allowedExtensions.begin(), allowedExtensions.end(), token[1]) == allowedExtensions.end())
-		Logger::log(Logger::FATAL, "CGI extension not allowed: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+	// if (std::find(allowedExtensions.begin(), allowedExtensions.end(), token[1]) == allowedExtensions.end())
+	// 	Logger::log(Logger::FATAL, "CGI extension not allowed: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	_cgiExtension[token[1]] = token[2];
 }
 
@@ -153,6 +153,8 @@ void BlocLocation::setDefaultValues()
 		_allowedMethods.push_back(POST);
 		_allowedMethods.push_back(DELETE);
 	}
+	if (_indexes.size() == 0)
+		_indexes.push_back("index.html");
 }
 
 /**

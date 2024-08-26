@@ -7,16 +7,19 @@
 #include <sys/stat.h>
 
 #include "Request.hpp"
+#include "Client.hpp"
 #include "BlocServer.hpp"
 #include "Utils.hpp"
 #include "BlocLocation.hpp"
 #include "ErrorPage.hpp"
+#include "CgiHandler.hpp"
 
+class Client;
 class Request;
+class CgiHandler;
 
-# define RESPONSE_READ_BUFFER_SIZE 1000
-//# define THRESHOLD_LARGE_FILE 1000000 // 1MB
-# define THRESHOLD_LARGE_FILE 1000 // 1KB
+# define RESPONSE_READ_BUFFER_SIZE 4096
+# define THRESHOLD_LARGE_FILE 100000 // 100KB
 
 class Response
 {
@@ -30,19 +33,18 @@ class Response
 			};
 	
 	private:
-		const Request *_request;
-		const BlocServer *_blocServer;
-		const BlocLocation* _blocLocation;
-		std::string _response;
-		e_response_state _state;	
+		Client*				_client;
+		Request*			_request;
+		CgiHandler*			_cgi;
+		std::string 		_response;
+		e_response_state	_state;
+		int					_fileFd;
 
-		int _fileFd;
 
 		// Methods
 		void handleGetRequest();
 		bool isRedirect();
 		std::vector<std::string> getAllPathsServer();
-		std::vector<std::string> getAllPathsLocation();
 		void manageServer();
 		void manageLocation();
 		void manageNotFound(std::string directoryToCheck);
@@ -55,16 +57,30 @@ class Response
 		void setState(e_response_state state);
 		void setHeaderChunked(const std::string &path);
 
+		// Check
+		bool	_checkCgiPath(std::string path);
+
 
 	public:
-		Response();
-		Response(Request *request);
+		// Response();
+		Response(Client* client);
 		~Response();
 
 		
 		// Getters
 		int getState() const { return _state; }
 		std::string getRawResponse();
+		std::vector<std::string> getAllPathsLocation();
+
+		// Setters
+		void setError(int code);
+
+		// Check
+		int	checkCgi(void);
+
+		// Handle
+		int	handleCGI(void);
+		
 
 };
 

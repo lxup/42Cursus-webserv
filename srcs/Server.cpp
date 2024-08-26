@@ -20,6 +20,7 @@ Server::~Server(){
 	for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 		delete it->second;
 	this->_clients.clear();
+	std::cout << "Server destructor" << std::endl;
 }
 
 /*
@@ -29,26 +30,26 @@ Server::~Server(){
 /**
 * @brief Sent the response to the client
  */
-void Server::sendResponse(Client* client){
-	std::string response = client->getResponse()->getRawResponse();
-	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
+// void Server::sendResponse(Client* client){
+// 	std::string response = client->getResponse()->getRawResponse();
+// 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
 	
-	int bytesSent = -1;
-	if (client->getFd() != -1)
-		bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
+// 	int bytesSent = -1;
+// 	if (client->getFd() != -1)
+// 		bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
 	
-	if (bytesSent < 0)
-		Logger::log(Logger::ERROR, "Error with send function");
-	else
-		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
+// 	if (bytesSent < 0)
+// 		Logger::log(Logger::ERROR, "Error with send function");
+// 	else
+// 		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
 
-	if (client->getResponse()->getState() == Response::FINISH)
-	{
-		Logger::log(Logger::DEBUG, "Response sent to client %d", client->getFd());
-		client->clearRequest();
-		modifySocketEpoll(_epollFD, client->getFd(), REQUEST_FLAGS);
-	}
-}
+// 	if (client->getResponse()->getState() == Response::FINISH)
+// 	{
+// 		Logger::log(Logger::DEBUG, "Response sent to client %d", client->getFd());
+// 		client->clearRequest();
+// 		modifySocketEpoll(_epollFD, client->getFd(), REQUEST_FLAGS);
+// 	}
+// }
 
 void Server::stop( void ) {
 	this->setState(S_STATE_STOP);
@@ -81,18 +82,6 @@ void Server::init(void)
 	}
 	this->setState(S_STATE_READY);
 }
-
-
-void Server::showIpPortClient(int clientFD){
-	char clientAdress[INET_ADDRSTRLEN];
-	struct sockaddr_in addr;
-	socklen_t addr_len = sizeof(addr);
-	getpeername(clientFD, (struct sockaddr*)&addr, &addr_len);
-	inet_ntop(AF_INET, &(addr.sin_addr), clientAdress, INET6_ADDRSTRLEN);
-	uint16_t clientPort = ntohs(addr.sin_port);
-	Logger::log(Logger::DEBUG, "New connection from %s:%u, SOCKET CLIENT %d", clientAdress, clientPort, clientFD);
-}
-
 
 /*
 ** --------------------------------- HANDLE ---------------------------------
@@ -144,11 +133,41 @@ void Server::handleEvent(epoll_event *events, int i){
 	if (event & EPOLLIN){
 		if (this->_clients.find(fd) == this->_clients.end())
 			_handleClientConnection(fd);
-		else if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
-				_handleClientDisconnection(fd);
+		else{
+			this->_clients[fd]->updateLastActivity();
+			if (!(this->_clients[fd]->handleRequest(this->_epollFD)))
+					_handleClientDisconnection(fd);
+
+		}
 	}
 	else if (event & EPOLLOUT){
-		this->sendResponse(_clients[fd]);
+		this->_clients[fd]->updateLastActivity();
+		if (this->_clients[fd]->handleResponse(this->_epollFD) == -1)
+			_handleClientDisconnection(fd);
+	}
+}
+
+
+/**
+ * @brief fonction qui regarde pour chaque client si la dernière activité (EPOLLIN ou EPOLLOUT)
+ *  est supérieur à INACTIVITY_TIMEOUT
+ * si oui on le degage
+ */
+void Server::checkTimeouts(time_t currentTime){
+
+	std::map<int, Client*>::iterator it = this->_clients.begin();
+	while (it != this->_clients.end())
+	{
+		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
+		{
+			Logger::log(Logger::WARNING, "[Server::checkTimeouts] Client %d timed out", it->first);
+			Logger::log(Logger::DEBUG, "[Server::_handleClientDisconnection] Client disconnected on file descriptor %d", it->first);
+			deleteSocketEpoll(this->_epollFD, it->first);
+			delete it->second;
+			this->_clients.erase(it++);
+		}
+		else
+			++it;
 	}
 }
 
@@ -165,6 +184,8 @@ void Server::run(void)
 		Logger::log(Logger::FATAL, "Server is not ready to run");
 	this->setState(S_STATE_RUN);
 
+	time_t lastTimeoutCheck = time(NULL);
+
 	epoll_event	events[MAX_EVENTS];
 	while (this->getState() == S_STATE_RUN)
 	{
@@ -175,6 +196,12 @@ void Server::run(void)
 		
 		for (int i = 0; i < nfds; i++)
 			handleEvent(events, i);
+
+		time_t currentTime = time(NULL);
+		if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL){
+			checkTimeouts(currentTime);
+			lastTimeoutCheck = currentTime;
+		}
 	}
 }
 

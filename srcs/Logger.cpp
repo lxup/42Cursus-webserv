@@ -319,3 +319,12 @@ std::string Logger::getLogLevelColor(Logger::LogLevel level)
 {
 	return (Logger::_logLevelColor[level]);
 }
+
+/*
+ * @brief Cleanup the logger
+ */
+// void Logger::cleanup(void)
+// {
+// 	_logLevelStr.clear();
+// 	_logLevelColor.clear();
+// }

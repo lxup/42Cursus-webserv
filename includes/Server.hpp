@@ -16,6 +16,9 @@
 # include "Request.hpp"
 # include "ConfigParser.hpp"
 
+#define TIMEOUT_CHECK_INTERVAL 10 // seconds
+#define INACTIVITY_TIMEOUT 10 // seconds
+
 // define step for server 
 enum ServerState
 {
@@ -39,8 +42,9 @@ class Server
 		void setEpollFD(int epollFD) { _epollFD = epollFD; }
 
 		/* UTILS */
-		void showIpPortClient(int clientFD);
-		void sendResponse(Client* client);
+		void checkTimeouts(time_t currentTime);
+
+		// void sendResponse(Client* client);
 		void handleEvent(epoll_event *events, int i);
 
 

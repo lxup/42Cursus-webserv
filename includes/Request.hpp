@@ -35,6 +35,27 @@ class Client;
 		void	setPath(const std::string &path) { _path = path; }
 };*/
 
+class Cgi
+{
+	private:
+		bool		_isCGI;
+		std::string	_path;
+		std::string	_execPath;
+	public:
+		Cgi(void) : _isCGI(false), _path(""), _execPath("") {}
+		~Cgi(void) {}
+
+		// GETTERS
+		bool		isCGI(void) const { return _isCGI; }
+		std::string	getPath(void) const { return _path; }
+		std::string	getExecPath(void) const { return _execPath; }
+
+		// SETTERS
+		void	setIsCGI(bool isCGI) { _isCGI = isCGI; }
+		void	setPath(const std::string &path) { _path = path; }
+		void	setExecPath(const std::string &execPath) { _execPath = execPath; }
+};
+
 class Request
 {
 	public:
@@ -53,16 +74,18 @@ class Request
 		std::string 						_method;
 		std::string 						_uri;
 		std::string 						_path;
-		std::map<std::string, std::string>	_query;
+		// std::map<std::string, std::string>	_query;
+		std::string							_query;
 		std::string							_httpVersion;
 		std::string							_body;
 		size_t								_bodySize;
 		std::map<std::string, std::string>	_headers;
-		std::map<std::string, std::string>	_envCGI;
+		// std::map<std::string, std::string>	_envCGI;
 		// Chunked
 		bool								_isChunked;
 		int									_contentLength;
 		int									_chunkSize;
+		Cgi									_cgi;
 		// File								_file;
 		e_parse_state						_state;
 		int									_stateCode;
@@ -79,8 +102,8 @@ class Request
 		void	_processUri(void);
 
 		/* FINDERS */
-		int			_findServer(void);
-		int			_findLocation(void);
+		int		_findServer(void);
+		int		_findLocation(void);
 		// std::string	_findFilename(void);
 
 		/* CHECKERS */
@@ -88,6 +111,7 @@ class Request
 		int 	_checkClientMaxBodySize(void);
 		int		_checkMethod(void);
 		int		_checkPathsMatch(const std::string &path, const std::string &parentPath);
+		// int		_checkCGI(void);
 		// int		_checkContentType(void);
 
 		/* HANDLE */
@@ -102,7 +126,7 @@ class Request
 		/* INIT */
 		void	_initServer(void);
 	public:
-		Request(void);
+		// Request(void);
 		Request(Client *client);
 		Request(const Request &src);
 		~Request(void);
@@ -118,15 +142,31 @@ class Request
 		std::string	getRawRequest(void) const { return _rawRequest; }
 		std::string getMethod(void) const { return _method; }
 		std::string getUri(void) const { return _uri; }
+		std::string getPath(void) const { return _path; }
+		std::string getQuery(void) const { return _query; }
 		std::string getHttpVersion(void) const { return _httpVersion; }
 		std::string getBody(void) const { return _body; }
+		size_t getBodySize(void) const { return _bodySize; }
 		int getStatusCode(void) const { return _stateCode; }
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool isChunked(void) const { return _isChunked; }
 		int getState(void) const { return _state; }
+		int getContentLength(void) const { return _contentLength; }
+		int getChunkSize(void) const { return _chunkSize; }
+		// Cgi& getCgi(void) { return _cgi; }
+		// CGI
+		bool isCGI(void) const { return _cgi.isCGI(); }
+		std::string getCgiPath(void) const { return _cgi.getPath(); }
+		std::string getCgiExecPath(void) const { return _cgi.getExecPath(); }
 
 		/* SETTERS */
 		void	setError(int code);
+		void 	setStateCode(int code) { _stateCode = code; }
+		// CGI
+		void	setCgi(bool isCgi, const std::string &path, const std::string &execPath) { _cgi.setIsCGI(isCgi); _cgi.setPath(path); _cgi.setExecPath(execPath); }
+		// void	setIsCGI(bool isCGI) { _cgi.setIsCGI(isCGI); }
+		// void	setPath(const std::string &path) { _cgi.setPath(path); }
+		// void	setExecPath(const std::string &execPath) { _cgi.setExecPath(execPath); }
 };
 
 #endif // REQUEST_HPP

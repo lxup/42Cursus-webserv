@@ -83,6 +83,12 @@ class BlocLocation
 		const std::vector<e_Methods> &getAllowedMethods() const { return _allowedMethods; }
 		e_boolMod getAutoIndex() const { return _autoindex; }
 		const std::vector<std::string> &getIndexes() const { return _indexes; }
+		const std::map<std::string, std::string> &getCGI() const { return _cgiExtension; }
+		std::string	getCgiPath(const std::string &path) const { return _cgiExtension.at(path); }
+
+		// Is
+		bool isCgi(const std::string &path) const { return _cgiExtension.find(path) != _cgiExtension.end(); }
+
 		// Print
 		void printLocation(void);
 		void printPair(const std::string& label, const std::string& value);

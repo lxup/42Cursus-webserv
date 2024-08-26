@@ -161,6 +161,27 @@ std::string intToHexa(ssize_t num) {
     return stream.str();
 }
 
+/**
+ * @brief get the extension of a file
+ */
+std::string getExtension(const std::string &path, bool includeDot)
+{
+	std::string ext;
+	std::string::size_type idx = path.rfind('.');
+	if (idx != std::string::npos)
+	{
+		if (includeDot)
+			ext = path.substr(idx);
+		else
+			ext = path.substr(idx + 1);
+	}
+	if ((includeDot && ext.size() <= 1) || (!includeDot && ext.empty()))
+		return "";
+	if (ext.find('/') != std::string::npos)
+		return "";
+	return ext;
+}
+
 
 // _____________________________ MODIFY EPOLL _____________________________
 /**
@@ -311,10 +332,10 @@ std::string getMimeType(const std::string &path)
 /**
  * @brief build the html page with the files in the directory
  */
-std::string buildPage(std::vector<std::string> files, std::string path){
+std::string buildPage(std::vector<std::string> files, std::string path, std::string root){
 	std::string page;
 	std::string header = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Listing Directory</title><style>@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');body{padding: 0;margin: 0;box-sizing: border-box;font-family: 'Inter', sans-serif;background-color: #f9f9f9;}.container{--max-width: 1215px;--padding: 1rem;width: min(var(--max-width), 100% - (var(--padding) * 1.2));margin-inline: auto;}a{list-style-type: none;padding: 0;color: black;}.bigLine{width: 100%;height: 1px;background-color: #e0e0e0;margin: 1rem 0;}ul li{list-style-type: '▪️';padding: .2rem 1rem;margin: 0;}a:visited{color: #9e0999;}</style></head>";
-	std::string body = "<body><div class=\"container\"><h1>Index of " + path + "</h1><div class=\"bigLine\"></div><ul>";
+	std::string body = "<body><div class=\"container\"><h1>Index of " + path.substr(root.size()) + "</h1><div class=\"bigLine\"></div><ul>";
 	
 	// ajoute les lien au body
 	for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it)
@@ -399,8 +420,8 @@ std::string listDirectory(std::string path, std::string root){
 	cleanPath(path);
 	if (path[0] != '.')
 		path.insert(0, ".");
-	std::cout << "Root: " << root << std::endl;
-	std::cout << "Path: " << path << std::endl;
+	Logger::log(Logger::DEBUG, "Root: %s", root.c_str());
+	Logger::log(Logger::DEBUG, "Path: %s", path.c_str());
 
 	if (!is_path_within_root(root, path)) {
 		Logger::log(Logger::ERROR, "Path asked is not within root");
@@ -409,8 +430,10 @@ std::string listDirectory(std::string path, std::string root){
 
 	std::vector<std::string> files;
 	DIR *dir = opendir(path.c_str());
-	if (dir == NULL)
+	if (dir == NULL){
 		Logger::log(Logger::ERROR, "Failed to open directory: %s", path.c_str());
+		return ErrorPage::getPage(404);
+	}
 	struct dirent *ent;
 	while ((ent = readdir(dir)) != NULL)
 	{
@@ -423,7 +446,7 @@ std::string listDirectory(std::string path, std::string root){
 	}
 	std::cout << "----------------" << std::endl;
 
-	std::string body = buildPage(files, path);
+	std::string body = buildPage(files, path, root);
 	std::string header = "HTTP/1.1 200 OK\r\n";
 	header += "Content-Type: text/html\r\n";
 	header += "Content-Length: " + intToString(body.size()) + "\r\n";
