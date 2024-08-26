@@ -1,18 +1,21 @@
 #!/usr/bin/env php
 <?php
 // En-têtes HTTP requis
-header('Content-Type: text/html; charset=utf-8\r\n');
+echo "Content-Type: text/html; charset=utf-8\r\n\r\n";
+
 
 // Récupérer la couleur sélectionnée par l'utilisateur
-$color = isset($_POST['color']) ? $_POST['color'] : 'white';
+$color = isset($_POST['color']) ? $_POST['color'] : 'white'; 
 
 // Assurez-vous que la couleur est une des options autorisées pour éviter tout code malveillant
 $valid_colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+echo "Color: $color\n";
 if (!in_array($color, $valid_colors)) {
     $color = 'white'; // couleur par défaut si non valide
 }
 
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

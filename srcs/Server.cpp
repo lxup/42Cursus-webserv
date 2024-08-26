@@ -140,7 +140,7 @@ void Server::handleEvent(epoll_event *events, int i){
 
 		}
 	}
-	else if (event & EPOLLOUT){
+	if (event & EPOLLOUT){
 		this->_clients[fd]->updateLastActivity();
 		if (this->_clients[fd]->handleResponse(this->_epollFD) == -1)
 			_handleClientDisconnection(fd);

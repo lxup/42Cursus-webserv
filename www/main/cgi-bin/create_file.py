@@ -37,7 +37,7 @@ else:
 			value = f"Le fichier '{filename}' a été créé avec succès."
 
 	except Exception as e:
-			value = f"Échec de la création du fichier '{filename}': {e}"
+			value = f"Échec de la création du fichier '{filename}'"
 
 html_content = f"""
 <!DOCTYPE html>
