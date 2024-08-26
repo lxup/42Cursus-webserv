@@ -160,11 +160,11 @@ void BlocServer::checkDoubleLocation()
 void BlocServer::setDefaultValue()
 {
 	if (_listens.empty()){
-		ListenConfig listen("0.0.0.0:80");
-		_listens["0.0.0.0:80"] = listen;
+		ListenConfig listen("0.0.0.0:1234");
+		_listens["0.0.0.0:1234"] = listen;
 	}
 	if (_root.empty())
-		_root = "./config/webserv.conf";
+		_root = "./www/main";
 	if (_indexes.empty())
 		_indexes.push_back("index.html");
 }
