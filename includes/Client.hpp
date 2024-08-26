@@ -23,7 +23,7 @@ class Client
 		Socket*					_socket;
 		Request*				_request;
 		Response*				_response;
-		time_t _lastActivity;
+		time_t					_lastActivity;
 
 	public:
 		// Client(void);

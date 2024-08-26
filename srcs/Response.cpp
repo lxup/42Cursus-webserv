@@ -385,21 +385,21 @@ void Response::generateResponse(int epollFD)
 		this->setState(Response::PROCESS);
 
 	if (isRedirect())
-		this->setState(Response::FINISH);
+		return (this->setState(Response::FINISH));
 
-	// Check if the request is a CGI
 	if (this->isCGI())
 	{
-		Logger::log(Logger::ERROR, "ITS A CGI");
+		Logger::log(Logger::DEBUG, "ITS A CGI");
 		this->handleCGI(epollFD);
 		return ;
 	}
-	Logger::log(Logger::ERROR, "ITS NOT A CGI");
+	Logger::log(Logger::DEBUG, "ITS NOT A CGI");
 
 	if (_request->getMethod() == "GET")
 		handleGetRequest();
 	else
-		this->_response = "HTTP/1.1 405 Method Not Allowed\r\n";
+		return (this->setError(405));
+		// this->_response = "HTTP/1.1 405 Method Not Allowed\r\n";
 	// else if (_request.getMethod == "POST")
 	//     handlePostRequest();
 	// else if (_request.getMethod == "DELETE")
@@ -527,7 +527,6 @@ int Response::handleCGI(int epollFD)
 	else
 	{
 		try {
-			// Check if the CGI is finished
 			this->_cgiHandler->checkState();
 			if (this->_cgiHandler->getState() == CgiHandler::FINISH)
 			{
@@ -535,7 +534,6 @@ int Response::handleCGI(int epollFD)
 				if (this->_response.empty())
 					throw std::invalid_argument("Empty response");
 				this->setState(Response::FINISH);
-				std::cout << C_RED << "CGI FINISSSSSHHHHHHHHHHHHHHHHH" << std::endl;
 				return (-1);
 			}
 		} catch (ChildProcessException &e) {
@@ -548,21 +546,4 @@ int Response::handleCGI(int epollFD)
 		}
 	}
 	return (0);
-	// this->_cgi = new CgiHandler(this->_request);
-	// try {
-	// 	this->_cgi->init();
-	// 	this->_cgi->execute();
-	// 	this->_response = this->_cgi->buildResponse();
-	// 	if (this->_response.empty())
-	// 		throw std::invalid_argument("Empty response");
-	// 	this->setState(Response::FINISH);
-	// } catch (ChildProcessException &e) {
-	// 	throw ChildProcessException();
-	// } catch (IntException &e) {
-	// 	this->setError(e.code());
-	// } catch (std::exception &e) {
-	// 	Logger::log(Logger::DEBUG, "Failed to handle CGI: %s", e.what());
-	// 	this->setError(500);
-	// }
-	// return (0);
 }

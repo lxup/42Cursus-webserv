@@ -20,22 +20,13 @@ int main(int ac, char **av)
 	try{
 		// 1- Parsing
 		server.getConfigParser().parse(args.getConfigFilePath());
-		server.getConfigParser().printServers();
-		// 2- Initialisation et lancement du Server
+		if (Logger::getLogDebugState())
+			server.getConfigParser().printServers();
 		server.init();
 		server.run();
 	}
 	catch (const std::exception &e){
 		return (EXIT_FAILURE);
 	}
-	// catch (const WebservException &e){
-	// 	Logger::log(e.getLogLevel(), e.what());
-	// 	return (EXIT_FAILURE);
-	// }
-
-
-
-	// args.summary();
-
 	return (EXIT_SUCCESS);
 }

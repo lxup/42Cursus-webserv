@@ -127,7 +127,7 @@ void Server::handleEvent(epoll_event *events, int i){
 	
 	try {
 		if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)) // Error with the file descriptor
-			throw std::exception();
+			throw ClientDisconnectedException();
 		if (event & EPOLLIN){
 			if (this->_clients.find(fd) == this->_clients.end()) // New client connection
 				_handleClientConnection(fd);

@@ -269,9 +269,9 @@ void	CgiHandler::checkState(void)
 {
 	int status;
 	pid_t wpid = waitpid(this->_pid, &status, WNOHANG);
-	if (wpid == -1)
+	if (wpid == -1) // Error
 		throw IntException(500);
-	if (wpid == 0)
+	if (wpid == 0) // Still running
 		return ;
 	if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
 	{

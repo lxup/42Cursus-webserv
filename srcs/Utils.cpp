@@ -254,7 +254,7 @@ std::string getErrorMessage(int code)
 		case 404:
 			return "Not Found";
 		case 405:
-			return "Method Not Allowed";
+			return "Not Allowed";
 		case 408:
 			return "Request Timeout";
 		case 409:
