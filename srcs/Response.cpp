@@ -404,7 +404,6 @@ std::string Response::getRawResponse(void)
 
 	if (_request->getMethod() == "GET")
 		handleGetRequest();
-	}
 	else
 		_response = "HTTP/1.1 405 Method Not Allowed\r\n";
 	// else if (_request.getMethod == "POST")

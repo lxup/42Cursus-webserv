@@ -10,6 +10,8 @@
 
 class Request;
 
+# define CGI_READ_BUFFER_SIZE 4096
+
 class CgiHandler
 {
 	private:
