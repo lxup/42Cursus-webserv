@@ -39,6 +39,7 @@ bool Response::isRedirect()
 
 	isLoc = this->_request->getLocation() == NULL ? false : true;
 
+	// return redirection
 	if (isLoc && !this->_request->getLocation()->getRewrite().second.empty())
 	{
 		std::pair<int, std::string> rewrite = this->_request->getLocation()->getRewrite();

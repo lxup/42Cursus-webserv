@@ -4,8 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OuiTransfer</title>
+		<style>
+			@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+	
+			.container{
+				/*--max-width: 1215px;*/
+				--max-width: 1000px;
+				--padding: 1rem;
+	
+				width: min(var(--max-width), 100% - (var(--padding) * 1.2));
+				margin-inline: auto;
+			}
+			body {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				font-family: 'Inter', sans-serif;
+				background-color: #f0f0f0;
+			}
+			div {
+				font-size: 2rem;
+				font-weight: semibold;
+				color: #333;
+				text-align: center;
+			}
+			/* confetti */
+			canvas {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: 9999;
+			}
+		</style>
 </head>
 <body>
+	<div class="container">
     <h1>Upload a File</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
         <label for="file">Choose a file to upload:</label>
@@ -13,5 +49,6 @@
         <br><br>
         <button type="submit">Upload</button>
     </form>
+	</div>
 </body>
 </html>

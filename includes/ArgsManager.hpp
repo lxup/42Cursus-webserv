@@ -6,7 +6,7 @@
 
 # include "Utils.hpp"
 
-# define DEFAULT_CONFIG_FILE_PATH "./config/default.conf"
+# define DEFAULT_CONFIG_FILE_PATH "./config/good/default.conf"
 
 class ArgsManager
 {
