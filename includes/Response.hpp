@@ -33,7 +33,6 @@ class Response
 			};
 	
 	private:
-		Client*				_client;
 		Request*			_request;
 		CgiHandler*			_cgi;
 		std::string 		_response;
