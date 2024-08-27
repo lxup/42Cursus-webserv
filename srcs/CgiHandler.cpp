@@ -1,7 +1,7 @@
 #include "CgiHandler.hpp"
 #include "Webserv.hpp"
 
-CgiHandler::CgiHandler(Response* response, Request* request) : _response(response), _request(request), _env(), _output(), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpIn(NULL), _tmpOut(NULL), _fdIn(-1), _fdOut(-1), _state(CgiHandler::INIT)
+CgiHandler::CgiHandler(Response* response, Request* request) : _response(response), _request(request), _env(), _output(), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpIn(NULL), _tmpOut(NULL), _fdIn(-1), _fdOut(-1), _state(CgiHandler::INIT), _lastActivity(time(NULL))
 {
 }
 

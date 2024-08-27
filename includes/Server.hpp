@@ -16,8 +16,11 @@
 # include "Utils.hpp"
 # include "Request.hpp"
 
-#define TIMEOUT_CHECK_INTERVAL 10 // seconds
-#define INACTIVITY_TIMEOUT 10 // seconds
+#define TIMEOUT_CHECK_INTERVAL 5 // seconds
+#define INACTIVITY_TIMEOUT 60 // seconds
+
+//#define TIMEOUT_CGI_CHECK_INTERVAL 1 // seconds
+#define TIMEOUT_CGI 10 // seconds
 
 // define step for server 
 enum ServerState

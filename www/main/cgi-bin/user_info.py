@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import cgi
+#from time import sleep
 
 # En-têtes HTTP requis
 print("Content-Type: text/html\r\n\r\n")
@@ -9,6 +10,8 @@ print("Content-Type: text/html\r\n\r\n")
 form = cgi.FieldStorage()
 name = form.getvalue("name")
 age = form.getvalue("age")
+
+#sleep(10)  # Simuler un traitement long
 
 # Générer le contenu HTML avec les informations de l'utilisateur
 html_content = f"""

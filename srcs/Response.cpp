@@ -547,3 +547,13 @@ int Response::handleCGI(int epollFD)
 	}
 	return (0);
 }
+void Response::clearCgi()
+{
+	_cgi.setAlreadyChecked(true);
+	_cgi.setIsCGI(false);
+	_cgi.setPath("");
+	_cgi.setExecPath("");
+	if (_cgiHandler)
+		delete _cgiHandler;
+	_cgiHandler = NULL;
+}

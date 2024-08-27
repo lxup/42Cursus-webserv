@@ -160,17 +160,22 @@ void Server::handleEvent(epoll_event *events, int i){
  * si oui on le degage
  */
 void Server::checkTimeouts(time_t currentTime){
-
 	std::map<int, Client*>::iterator it = this->_clients.begin();
 	while (it != this->_clients.end())
 	{
 		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
 		{
 			Logger::log(Logger::WARNING, "[Server::checkTimeouts] Client %d timed out", it->first);
-			Logger::log(Logger::DEBUG, "[Server::_handleClientDisconnection] Client disconnected on file descriptor %d", it->first);
 			deleteSocketEpoll(this->_epollFD, it->first);
 			delete it->second;
 			this->_clients.erase(it++);
+		}
+		else if (it->second->getResponse()->getCgiHandler() != NULL && (currentTime - it->second->getResponse()->getCgiHandler()->getLastActivity() > TIMEOUT_CGI))
+		{
+			Logger::log(Logger::ERROR, "[Server::checkTimeouts] CGI Timeout on client %d", it->first);
+			kill(it->second->getResponse()->getCgiHandler()->getPid(), SIGTERM);
+			it->second->getResponse()->setError(504);
+			it->second->getResponse()->clearCgi();
 		}
 		else
 			++it;

@@ -10,7 +10,7 @@
 # include "Socket.hpp"
 # include "Response.hpp"
 
-# define CLIENT_READ_BUFFER_SIZE 1 // 4096
+# define CLIENT_READ_BUFFER_SIZE 4096
 
 class Request;
 class Response;

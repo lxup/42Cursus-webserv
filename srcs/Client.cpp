@@ -166,8 +166,9 @@ bool Client::isCgiReady(int epollFD)
 {
 	if (this->_response == NULL)
 		return false;
-	if (!this->_response->isCGI())
+	if (!this->_response->isCGI()){
 		return false;
+	}
 	if (this->_response->handleCGI(epollFD) != -1)
 		return false;
 	return true;

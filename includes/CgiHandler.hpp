@@ -5,6 +5,7 @@
 # include <map>
 # include <sys/types.h>
 # include <sys/wait.h>
+# include <ctime>
 
 # include "Request.hpp"
 # include "Response.hpp"
@@ -39,7 +40,9 @@ class CgiHandler
 		FILE								*_tmpOut;
 		long								_fdIn;
 		long								_fdOut;
-		e_cgi_state							_state;
+		e_cgi_state					_state;
+		time_t							_lastActivity;
+
 
 		// Utils
 		char	**_envToChar(void);
@@ -64,9 +67,17 @@ class CgiHandler
 		e_cgi_state getState(void) const { return _state; }
 		long	getFdIn(void) const { return _fdIn; }
 		long	getFdOut(void) const { return _fdOut; }
+		int getPid(void) const { return _pid; }
 
 		/* CHECKER */
 		void	checkState(void);
+
+
+		/* TIMEOUT */
+		time_t getLastActivity() const { return _lastActivity; }
+		void updateLastActivity() { _lastActivity = time(NULL); }
+
+
 		// std::map<std::string, std::string> getEnv(void) const { return _env; }
 		// pid_t getPid(void) const { return _pid; }
 		// int getPipe(int index) const { return _pipe[index]; }
