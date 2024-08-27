@@ -35,7 +35,7 @@ if file_item.filename:
                 output_file.write(chunk)
 
         # Message de succès
-        value = f"'{filename}' a été téléchargé avec succès et enregistré à '{upload_dir}'"
+        value = f"'{filename}' a été uploader avec succès et enregistré à '{upload_dir}'"
     except Exception as e:
         # Message d'erreur en cas de problème lors de l'enregistrement du fichier
         value = f"Erreur lors de l'enregistrement du fichier : {e}"
