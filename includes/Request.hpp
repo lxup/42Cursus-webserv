@@ -12,6 +12,8 @@
 
 # define REQUEST_DEFAULT_STATE_CODE 200
 # define REQUEST_DEFAULT_UPLOAD_PATH "./www/upload/"
+# define REQUEST_DEFAULT_HEADER_TIMEOUT 1
+# define REQUEST_DEFAULT_BODY_TIMEOUT 1
 
 class Client;
 class Request
@@ -51,6 +53,7 @@ class Request
 		bool								_isChunked;
 		int									_contentLength;
 		int									_chunkSize;
+		time_t								_timeout;
 		e_parse_state						_state;
 		int									_stateCode;
 
@@ -84,6 +87,9 @@ class Request
 		int		_checkMethod(void);
 		int		_checkPathsMatch(const std::string &path, const std::string &parentPath);
 
+		/* TIMEOUT */
+		void	_initTimeout(void);
+
 		/* INIT */
 		void	_initServer(void);
 	public:
@@ -113,9 +119,15 @@ class Request
 		int 			getState(void) const { return _state; }
 		int 			getContentLength(void) const { return _contentLength; }
 		int 			getChunkSize(void) const { return _chunkSize; }
+		time_t			getTimeout(void) const { return _timeout; }
 		/* SETTERS */
 		void			setError(int code);
 		void 			setStateCode(int code) { _stateCode = code; }
+		void			setTimeout(time_t timeout) { _timeout = timeout; }
+		void			setTimeout(int timeout) { _timeout = time(NULL) + timeout; }
+
+		/* TIMEOUT */
+		void			checkTimeout(int epollfd);
 };
 
 #endif // REQUEST_HPP

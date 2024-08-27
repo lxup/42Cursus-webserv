@@ -24,13 +24,25 @@ class CgiHandler
 			PROCESS,
 			FINISH
 		};
+		enum e_cgi_parse_state
+		{
+			P_INIT,
+			P_HEADERS_PARSE_KEY,
+			P_HEADERS_PARSE_VALUE,
+			P_HEADERS_PARSE_END,
+			P_HEADERS_END,
+			P_BODY
+		};
 	private:
 		Response*							_response;
 		Request*							_request;
 		std::map<std::string, std::string>	_env;
-		std::string							_body;
-		std::map<std::string, std::string>	_headers;
 		std::string							_output;
+		std::map<std::string, std::string>	_headers;
+		std::string							_tmpHeaderKey;
+		std::string							_tmpHeaderValue;
+		std::string							_body;
+		uint64_t							_contentLength;
 		pid_t								_pid;
 		char								**_envp;
 		char								**_argv;
@@ -40,8 +52,9 @@ class CgiHandler
 		FILE								*_tmpOut;
 		long								_fdIn;
 		long								_fdOut;
-		e_cgi_state					_state;
-		time_t							_lastActivity;
+		e_cgi_state							_state;
+		e_cgi_parse_state					_parseState;
+		time_t								_lastActivity;
 
 
 		// Utils
@@ -49,10 +62,16 @@ class CgiHandler
 		char	**_buildArgv(void);
 
 		/* PARSING */
+		void	_setParseState(e_cgi_parse_state state);
+		void	_parse(const std::string &data);
 		void	_parseHeaders(void);
+		void	_parseHeadersKey(void);
+		void	_parseHeadersValue(void);
+		void	_parseBody(void);
 
 		/* CHECKER */
 		void	_checkHeaders(void);
+
 		
 	public:
 		CgiHandler(Response* response, Request* request);
@@ -65,6 +84,7 @@ class CgiHandler
 		std::string getOutput(void) const { return _output; }
 
 		e_cgi_state getState(void) const { return _state; }
+		e_cgi_parse_state getParseState(void) const { return _parseState; }
 		long	getFdIn(void) const { return _fdIn; }
 		long	getFdOut(void) const { return _fdOut; }
 		int getPid(void) const { return _pid; }

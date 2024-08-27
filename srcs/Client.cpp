@@ -59,7 +59,6 @@ void	Client::handleRequest( int epollFD )
 	if (this->_request->getState() == Request::FINISH)
 		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"));
 
-	std::cout << C_RED << "BUFFER SIZE: " << strlen(buffer) << C_RESET << std::endl;
 	std::string str(buffer, bytesRead);
 	this->_request->parse(str);
 	// this->_request->parse(buffer);

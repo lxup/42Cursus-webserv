@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import cgi
-#from time import sleep
+import time
 
 # En-têtes HTTP requis
 print("Content-Type: text/html\r\n\r\n")
-
+time.sleep(10)
 # Récupérer les données du formulaire
 form = cgi.FieldStorage()
 name = form.getvalue("name")

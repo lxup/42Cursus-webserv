@@ -453,3 +453,16 @@ std::string listDirectory(std::string path, std::string root){
 	header += "\r\n";
 	return header + body;
 }
+
+
+std::string uint64ToString(uint64_t value) {
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+std::string convertToLowercase(const std::string& str) {
+    std::string lowercaseStr = str;
+    std::transform(lowercaseStr.begin(), lowercaseStr.end(), lowercaseStr.begin(), ::tolower);
+    return lowercaseStr;
+}

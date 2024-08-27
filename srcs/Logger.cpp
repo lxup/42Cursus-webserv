@@ -75,6 +75,7 @@ std::map<Logger::LogLevel, std::string> Logger::_generateLogLevelStr(void)
 	logLevelStr[Logger::ERROR] = "ERROR";
 	logLevelStr[Logger::WARNING] = "WARNING";
 	logLevelStr[Logger::INFO] = "INFO";
+	logLevelStr[Logger::TRACE] = "TRACE";
 	logLevelStr[Logger::DEBUG] = "DEBUG";
 
 	return (logLevelStr);
@@ -93,6 +94,7 @@ std::map<Logger::LogLevel, std::string> Logger::_generateLogLevelColor(void)
 	logLevelColor[Logger::ERROR] = C_RED;
 	logLevelColor[Logger::WARNING] = C_YELLOW;
 	logLevelColor[Logger::INFO] = C_GREEN;
+	logLevelColor[Logger::TRACE] = C_MAGENTA;
 	logLevelColor[Logger::DEBUG] = C_CYAN;
 
 	return (logLevelColor);
