@@ -42,7 +42,8 @@ class Server
 		void setEpollFD(int epollFD) { _epollFD = epollFD; }
 
 		/* UTILS */
-		void checkTimeouts(time_t currentTime);
+		void _checkTimeouts(void);
+		// void checkTimeouts(time_t currentTime);
 
 		// void sendResponse(Client* client);
 		void handleEvent(epoll_event *events, int i);

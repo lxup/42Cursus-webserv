@@ -6,11 +6,11 @@ sock.connect(('10.211.55.5', 3434))
 
 # Construction de la requête chunked
 request = (
-    "GET / HTTP/1.1\r\n"
+    "POST / HTTP/1.1\r\n"
     "Host:10.211.55.5    \n"
 	"Content-Length: 25\r\n"
     "\r\n"
-    "Bonjour je suis Wikipedia\r\n"
+    "Bonjour je suis Wik\r\n"
 )
 
 # Envoi de la requête

@@ -27,31 +27,9 @@ Server::~Server(){
 ** -------------------------------- METHODS --------------------------------
 */
 
-/**
-* @brief Sent the response to the client
- */
-// void Server::sendResponse(Client* client){
-// 	std::string response = client->getResponse()->generateResponse();
-// 	Logger::log(Logger::INFO, "Response to sent: \n%s", response.c_str());
-	
-// 	int bytesSent = -1;
-// 	if (client->getFd() != -1)
-// 		bytesSent = send(client->getFd(), response.c_str(), response.length(), 0);
-	
-// 	if (bytesSent < 0)
-// 		Logger::log(Logger::ERROR, "Error with send function");
-// 	else
-// 		Logger::log(Logger::DEBUG, "Sent %d bytes to client %d", bytesSent, client->getFd());
 
-// 	if (client->getResponse()->getState() == Response::FINISH)
-// 	{
-// 		Logger::log(Logger::DEBUG, "Response sent to client %d", client->getFd());
-// 		client->clearRequest();
-// 		modifySocketEpoll(_epollFD, client->getFd(), REQUEST_FLAGS);
-// 	}
-// }
-
-void Server::stop( void ) {
+void Server::stop( void )
+{
 	this->setState(S_STATE_STOP);
 }
 
@@ -126,6 +104,7 @@ void Server::handleEvent(epoll_event *events, int i){
 	int fd = events[i].data.fd;
 	
 	try {
+
 		if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)) // Error with the file descriptor
 			throw ClientDisconnectedException();
 		if (event & EPOLLIN){
@@ -159,23 +138,31 @@ void Server::handleEvent(epoll_event *events, int i){
  *  est supérieur à INACTIVITY_TIMEOUT
  * si oui on le degage
  */
-void Server::checkTimeouts(time_t currentTime){
-
-	std::map<int, Client*>::iterator it = this->_clients.begin();
-	while (it != this->_clients.end())
+void	Server::_checkTimeouts(void)
+{
+	// Check request timeout
+	for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
 	{
-		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
-		{
-			Logger::log(Logger::WARNING, "[Server::checkTimeouts] Client %d timed out", it->first);
-			Logger::log(Logger::DEBUG, "[Server::_handleClientDisconnection] Client disconnected on file descriptor %d", it->first);
-			deleteSocketEpoll(this->_epollFD, it->first);
-			delete it->second;
-			this->_clients.erase(it++);
-		}
-		else
-			++it;
+		it->second->getRequest()->checkTimeout(this->_epollFD);
 	}
 }
+// void Server::checkTimeouts(time_t currentTime){
+
+// 	std::map<int, Client*>::iterator it = this->_clients.begin();
+// 	while (it != this->_clients.end())
+// 	{
+// 		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
+// 		{
+// 			Logger::log(Logger::WARNING, "[Server::checkTimeouts] Client %d timed out", it->first);
+// 			Logger::log(Logger::DEBUG, "[Server::_handleClientDisconnection] Client disconnected on file descriptor %d", it->first);
+// 			deleteSocketEpoll(this->_epollFD, it->first);
+// 			delete it->second;
+// 			this->_clients.erase(it++);
+// 		}
+// 		else
+// 			++it;
+// 	}
+// }
 
 
 /**
@@ -190,24 +177,26 @@ void Server::run(void)
 		Logger::log(Logger::FATAL, "Server is not ready to run");
 	this->setState(S_STATE_RUN);
 
-	time_t lastTimeoutCheck = time(NULL);
+	// time_t lastTimeoutCheck = time(NULL);
 
 	epoll_event	events[MAX_EVENTS];
 	while (this->getState() == S_STATE_RUN)
 	{
 
-		Logger::log(Logger::INFO, "Waiting for connections...");
-		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, -1), "Error with function epoll wait");
+		// Logger::log(Logger::INFO, "Waiting for connections...");
+		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, 500), "Error with epoll_wait function");
 		Logger::log(Logger::DEBUG, "[Server::run] There are %d file descriptors ready for I/O after epoll wait", nfds);
 		
 		for (int i = 0; i < nfds; i++)
 			handleEvent(events, i);
 
-		time_t currentTime = time(NULL);
-		if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL){
-			checkTimeouts(currentTime);
-			lastTimeoutCheck = currentTime;
-		}
+		this->_checkTimeouts();
+
+		// time_t currentTime = time(NULL);
+		// if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL){
+		// 	checkTimeouts(currentTime);
+		// 	lastTimeoutCheck = currentTime;
+		// }
 	}
 }
 

@@ -38,7 +38,7 @@ std::string	Request::getParseStateStr(e_parse_state state) const
 	}
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _timeout(0), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 {
 	this->_initServer();
 }
@@ -91,6 +91,13 @@ void	Request::parse(const std::string &rawRequest)
 {
 	if (this->_state == Request::FINISH)
 		return ;
+	if (this->_state == Request::INIT)
+	{
+		Logger::log(Logger::TRACE, "\"%.*s\"", 25, rawRequest.substr(0, rawRequest.find("\n")).c_str());
+		this->_initTimeout();
+	}
+	
+
 	if (rawRequest.empty())
 	{
 		Logger::log(Logger::WARNING, "Empty request");
@@ -98,9 +105,9 @@ void	Request::parse(const std::string &rawRequest)
 	}
 	this->_rawRequest += rawRequest;
 
-	Logger::log(Logger::ERROR, "ACTUAL BODY SIZE: %zu", this->_bodySize);
-	Logger::log(Logger::ERROR, "RAW REQUEST SIZE: %zu", this->_rawRequest.length());
-	Logger::log(Logger::ERROR, "EXPECTED NEW BODY SIZE: %zu", this->_bodySize + this->_rawRequest.size());
+	// Logger::log(Logger::ERROR, "ACTUAL BODY SIZE: %zu", this->_bodySize);
+	// Logger::log(Logger::ERROR, "RAW REQUEST SIZE: %zu", this->_rawRequest.length());
+	// Logger::log(Logger::ERROR, "EXPECTED NEW BODY SIZE: %zu", this->_bodySize + this->_rawRequest.size());
 	Logger::log(Logger::DEBUG, "Parsing request: %s", this->_rawRequest.c_str());
 
 	this->_parseRequestLine();
@@ -564,7 +571,12 @@ void	Request::_setState(e_parse_state state)
 	Logger::log(Logger::DEBUG, "[_setState] Request state changed from %s to %s with state code: %d", this->getParseStateStr(this->_state).c_str(), this->getParseStateStr(state).c_str(), this->_stateCode);
 
 	if (state == Request::BODY)
+	{
+		this->setTimeout(REQUEST_DEFAULT_BODY_TIMEOUT);
 		this->_setHeaderState(); // Set the header state
+	}
+	else if (state == Request::FINISH)
+		this->_timeout = 0;
 	if (this->_state == Request::FINISH)
 		return ;
 	
@@ -831,147 +843,35 @@ int	Request::_checkPathsMatch(const std::string &path, const std::string &parent
 }
 
 /*
-** @brief Check the CGI
+** --------------------------------- TIMEOUT -----------------------------------
+*/
+
+/*
+** @brief Init the timeout
+*/
+void	Request::_initTimeout(void)
+{
+	time_t currentTime = time(NULL);
+	this->_timeout = currentTime + REQUEST_DEFAULT_HEADER_TIMEOUT;
+}
+
+/*
+** @brief Check the timeout
 **
-** @return 0 if the check is successful, -1 otherwise
+** @param epollfd : The epoll file descriptor
 */
-// int	Request::_checkCGI(void)
-// {
-// 	if (this->_location == NULL)
-// 		return (0);
-
-// 	std::string	pathExtension = this->_path.substr(this->_path.find_last_of('.'));
-// 	if (pathExtension.empty())
-// 		return (0);
-// 	if (this->_location->isCgi(pathExtension))
-// 	{
-// 		this->_cgi.setIsCGI(true);
-// 		this->_cgi.setExecPath(this->_location->getCgiPath(pathExtension));
-// 		this->_cgi.setPath(this->_path);
-// 	}
-// 	return (0);
-// }
-	
-	
-
-/*
-** @brief Check the content type
-**
-** @return 0 if the check is successful, -1 otherwise
-*/
-// int	Request::_checkContentType(void)
-// {
-// 	if (this->_headers.find("Content-Type") == this->_headers.end())
-// 		return (0);
-// 	std::string contentType = this->_extractContentType(this->_headers["Content-Type"]);
-// 	// if (contentType == "application/octet-stream")
-// 	// 	return (this->_handleOctetStream());
-// 	if (contentType == "multipart/form-data")
-// 		return (this->_handleMultipartFormData());
-// 	else if (contentType == "x-www-form-urlencoded")
-// 		return (0);
-// 	else
-// 	{
-// 		Logger::log(Logger::ERROR, "[_checkContentType] Content-Type not supported: %s", contentType.c_str());
-// 		this->setError(415);
-// 		return (-1);
-// 	}
-// 	return (0);
-// }
-
-/*
-** --------------------------------- HANDLE -----------------------------------
-*/
-
-/*
-** @brief Handle the multipart form data
-**
-** @return 0 if the handle is successful, -1 otherwise
-*/
-// int	Request::_handleMultipartFormData(void)
-// {
-// 	return (0);
-// }
-
-/*
-** @brief Handle the octet stream
-*/
-// int	Request::_handleOctetStream(void)
-// {
-// 	Logger::log(Logger::DEBUG, "[_handleOctetStream] Handling octet stream");
-
-// 	if (this->_method != "POST" && this->_method != "PUT")
-// 		return (0);
-
-// 	// Try to get filename from headers, path or query
-// 	this->_file.setFilename(this->_findFilename());
-// 	std::cout << "Filename: " << this->_file.getFilename() << std::endl;
-// 	if (std::ifstream(this->_file.getPath().c_str()))
-// 	{
-// 		this->setError(409);
-// 		return (Logger::log(Logger::ERROR, "[_handleOctetStream] File already exists: %s", this->_file.getFilename().c_str()), -1);
-// 	}
-// 	// open the file
-// 	this->_file.getFile()->open(this->_file.getPath().c_str(), std::ios::out | std::ios::binary);
-// 	if (!this->_file.getFile()->is_open())
-// 	{
-// 		this->setError(500);
-// 		return (Logger::log(Logger::ERROR, "[_handleOctetStream] Error opening file: %s", this->_file.getPath().c_str()), -1);
-// 	}
-// 	return (0);
-// }
-
-/*
-** --------------------------------- TOOLS ------------------------------------
-*/
-
-/*
-** @brief Extract the content type
-**
-** @param contentType : The content type
-**
-** @return The extracted content type
-*/
-// std::string	Request::_extractContentType(const std::string &contentType)
-// {
-// 	size_t pos = contentType.find(';');
-// 	if (pos != std::string::npos)
-// 		return (contentType.substr(0, pos));
-// 	return (contentType);
-// }
-
-/*
-** @brief Get a random filename
-**
-** @return The random filename
-*/
-// std::string	Request::_getRandomFilename(void)
-// {
-// 	std::string filename = "upload_";
-// 	std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-// 	// add 10 random characters to the filename and check if the file already exists
-// 	do
-// 	{
-// 		for (int i = 0; i < 10; i++)
-// 			filename += charset[rand() % charset.size()];
-// 	} while (std::ifstream((REQUEST_DEFAULT_UPLOAD_PATH + this->_path + filename).c_str()));
-
-// 	return (filename);
-// }
-
-/*
-** @brief Upload failed
-*/
-// void	Request::_uploadFailed(void)
-// {
-// 	if (this->_file.getFile()->is_open())
-// 	{
-// 		this->_file.getFile()->close();
-// 		remove(this->_file.getPath().c_str());
-// 	}
-// 	this->setError(500);
-// 	return (Logger::log(Logger::ERROR, "[_uploadFailed] Upload failed"));
-// }
+void	Request::checkTimeout(int epollfd)
+{
+	if (this->_timeout == 0 || this->_state == Request::FINISH)
+		return ;
+	time_t currentTime = time(NULL);
+	if (currentTime > this->_timeout)
+	{
+		Logger::log(Logger::ERROR, "[checkTimeout] Client %d timeout", this->_client->getFd());
+		this->setError(408);
+		modifySocketEpoll(epollfd, this->_client->getFd(), RESPONSE_FLAGS);
+	}
+}
 
 /*
 ** --------------------------------- INIT -------------------------------------
