@@ -58,7 +58,7 @@ class Response
 			};
 	
 	private:
-		Client*				_client;
+		//Client*				_client;
 		Request*			_request;
 		Cgi					_cgi;
 		CgiHandler*			_cgiHandler;
