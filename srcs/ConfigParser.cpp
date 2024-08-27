@@ -14,8 +14,8 @@ ConfigParser::~ConfigParser(void) {}
 // ================== UTILS ==================
 
 bool ConfigParser::isStartBlocServer(std::vector<std::string> tokens){
-	return ((tokens[0] == "server" && tokens[1] == "{") && tokens.size() == 2) 
-				|| (tokens[0] == "server{" && tokens.size() == 1);
+	return ((tokens.size() == 2 && tokens[0] == "server" && tokens[1] == "{")) 
+				|| (tokens.size() == 1 && tokens[0] == "server{");
 }
 
 
