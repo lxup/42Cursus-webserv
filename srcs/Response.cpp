@@ -476,7 +476,7 @@ bool Response::_checkCgiPath(std::string path)
 	for (it = this->_request->getLocation()->getCGI().begin(); it != this->_request->getLocation()->getCGI().end(); ++it)
 	{
 		if (path.size() > it->first.size() && path.compare(path.size() - it->first.size(), it->first.size(), it->first) == 0){
-			std::cout << "path cgi:" << path << std::endl;
+			// std::cout << "path cgi:" << path << std::endl;
 			//if (!fileExist(it->second)){
 			//	Logger::log(Logger::ERROR, "CGI file not found: %s", it->second.c_str());
 			//	// TODO verifer si c'est une 404 ??

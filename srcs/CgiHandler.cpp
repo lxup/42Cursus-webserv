@@ -131,6 +131,11 @@ void		CgiHandler::init(void)
 	this->_env["SCRIPT_NAME"] = this->_response->getCgiExecPath();
 	this->_env["SCRIPT_FILENAME"] = this->_response->getCgiExecPath();
 	this->_env["QUERY_STRING"] = this->_request->getQuery();
+	this->_env["REQUEST_URI"] = this->_request->getUri();
+
+	// this->_env["REMOTE_ADDR"] = this->_request->getClient()->getSocket()->getIp();
+	// this->_env["REMOTE_IDENT"] = this->_request->getHeaders()["Authorization"];
+	// this->_env["REMOTE_USER"] = this->_request->getHeaders()["Authorization"];
 
 	this->_env["CONTENT_LENGTH"] = intToString(this->_request->getBodySize());
 	this->_env["CONTENT_TYPE"] = this->_request->getHeaders()["Content-Type"];
@@ -191,73 +196,6 @@ void	CgiHandler::execute(void)
 	{
 		this->_state = CgiHandler::PROCESS;
 	}
-	// else
-	// {
-	// 	char	buffer[CGI_READ_BUFFER_SIZE] = {0};
-
-	// 	waitpid(-1, NULL, 0);
-	// 	if (lseek(this->_fdOut, 0, SEEK_SET) == -1)
-	// 		throw std::invalid_argument("Error with lseek");
-
-	// 	int ret = 1;
-	// 	while (ret > 0)
-	// 	{
-	// 		memset(buffer, 0, CGI_READ_BUFFER_SIZE);
-	// 		ret = read(this->_fdOut, buffer, CGI_READ_BUFFER_SIZE - 1);
-	// 		this->_output += buffer;
-	// 	}
-	// }
-
-	// if (dup2(this->_StdinBackup, STDIN_FILENO) == -1)
-	// 	throw std::invalid_argument("Error with dup2");
-	// if (dup2(this->_StdoutBackup, STDOUT_FILENO) == -1)
-	// 	throw std::invalid_argument("Error with dup2");
-	// {if (this->_tmpIn != NULL)
-	// {
-	// 	fclose(this->_tmpIn);
-	// 	this->_tmpIn = NULL;
-	// }
-	// if (this->_tmpOut != NULL)
-	// {
-	// 	fclose(this->_tmpOut);
-	// 	this->_tmpOut = NULL;
-	// }
-	// if (this->_fdIn != -1)
-	// {
-	// 	close(this->_fdIn);
-	// 	this->_fdIn = -1;
-	// }
-	// if (this->_fdOut != -1)
-	// {
-	// 	close(this->_fdOut);
-	// 	this->_fdOut = -1;
-	// }
-	// if (this->_StdinBackup != -1)
-	// {
-	// 	close(this->_StdinBackup);
-	// 	this->_StdinBackup = -1;
-	// }
-	// if (this->_StdoutBackup != -1)
-	// {
-	// 	close(this->_StdoutBackup);
-	// 	this->_StdoutBackup = -1;
-	// }
-	// if (this->_envp)
-	// {
-	// 	for (size_t i = 0; this->_envp[i]; i++)
-	// 		delete[] this->_envp[i];
-	// 	delete[] this->_envp;
-	// 	this->_envp = NULL;
-	// }
-	// if (this->_argv)
-	// {
-	// 	for (size_t i = 0; this->_argv[i]; i++)
-	// 		delete[] this->_argv[i];
-	// 	delete[] this->_argv;
-	// 	this->_argv = NULL;
-	// }}
-	// this->_parseHeaders();
-	// return ;
 }
 
 /*
@@ -385,11 +323,11 @@ void	CgiHandler::_parseHeaders(void)
 void	CgiHandler::_checkHeaders(void)
 {
 	// printMap(this->_headers);
-	std::cout << C_CYAN << "Checking headers: " << C_RESET << std::endl;
-	for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
-	{
-		std::cout << C_CYAN << it->first << ": " << it->second << C_RESET << std::endl;
-	}
+	// std::cout << C_CYAN << "Checking headers: " << C_RESET << std::endl;
+	// for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
+	// {
+	// 	std::cout << C_CYAN << it->first << ": " << it->second << C_RESET << std::endl;
+	// }
 	// array of string for allowed headers
 	// std::string allowedHeaders[] = {"Content-Type", "Content-Length", "Location", "Status"};
 	std::vector<std::string> allowedHeaders;

@@ -6,7 +6,7 @@ sock.connect(('localhost', 1313))
 
 # Construction de la requête chunked
 request = (
-    "POST       /      HTTP/1.1   \r\n"
+    "GET       /      HTTP/1.1   \r\n"
     "Host:10.211.55.5\r\n"
 	"Content-Length: 25\r\n"
     "\n"

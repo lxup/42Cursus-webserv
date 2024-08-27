@@ -38,7 +38,7 @@ std::string	Request::getParseStateStr(e_parse_state state) const
 	}
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 {
 	this->_initServer();
 }
@@ -98,6 +98,9 @@ void	Request::parse(const std::string &rawRequest)
 	}
 	this->_rawRequest += rawRequest;
 
+	Logger::log(Logger::ERROR, "ACTUAL BODY SIZE: %zu", this->_bodySize);
+	Logger::log(Logger::ERROR, "RAW REQUEST SIZE: %zu", this->_rawRequest.length());
+	Logger::log(Logger::ERROR, "EXPECTED NEW BODY SIZE: %zu", this->_bodySize + this->_rawRequest.size());
 	Logger::log(Logger::DEBUG, "Parsing request: %s", this->_rawRequest.c_str());
 
 	this->_parseRequestLine();
@@ -382,6 +385,8 @@ void	Request::_parseHeadersKey(void)
 		if (this->_rawRequest[0] == '\n')
 		{
 			this->_rawRequest.erase(0, 1);
+			if (!this->_tmpHeaderKey.empty())
+				return (this->setError(400));
 			return (this->_setState(Request::BODY));
 		}
 		if (this->_rawRequest.size() < 2)
@@ -389,6 +394,8 @@ void	Request::_parseHeadersKey(void)
 		if (this->_rawRequest[1] == '\n')
 		{
 			this->_rawRequest.erase(0, 2);
+			if (!this->_tmpHeaderKey.empty())
+				return (this->setError(400));
 			return (this->_setState(Request::BODY));
 		}
 		return (this->setError(400));
