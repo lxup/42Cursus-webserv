@@ -8,7 +8,7 @@
 // {
 // }
 
-Response::Response(Client* client) : _client(client), _request(client->getRequest()), _cgiHandler(NULL), _state(Response::INIT), _fileFd(-1)
+Response::Response(Client* client) : _request(client->getRequest()), _cgiHandler(NULL), _state(Response::INIT), _fileFd(-1)
 {
 }
 
