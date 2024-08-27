@@ -8,7 +8,7 @@
 // {
 // }
 
-Response::Response(Client* client) : _client(client), _request(client->getRequest()), _cgiHandler(NULL), _state(Response::INIT), _fileFd(-1)
+Response::Response(Client* client) : _request(client->getRequest()), _cgiHandler(NULL), _state(Response::INIT), _fileFd(-1)
 {
 }
 
@@ -546,4 +546,14 @@ int Response::handleCGI(int epollFD)
 		}
 	}
 	return (0);
+}
+void Response::clearCgi()
+{
+	_cgi.setAlreadyChecked(true);
+	_cgi.setIsCGI(false);
+	_cgi.setPath("");
+	_cgi.setExecPath("");
+	if (_cgiHandler)
+		delete _cgiHandler;
+	_cgiHandler = NULL;
 }

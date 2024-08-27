@@ -16,8 +16,11 @@
 # include "Utils.hpp"
 # include "Request.hpp"
 
-#define TIMEOUT_CHECK_INTERVAL 10 // seconds
-#define INACTIVITY_TIMEOUT 10 // seconds
+#define TIMEOUT_CHECK_INTERVAL 5 // seconds
+#define INACTIVITY_TIMEOUT 1 // seconds
+
+//#define TIMEOUT_CGI_CHECK_INTERVAL 1 // seconds
+#define TIMEOUT_CGI 1 // seconds
 
 // define step for server 
 enum ServerState
@@ -42,8 +45,7 @@ class Server
 		void setEpollFD(int epollFD) { _epollFD = epollFD; }
 
 		/* UTILS */
-		void _checkTimeouts(void);
-		// void checkTimeouts(time_t currentTime);
+		void _checkTimeouts(time_t currentTime);
 
 		// void sendResponse(Client* client);
 		void handleEvent(epoll_event *events, int i);

@@ -11,6 +11,8 @@ form = cgi.FieldStorage()
 name = form.getvalue("name")
 age = form.getvalue("age")
 
+#sleep(10)  # Simuler un traitement long
+
 # Générer le contenu HTML avec les informations de l'utilisateur
 html_content = f"""
 <!DOCTYPE html>

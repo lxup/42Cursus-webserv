@@ -35,7 +35,8 @@ std::vector<std::string> split(std::string s, std::string delimiter);
 std::string unsignedIntToString(unsigned int value);
 std::string intToString(int value);
 std::string	getExtension(const std::string &path, bool includeDot = true);
-
+std::string uint64ToString(uint64_t value);
+std::string convertToLowercase(const std::string& str);
 int protectedCall(int ret, std::string msg, bool isFatal = true);
 
 std::string extractIp(std::string ipPort);

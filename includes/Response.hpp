@@ -58,7 +58,7 @@ class Response
 			};
 	
 	private:
-		Client*				_client;
+		//Client*				_client;
 		Request*			_request;
 		Cgi					_cgi;
 		CgiHandler*			_cgiHandler;
@@ -99,12 +99,14 @@ class Response
 		size_t	getResponseSize() const { return _response.size(); }
 		void generateResponse(int epollFD);
 		std::vector<std::string> getAllPathsLocation();
+		CgiHandler* getCgiHandler() const { return _cgiHandler; }
 
 		// Setters
 		void setError(int code);
 
 		// Check
 		void	checkCgi(void);
+		void  clearCgi();
 
 		// Handle
 		int	handleCGI(int epollFD);
@@ -114,7 +116,6 @@ class Response
 		std::string getCgiPath(void) const { return _cgi.getPath(); }
 		std::string getCgiExecPath(void) const { return _cgi.getExecPath(); }
 		void	setCgi(bool isCgi, const std::string &path, const std::string &execPath) { _cgi.setIsCGI(isCgi); _cgi.setPath(path); _cgi.setExecPath(execPath); }
-		
 
 };
 

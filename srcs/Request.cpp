@@ -304,9 +304,6 @@ void	Request::_parseHttpVersion(void)
 /*
 ** @brief Parse the headers
 **
-** @param iss : The input stream
-** @param line : The current line
-** @param step : The current step
 */
 void	Request::_parseHeaders(void)
 {
@@ -347,37 +344,6 @@ void	Request::_parseHeaders(void)
 		}
 		return (this->setError(400));
 	}
-
-	// std::size_t	pos = this->_rawRequest.find("\r\n");
-	// if (pos == std::string::npos)
-	// 	return (Logger::log(Logger::DEBUG, "Incomplete headers, waiting for more data"));
-	// while (pos != std::string::npos)
-	// {
-	// 	std::string 		line = this->_rawRequest.substr(0, pos);
-	// 	std::istringstream	iss(line);
-	// 	if (line.empty()) // Empty line, end of headers
-	// 	{
-	// 		this->_rawRequest.erase(0, pos + 2); // Remove the empty line from the raw request
-	// 		this->_setState(Request::BODY);
-	// 		return ;
-	// 	}
-
-	// 	std::size_t colonPos = line.find(':');
-	// 	if (colonPos == std::string::npos)
-	// 	{
-	// 		this->setError(400); // TODO : Set right error code
-	// 		return (Logger::log(Logger::ERROR, "Malformed header: %s", line.c_str()));
-	// 	}
-	// 	std::string key = line.substr(0, colonPos);
-	// 	std::string value = line.substr(colonPos + 1);
-
-	// 	key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
-	// 	value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
-
-	// 	this->_headers[key] = value;
-	// 	this->_rawRequest.erase(0, pos + 2); // Remove the line from the raw request
-	// 	pos = this->_rawRequest.find("\r\n");
-	// }
 }
 
 /*

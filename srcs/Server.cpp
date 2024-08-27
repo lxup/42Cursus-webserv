@@ -134,36 +134,33 @@ void Server::handleEvent(epoll_event *events, int i){
 
 
 /**
- * @brief fonction qui regarde pour chaque client si la dernière activité (EPOLLIN ou EPOLLOUT)
- *  est supérieur à INACTIVITY_TIMEOUT
- * si oui on le degage
+ * @brief Check the timeouts of the clients
+ * 
  */
-void	Server::_checkTimeouts(void)
+void	Server::_checkTimeouts(time_t currentTime)
 {
-	// Check request timeout
-	for (std::map<int, Client*>::iterator it = this->_clients.begin(); it != this->_clients.end(); ++it)
+	std::map<int, Client*>::iterator it = this->_clients.begin();
+	while (it != this->_clients.end())
 	{
 		it->second->getRequest()->checkTimeout(this->_epollFD);
+		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
+		{
+			Logger::log(Logger::DEBUG, "[Server::_checkTimeouts] Client %d timed out", it->first);
+			deleteSocketEpoll(this->_epollFD, it->first);
+			delete it->second;
+			this->_clients.erase(it++);
+		}
+		else if (it->second->getResponse()->getCgiHandler() != NULL && (currentTime - it->second->getResponse()->getCgiHandler()->getLastActivity() > TIMEOUT_CGI))
+		{
+			Logger::log(Logger::DEBUG, "[Server::_checkTimeouts] CGI Timeout on client %d", it->first);
+			kill(it->second->getResponse()->getCgiHandler()->getPid(), SIGTERM);
+			it->second->getResponse()->setError(504);
+			it->second->getResponse()->clearCgi();
+		}
+		else
+			++it;
 	}
 }
-// void Server::checkTimeouts(time_t currentTime){
-
-// 	std::map<int, Client*>::iterator it = this->_clients.begin();
-// 	while (it != this->_clients.end())
-// 	{
-// 		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
-// 		{
-// 			Logger::log(Logger::WARNING, "[Server::checkTimeouts] Client %d timed out", it->first);
-// 			Logger::log(Logger::DEBUG, "[Server::_handleClientDisconnection] Client disconnected on file descriptor %d", it->first);
-// 			deleteSocketEpoll(this->_epollFD, it->first);
-// 			delete it->second;
-// 			this->_clients.erase(it++);
-// 		}
-// 		else
-// 			++it;
-// 	}
-// }
-
 
 /**
  * @brief Main loop of Webserv
@@ -177,12 +174,11 @@ void Server::run(void)
 		Logger::log(Logger::FATAL, "Server is not ready to run");
 	this->setState(S_STATE_RUN);
 
-	// time_t lastTimeoutCheck = time(NULL);
+	time_t lastTimeoutCheck = time(NULL);
 
 	epoll_event	events[MAX_EVENTS];
 	while (this->getState() == S_STATE_RUN)
 	{
-
 		// Logger::log(Logger::INFO, "Waiting for connections...");
 		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, 500), "Error with epoll_wait function");
 		Logger::log(Logger::DEBUG, "[Server::run] There are %d file descriptors ready for I/O after epoll wait", nfds);
@@ -190,11 +186,12 @@ void Server::run(void)
 		for (int i = 0; i < nfds; i++)
 			handleEvent(events, i);
 
-		this->_checkTimeouts();
 
-		// time_t currentTime = time(NULL);
-		// if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL){
-		// 	checkTimeouts(currentTime);
+		time_t currentTime = time(NULL);
+		(void)lastTimeoutCheck;
+		// if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL)
+		// {
+			this->_checkTimeouts(currentTime);
 		// 	lastTimeoutCheck = currentTime;
 		// }
 	}
