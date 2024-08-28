@@ -97,12 +97,16 @@ REQUEST_PATH	=	$(SRC_PATH)/Request
 REQUEST			=	Request \
 					RequestCgi \
 					RequestBody \
-					CgiHandler \
-					CgiHandlerV2 \
 
 # RESPONSE
 RESPONSE_PATH	=	$(SRC_PATH)/Response
 RESPONSE		=	Response
+
+# CGI
+CGI_PATH		=	$(SRC_PATH)/Cgi
+CGI				=	CgiExecutor \
+					CgiHandler \
+					
 
 # UTILS
 UTILS_PATH		=	$(SRC_PATH)/Utils
@@ -114,9 +118,10 @@ SRCS			+=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, $(MAIN))) \
 					$(addprefix $(SERVER_PATH)/, $(addsuffix .cpp, $(SERVER))) \
 					$(addprefix $(REQUEST_PATH)/, $(addsuffix .cpp, $(REQUEST))) \
 					$(addprefix $(RESPONSE_PATH)/, $(addsuffix .cpp, $(RESPONSE))) \
+					$(addprefix $(CGI_PATH)/, $(addsuffix .cpp, $(CGI))) \
 					$(addprefix $(UTILS_PATH)/, $(addsuffix .cpp, $(UTILS)))
 
-CLASSES			=	$(LOGGER_PATH) $(CONFIG_PATH) $(SERVER_PATH) $(REQUEST_PATH) $(RESPONSE_PATH) $(UTILS_PATH)
+CLASSES			=	$(LOGGER_PATH) $(CONFIG_PATH) $(SERVER_PATH) $(REQUEST_PATH) $(RESPONSE_PATH) $(CGI_PATH) $(UTILS_PATH)
 
 CXXFLAGS		+=	$(addprefix -I, $(CLASSES))
 

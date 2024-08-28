@@ -5,25 +5,30 @@
 
 // # include "CgiHandler.hpp"
 # include "Utils.hpp"
-# include "CgiHandlerV2.hpp"
+# include "CgiExecutor.hpp"
 // # include "Request.hpp"
 
 class Request;
-class CgiHandlerV2;
+class CgiExecutor;
 // class CgiHandler;
 
 class RequestCgi
 {
+	friend class Client;
 	friend class Request;
+	friend class Response;
+	friend class CgiExecutor;
 	private:
 		Request*		_request;
 		bool			_isCGI;
 		std::string		_path;
 		std::string		_execPath;
-		CgiHandlerV2*	_cgiHandler;
+		CgiExecutor*	_cgiHandler;
 
 		/* METHODS */
 		void	_start(void);
+		void	_checkState(void);
+		void	_kill(void);
 	public:
 		RequestCgi(void);
 		RequestCgi(Request* request);

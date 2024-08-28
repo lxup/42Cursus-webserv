@@ -375,6 +375,7 @@ void Response::handleGetRequest(void)
  */
 void Response::generateResponse(int epollFD)
 {
+	(void)epollFD;
 	if (!_response.empty())
 		_response.clear();
 
@@ -387,11 +388,16 @@ void Response::generateResponse(int epollFD)
 	if (isRedirect())
 		return (this->setState(Response::FINISH));
 
-	if (this->isCGI())
+	// if (this->isCGI())
+	// {
+	// 	Logger::log(Logger::DEBUG, "ITS A CGI");
+	// 	this->handleCGI(epollFD);
+	// 	return ;
+	// }
+	if (this->_request->isCgi())
 	{
 		Logger::log(Logger::DEBUG, "ITS A CGI");
-		this->handleCGI(epollFD);
-		return ;
+		return (this->_handleCgi());
 	}
 	Logger::log(Logger::DEBUG, "ITS NOT A CGI");
 
@@ -437,10 +443,11 @@ void Response::setState(e_response_state state)
 ** --------------------------------- SETTERS ---------------------------------
 */
 
-void	Response::setError(int code)
+void	Response::setError(int code, bool generatePage)
 {
 	this->_request->setStateCode(code);
-	this->_response = ErrorPage::getPage(code, this->_request->getServer()->getErrorPages());
+	if (generatePage)
+		this->_response = ErrorPage::getPage(code, this->_request->getServer()->getErrorPages());
 	this->setState(Response::FINISH);
 }
 
@@ -498,6 +505,23 @@ bool Response::_checkCgiPath(std::string path)
 /*
 ** --------------------------------- HANDLE ---------------------------------
 */
+
+/**
+ * @brief Handle the CGI response
+ * 
+ */
+void Response::_handleCgi(void)
+{
+	if (this->_state == Response::FINISH)
+		return ;
+	if (this->_state == Response::INIT)
+		if (lseek(this->_request->_cgi._cgiHandler->getFdOut(), 0, SEEK_END) == -1)
+			return (this->setError(500));
+	
+	// READ CGI AND RETURN IN CHUNK IF CONTENT-LENGTH IS TOO BIG OR IF CONTENT-LENGTH IS NOT PRESENT
+	
+
+}
 
 /**
  * @brief Handle the CGI response

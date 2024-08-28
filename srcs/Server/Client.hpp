@@ -49,6 +49,9 @@ class Client
 		// Is
 		bool	isCgiReady(int epollFD);
 
+		// Checkers
+		void	checkCgi(void);
+
 };
 
 class ClientDisconnectedException : public std::exception

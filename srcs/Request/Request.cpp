@@ -1,4 +1,5 @@
 #include "Request.hpp"
+#include "Webserv.hpp"
 
 // Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 // {
@@ -35,6 +36,12 @@ std::string	Request::getParseStateStr(e_parse_state state) const
 			return "BODY_PROCESS";
 		case BODY_END:
 			return "BODY_END";
+		case CGI_INIT:
+			return "CGI_INIT";
+		case CGI_PROCESS:
+			return "CGI_PROCESS";
+		case CGI_END:
+			return "CGI_END";
 		case FINISH:
 			return "FINISH";
 		default:
@@ -42,7 +49,7 @@ std::string	Request::getParseStateStr(e_parse_state state) const
 	}
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(this), _isChunked(false), _cgi(this), _contentLength(-1),  _chunkSize(-1), _timeout(0), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _isChunked(false), _cgi(this), _contentLength(-1),  _chunkSize(-1), _timeout(0), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 {
 	this->_initServer();
 }
@@ -553,9 +560,11 @@ void	Request::_setState(e_parse_state state)
 			this->_setState(Request::CGI_INIT);
 		else
 			this->_setState(Request::FINISH);
+		modifySocketEpoll(g_server.getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
 	}
 	else if (this->_state == Request::CGI_INIT)
 	{
+		this->setTimeout(REQUEST_DEFAULT_CGI_TIMEOUT);
 		this->_cgi._start();
 		// return (this->_setState(Request::FINISH));
 	}
@@ -848,7 +857,7 @@ void	Request::_initTimeout(void)
 **
 ** @param epollfd : The epoll file descriptor
 */
-void	Request::checkTimeout(int epollfd)
+void	Request::checkTimeout(void)
 {
 	if (this->_timeout == 0 || this->_state == Request::FINISH)
 		return ;
@@ -856,8 +865,15 @@ void	Request::checkTimeout(int epollfd)
 	if (currentTime > this->_timeout)
 	{
 		Logger::log(Logger::ERROR, "[checkTimeout] Client %d timeout", this->_client->getFd());
-		this->setError(408);
-		modifySocketEpoll(epollfd, this->_client->getFd(), RESPONSE_FLAGS);
+		// if its during cgi kill the process
+		if (this->_state >= Request::CGI_INIT)
+		{
+			this->_cgi._kill();
+			this->setError(504);
+		}
+		else
+			this->setError(408);
+		// modifySocketEpoll(epollfd, this->_client->getFd(), RESPONSE_FLAGS);
 	}
 }
 

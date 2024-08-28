@@ -62,8 +62,9 @@ void	Client::handleRequest( int epollFD )
 	std::string str(buffer, bytesRead);
 	this->_request->parse(str);
 
-	if (this->_request->getState() == Request::FINISH)
-		modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);
+	(void)epollFD;
+	// if (this->_request->getState() == Request::FINISH)
+	// 	modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);
 }
 
 /**
@@ -71,8 +72,7 @@ void	Client::handleRequest( int epollFD )
  */
 void Client::handleResponse(int epollFD)
 {
-	this->_response->checkCgi();
-
+	// this->_response->checkCgi();
 	this->_response->generateResponse(epollFD);
 
 	Logger::log(Logger::DEBUG, "Response to sent: \n%s", this->_response->getResponse().c_str());
@@ -128,5 +128,19 @@ bool Client::isCgiReady(int epollFD)
 	if (this->_response->handleCGI(epollFD) != -1)
 		return false;
 	return true;
+}
+
+/**
+ * @brief Check if got a cgi
+ * 	
+ * @return true if got a cgi ready, false otherwise
+ */
+void Client::checkCgi(void)
+{
+	if (this->_request == NULL) // No request
+		return ;
+	if (!this->_request->_cgi._isCGI) // Not a CGI
+		return ;
+	return (this->_request->_cgi._checkState());
 }
 

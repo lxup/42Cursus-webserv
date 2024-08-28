@@ -46,15 +46,17 @@
 
 
 /* CUSTOM */
-#include "Defines.hpp"
-#include "Logger.hpp"
+// #include "Defines.hpp"
+// #include "Logger.hpp"
 #include "ArgsManager.hpp"
-#include "Utils.hpp"
-#include "ConfigParser.hpp"
-#include "BlocLocation.hpp"
-#include "BlocServer.hpp"
+// #include "Utils.hpp"
+// #include "ConfigParser.hpp"
+// #include "BlocLocation.hpp"
+// #include "BlocServer.hpp"
 #include "Server.hpp"
-#include "Socket.hpp"
+// #include "Socket.hpp"
 // #include "ListenConfig.hpp"
+
+extern Server g_server;
 
 #endif // WEBSERV_HPP

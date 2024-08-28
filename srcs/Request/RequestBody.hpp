@@ -11,15 +11,12 @@
 # include "Utils.hpp"
 # include "Logger.hpp"
 
-class Request;
-
 class RequestBody
 {
 	friend class Request;
 	friend class CgiHandler;
-	friend class CgiHandlerV2;
+	friend class CgiExecutor;
 	private:
-		Request*		_request;
 		std::string		_path;
 		// std::ofstream	_stream;
 		int				_fd;
@@ -30,7 +27,6 @@ class RequestBody
 		int	_write(const std::string &data);
 	public:
 		RequestBody(void);
-		RequestBody(Request* request);
 		RequestBody(const RequestBody &src);
 		~RequestBody(void);
 

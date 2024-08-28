@@ -86,6 +86,8 @@ class Response
 		// Check
 		bool	_checkCgiPath(std::string path);
 
+		/* HANDLE */
+		void	_handleCgi(void);
 
 	public:
 		// Response();
@@ -102,7 +104,7 @@ class Response
 		CgiHandler* getCgiHandler() const { return _cgiHandler; }
 
 		// Setters
-		void setError(int code);
+		void setError(int code, bool generatePage = true);
 
 		// Check
 		void	checkCgi(void);

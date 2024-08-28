@@ -15,19 +15,21 @@
 
 # define REQUEST_DEFAULT_STATE_CODE 200
 # define REQUEST_DEFAULT_UPLOAD_PATH "./www/upload/"
-# define REQUEST_DEFAULT_HEADER_TIMEOUT 1
-# define REQUEST_DEFAULT_BODY_TIMEOUT 1
+# define REQUEST_DEFAULT_HEADER_TIMEOUT 10
+# define REQUEST_DEFAULT_BODY_TIMEOUT 10
+# define REQUEST_DEFAULT_CGI_TIMEOUT 10
 
 class Client;
-// class RequestCgi;
 class RequestBody;
 
 class Request
-{
+{	
+	friend class Client;
 	friend class RequestCgi;
 	friend class RequestBody;
 	friend class CgiHandler;
-	friend class CgiHandlerV2;
+	friend class CgiExecutor;
+	friend class Response;
 	public:
 		enum	e_parse_state
 		{
@@ -136,7 +138,9 @@ class Request
 		std::string 	getQuery(void) const { return _query; }
 		std::string 	getHttpVersion(void) const { return _httpVersion; }
 		// std::string 	getBody(void) const { return _body; }
-		RequestBody		getBody(void) const { return _body; }
+		RequestBody&	getBody(void) { return _body; }
+		RequestCgi&		getCgi(void) { return _cgi; }
+		bool			isCgi(void) const { return _cgi._isCGI; }
 		// size_t 			getBodySize(void) const { return _bodySize; }
 		int 			getStateCode(void) const { return _stateCode; }
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
@@ -153,7 +157,7 @@ class Request
 		void			setCgi(bool isCgi, const std::string &path, const std::string &execPath) { _cgi._isCGI = isCgi; _cgi._path = path; _cgi._execPath = execPath; }
 
 		/* TIMEOUT */
-		void			checkTimeout(int epollfd);
+		void			checkTimeout(void);
 };
 
 #endif // REQUEST_HPP

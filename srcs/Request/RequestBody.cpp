@@ -1,12 +1,7 @@
 #include "RequestBody.hpp"
 
-RequestBody::RequestBody(void) : _request(NULL), _fd(-1), _isTmp(false), _size(0)
+RequestBody::RequestBody(void) : _fd(-1), _isTmp(false), _size(0)
 {
-}
-
-RequestBody::RequestBody(Request *request) : _request(request), _fd(-1), _isTmp(false), _size(0)
-{
-
 }
 
 RequestBody::RequestBody(const RequestBody &src)
@@ -19,7 +14,7 @@ RequestBody::~RequestBody(void)
 	if (this->_fd != -1)
 		protectedCall(close(this->_fd), "failed to close file", false);
 	if (this->_path.size() && this->_isTmp)
-		protectedCall(remove(this->_path.c_str()), "failed to remove file", false);
+		remove(this->_path.c_str());
 }
 
 RequestBody &RequestBody::operator=(const RequestBody &rhs)
