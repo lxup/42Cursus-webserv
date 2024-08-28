@@ -189,11 +189,11 @@ void Server::run(void)
 
 		time_t currentTime = time(NULL);
 		(void)lastTimeoutCheck;
-		// if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL)
-		// {
+		 if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL)
+		 {
 			this->_checkTimeouts(currentTime);
-		// 	lastTimeoutCheck = currentTime;
-		// }
+		 	lastTimeoutCheck = currentTime;
+		 }
 	}
 }
 

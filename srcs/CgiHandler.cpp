@@ -131,6 +131,7 @@ void		CgiHandler::init(void)
 	this->_env["REMOTE_USER"] = this->_request->getHeaders()["Authorization"];
 	this->_env["CONTENT_LENGTH"] = intToString(this->_request->getBodySize());
 	this->_env["CONTENT_TYPE"] = this->_request->getHeaders()["Content-Type"];
+	this->_env["HTTP_COOKIE"] = this->_request->getHeaders()["Cookie"];
 }
 
 /*
@@ -419,11 +420,11 @@ void	CgiHandler::_parseHeadersValue(void)
 		i++;
 	}
 	this->_output.erase(0, i);
+
 	if (found)
 	{
 		if (this->_tmpHeaderValue.empty())
 			throw IntException(500);
-		this->_tmpHeaderValue.erase(std::remove_if(this->_tmpHeaderValue.begin(), this->_tmpHeaderValue.end(), ::isspace), this->_tmpHeaderValue.end());
 		if (this->_headers.find(this->_tmpHeaderKey) != this->_headers.end())
 			throw IntException(500);
 		Logger::log(Logger::DEBUG, "Header value: %s", this->_tmpHeaderValue.c_str());
