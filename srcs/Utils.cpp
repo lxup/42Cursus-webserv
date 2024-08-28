@@ -466,3 +466,18 @@ std::string convertToLowercase(const std::string& str) {
     std::transform(lowercaseStr.begin(), lowercaseStr.end(), lowercaseStr.begin(), ::tolower);
     return lowercaseStr;
 }
+
+std::string generateId(){
+	std::string id;
+	time_t now = time(0);
+	id = intToString(now);
+	return id;
+}
+
+// Fonction pour générer une date d'expiration
+std::string generateExpirationDate() {
+    std::time_t t = std::time(NULL) + 60 * 60 * 24 * 30; // 30 jours
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%a, %d-%b-%Y %H:%M:%S GMT", gmtime(&t));
+    return std::string(buffer);
+}
