@@ -4,7 +4,8 @@ import cgi
 import time
 import os
 
-download_path = "./www/filetransfert/"
+download_path = "./www/filetransfert/uploads/"
+upload_url = "/filetransfert/uploads/"
 
 # make function to load file list
 def load_files():
@@ -17,7 +18,7 @@ def load_files():
 							<div>{file}</div>
 
 							<div class="link-buttons">
-								<a href={file} class="link-button" download>
+								<a href={upload_url}{file} class="link-button" download>
 									Download
 								</a>
 								<form id="delete-{file}" onsubmit="deleteFile(event)">
@@ -135,7 +136,7 @@ def main():
 				var form = event.target;
 				var file = form.id.replace('delete-', '');
 
-				fetch('/filetransfert/' + file, {{
+				fetch('{upload_url}' + file, {{
 					method: 'DELETE'
 				}})
 				.then(response => {{
@@ -178,7 +179,7 @@ def main():
 				console.log('Encoding:', enctype);
 
 				if (enctype === 'application/octet-stream') {{
-					fetch('/filetransfert', {{
+					fetch('{upload_url}' + filename, {{
 						method: 'POST',
 						headers: {{
 							'Filename': filename,

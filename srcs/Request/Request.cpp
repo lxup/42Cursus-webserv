@@ -832,22 +832,12 @@ void	Request::_defineBodyDestination(void)
 			return (this->setError(415));
 		// if (this->_headers.find("Content-Type") != this->_headers.end() && this->_headers["Content-Type"] == "application/octet-stream")
 		// {
+		bool isPathDir = this->_path.size() > 1 && this->_path[this->_path.size() - 1] == '/';
 		{
 			this->_body._path = this->_location ? this->_location->getRoot() : this->_server->getRoot();
-			this->_body._path += this->_path;
-			if (this->_headers.find("Filename") != this->_headers.end())
+			if (!isPathDir)
 			{
-				this->_body._path += "/" + this->_headers["Filename"];
-				if (this->_method == "POST" && fileExist(this->_body._path))
-					this->setError(403);
-				this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-				if (this->_body._fd == -1)
-					this->setError(403); // TODO: Check the error code
-			}
-			// search in query string filename
-			else if (this->_query.find("filename=") != std::string::npos)
-			{
-				this->_body._path += "/" + this->_query.substr(this->_query.find("filename=") + 9);
+				this->_body._path += this->_path;
 				if (this->_method == "POST" && fileExist(this->_body._path))
 					this->setError(403);
 				this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
@@ -856,9 +846,32 @@ void	Request::_defineBodyDestination(void)
 			}
 			else
 			{
-				this->_body._path += "/upload_";
-				if (Utils::createFileRandomSuffix(this->_body._path, this->_body._fd) == -1)
-					this->setError(403); // TODO: Check the error code
+				this->_body._path += this->_path;
+				if (this->_headers.find("Filename") != this->_headers.end())
+				{
+					this->_body._path += "/" + this->_headers["Filename"];
+					if (this->_method == "POST" && fileExist(this->_body._path))
+						this->setError(403);
+					std::cout << C_RED << "OUTPUT PATH: " << this->_body._path << C_RESET << std::endl;
+					this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+					if (this->_body._fd == -1)
+						this->setError(403); // TODO: Check the error code
+				}
+				// else if (this->_query.find("filename=") != std::string::npos)
+				// {
+				// 	this->_body._path += "/" + this->_query.substr(this->_query.find("filename=") + 9);
+				// 	if (this->_method == "POST" && fileExist(this->_body._path))
+				// 		this->setError(403);
+				// 	this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+				// 	if (this->_body._fd == -1)
+				// 		this->setError(403); // TODO: Check the error code
+				// }
+				else
+				{
+					this->_body._path += "/upload_";
+					if (Utils::createFileRandomSuffix(this->_body._path, this->_body._fd) == -1)
+						this->setError(403); // TODO: Check the error code
+				}
 			}
 			this->_body._isTmp = false;
 		}
