@@ -182,7 +182,7 @@ void	CgiHandler::_parseHeadersKey(void)
 	size_t	i = 0;
 	size_t	rawSize = this->_output.size();
 	bool	found = false;
-	while (i < rawSize && this->_output[i])
+	while (i < rawSize)
 	{
 		if (this->_output[i] == ' ' || this->_output[i] == '\t')
 			return (this->_response->setError(500));
@@ -191,7 +191,9 @@ void	CgiHandler::_parseHeadersKey(void)
 			found = true;
 			break;
 		}
-		if (!std::isprint(this->_output[i]))
+		// if (!std::isprint(this->_output[i]))
+		// 	return (this->_response->setError(500));
+		if (!std::isalnum(this->_output[i]) && this->_output[i] != '-' && this->_output[i] != '_')
 			return (this->_response->setError(500));
 		this->_tmpHeaderKey += this->_output[i];
 		i++;
@@ -217,7 +219,7 @@ void	CgiHandler::_parseHeadersValue(void)
 	size_t	i = 0;
 	size_t	rawSize = this->_output.size();
 	bool	found = false;
-	while (i < rawSize && this->_output[i])
+	while (i < rawSize)
 	{
 		// skip space and tab
 		if (this->_tmpHeaderValue.empty() && (this->_output[i] == ' ' || this->_output[i] == '\t'))

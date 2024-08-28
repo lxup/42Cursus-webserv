@@ -32,6 +32,13 @@ class RequestBody
 
 		RequestBody &operator=(const RequestBody &src);
 
+		/* GETTERS */
+		std::string	getPath(void) const { return this->_path; }
+		int			getFd(void) const { return this->_fd; }
+		bool		isTmp(void) const { return this->_isTmp; }
+		u_int64_t	getSize(void) const { return this->_size; }
+
+
 };
 
 #endif // REQUESTBODY_HPP

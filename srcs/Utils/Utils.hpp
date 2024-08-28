@@ -27,6 +27,7 @@ class Utils
 {
   public:
     static int  createTmpFile(std::string &path, int &fd);
+    static int  createFileRandomSuffix(std::string &path, int &fd);
 };
 
 

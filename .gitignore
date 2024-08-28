@@ -3,6 +3,8 @@
 *.o
 *.d
 *.out
+*.mp4
+*.mkv
 webserv
 .DS_Store
 .obj

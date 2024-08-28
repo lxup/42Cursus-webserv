@@ -44,6 +44,10 @@ class Response
 
 		// Methods
 		void handleGetRequest();
+		void handlePostRequest();
+		void handlePutRequest();
+		void handleDeleteRequest();
+
 		bool isRedirect();
 		std::vector<std::string> getAllPathsServer();
 		void manageServer();

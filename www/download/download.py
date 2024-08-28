@@ -2,16 +2,22 @@
 
 import cgi
 import time
+import os
 
 # En-têtes HTTP requis
 print("Content-Type: text/html\r\n\r\n")
-#time.sleep(10)
 # Récupérer les données du formulaire
-form = cgi.FieldStorage()
-name = form.getvalue("name")
-age = form.getvalue("age")
 
-#sleep(10)  # Simuler un traitement long
+
+download_path = "./www/main/cgi-bin/uploads/"
+path = "../cgi-bin/uploads/"
+links = ""
+for file in os.listdir(download_path):
+		if os.path.isfile(os.path.join(download_path, file)):
+				# si le file ne commence pas par un point, on le rajoute
+				if file[0] != ".":
+					links += f'<a href={path}{file} download><div class="link">{file}</div></a>'
+
 
 # Générer le contenu HTML avec les informations de l'utilisateur
 html_content = f"""
@@ -35,12 +41,33 @@ html_content = f"""
         .container {{
             text-align: center;
         }}
+
+				.links a {{
+					color: white;
+					text-decoration: none;
+					background-color: #121212;
+				}}
+
+				.link {{
+						padding: 5px 10px;
+						background-color: #121212;
+						margin: 5px;
+						border-radius: 5px;
+				}}
+
+				.link:hover {{
+					cursor: pointer;
+					opacity: 0.9;
+				}}
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Bienvenue, {name}!</h1>
-        <p>Votre âge est {age} ans.</p>
+        <h2>Download the file you want</h2>
+				<div class="links">
+					{links}
+				</div>
     </div>
 </body>
 </html>

@@ -367,6 +367,48 @@ void Response::handleGetRequest(void)
 		manageServer();
 }
 
+/*
+* @brief handle the POST request
+*/
+void Response::handlePostRequest(void)
+{
+	std::string jsonBody = "{\n";
+	jsonBody += "\"message\": \"File uploaded successfully.\",\n";
+	jsonBody += "\"filename\": \"" + _request->_body.getPath() + "\",\n";
+	jsonBody += "\"size\": " + uint64ToString(_request->_body.getSize()) + "\n";
+	jsonBody += "}\n";
+
+	_response = "HTTP/1.1 200 OK\r\n";
+	_response += "Content-Type: application/json\r\n";
+	_response += "Content-Length: " + intToString(jsonBody.size()) + "\r\n";
+	_response += "\r\n";
+	_response += jsonBody;
+	this->setState(Response::FINISH);
+}
+
+/*
+* @brief handle the DELETE request
+*/
+void Response::handleDeleteRequest(void)
+{
+	std::string path = this->_request->_location ? this->_request->_location->getRoot() + this->_request->getPath() : this->_request->getServer()->getRoot() + this->_request->getPath();
+	if (!fileExist(path))
+		return (this->setError(404));
+	if (directoryExist(path.c_str()) || remove(path.c_str()) != 0)
+		return (this->setError(403));
+	std::string jsonBody = "{\n";
+	jsonBody += "\"message\": \"File deleted successfully.\",\n";
+	jsonBody += "\"filename\": \"" + _request->getPath() + "\"\n";
+	jsonBody += "}\n";
+
+	_response = "HTTP/1.1 200 OK\r\n";
+	_response += "Content-Type: application/json\r\n";
+	_response += "Content-Length: " + intToString(jsonBody.size()) + "\r\n";
+	_response += "\r\n";
+	_response += jsonBody;
+	this->setState(Response::FINISH);
+}
+
 // MAIN RESPONSE ==============================
 /**
  * @brief main function to return the response of the request _request
@@ -385,7 +427,7 @@ int Response::generateResponse(int epollFD)
 
 
 	if (isRedirect())
-		return (this->setState(Response::FINISH), -1); // TODO: CHECK
+		return (this->setState(Response::FINISH), 0);
 
 	if (this->_request->isCgi())
 	{
@@ -406,6 +448,14 @@ int Response::generateResponse(int epollFD)
 
 	if (_request->getMethod() == "GET")
 		handleGetRequest();
+	else if (_request->getMethod() == "POST")
+		handlePostRequest();
+	else if (_request->getMethod() == "DELETE")
+		handleDeleteRequest();
+	// else if (_request->getMethod() == "DELETE")
+	// 	return (this->setError(405), 0);
+	// else if (_request->getMethod() == "PUT")
+	// 	return (this->setError(405), 0);
 	else
 		return (this->setError(405), 0);
 	
@@ -473,12 +523,10 @@ int Response::_handleCgi(void)
 		return (-1);
 	if (this->_state == Response::INIT)
 	{
-		std::cout << "FD OUT: " << this->_request->_cgi._cgiHandler->getFdOut() << std::endl;
 		if (lseek(this->_request->_cgi._cgiHandler->getFdOut(), 0, SEEK_SET) == -1)
 			return (this->setError(500), 0);
 		this->setState(Response::PROCESS);
 	}
-	// READ CGI AND RETURN IN CHUNK IF CONTENT-LENGTH IS TOO BIG OR IF CONTENT-LENGTH IS NOT PRESENT
 	char buffer[RESPONSE_READ_BUFFER_SIZE] = {0};
 
 	memset(buffer, 0, RESPONSE_READ_BUFFER_SIZE);
@@ -495,6 +543,8 @@ int Response::_handleCgi(void)
 	buffer[bytesRead] = '\0';
 	std::string str(buffer, bytesRead);
 	this->_cgiHandler._parse(str);
+	// std::cout << C_RED << "BUFFER: " << str << C_RESET << std::endl;
+	// exit(0);
 	if (this->_response.empty())
 		return (-1);
 	return (0);

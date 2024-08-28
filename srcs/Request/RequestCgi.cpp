@@ -73,15 +73,13 @@ void	RequestCgi::_checkState(void)
 			throw IntException(500);
 		if (wpid == 0) // Still running
 			return ;
-		// if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
-		// {
-		this->_request->_setState(Request::FINISH);
-		// }
-		// else
-		// {
-		// 	Logger::log(Logger::ERROR, "[RequestCgi] CGI process exited abnormally");
-		// 	throw IntException(500);
-		// }
+		if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+			this->_request->_setState(Request::FINISH);
+		else
+		{
+			Logger::log(Logger::ERROR, "[RequestCgi] CGI process exited abnormally");
+			this->_request->setError(502);
+		}
 	} catch (IntException &e) {
 		Logger::log(Logger::DEBUG, "[RequestCgi] CGI process failed: %d", e.code());
 		return (this->_request->setError(e.code()));

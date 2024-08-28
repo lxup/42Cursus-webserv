@@ -3,6 +3,7 @@
 import os
 import cgi
 import cgitb
+import sys
 
 # Enable debugging
 cgitb.enable()
@@ -56,12 +57,22 @@ def main():
     if resource and os.path.isfile(file_path):
         # Send response headers to initiate a file download
         print(f"Content-Type: application/octet-stream")
-        print(f"Content-Disposition: attachment; filename=\"{resource}\"\r\n\r\n")
-        print()  # End of headers
+        print(f"Content-Disposition: attachment; filename=\"{resource}\"")
+        print(f"Content-Length: {os.path.getsize(file_path)}") # Optional
+        print() # End of headers
+        sys.stdout.flush()
 
         # Read the file and send it to the client
+        # with open(file_path, 'rb') as file:
+        #     print(file.read().decode('utf-8'))
+        # Force the headers to be flushed
+
+        # Read and send the file in chunks
         with open(file_path, 'rb') as file:
-            print(file.read().decode('utf-8'))
+            chunk_size = 8192  # 8KB per chunk
+            while chunk := file.read(chunk_size):
+                sys.stdout.buffer.write(chunk)
+                sys.stdout.buffer.flush()  # Ensure the data is sent immediately
     else:
         # If file does not exist, send an error message in HTML format
         print("Content-Type: text/html")

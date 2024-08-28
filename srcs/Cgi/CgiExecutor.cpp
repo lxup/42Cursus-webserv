@@ -81,6 +81,7 @@ void CgiExecutor::_init(void)
 	this->_env["REMOTE_USER"] = this->_requestCgi->_request->_headers["Authorization"];
 	this->_env["CONTENT_LENGTH"] = uint64ToString(this->_requestCgi->_request->_body._size);
 	this->_env["CONTENT_TYPE"] = this->_requestCgi->_request->_headers["Content-Type"];
+	this->_env["HTTP_COOKIE"] = this->_requestCgi->_request->_headers["Cookie"];
 }
 
 void CgiExecutor::_execute(void)
@@ -88,8 +89,8 @@ void CgiExecutor::_execute(void)
 	Logger::log(Logger::DEBUG, "[CgiExecutor::_execute] Start CGI Handler V2");
 	this->_envp = this->_envToChar();
 	// print envp
-	for (size_t i = 0; this->_envp[i]; i++)
-		std::cout << "envp[" << i << "]: " << this->_envp[i] << std::endl;
+	// for (size_t i = 0; this->_envp[i]; i++)
+	// 	std::cout << "envp[" << i << "]: " << this->_envp[i] << std::endl;
 	this->_argv = this->_buildArgv();
 	// TODO: maybe check if envp and argv are not NULL
 
@@ -105,8 +106,11 @@ void CgiExecutor::_execute(void)
 	// 	throw std::invalid_argument("[CgiExecutor::_execute] fileno failed");
 	if (Utils::createTmpFile(this->_body._path, this->_body._fd) == -1)
 		throw std::invalid_argument("[CgiExecutor::_execute] createTmpFile failed");
-	if (lseek(this->_requestCgi->_request->_body._fd, 0, SEEK_SET) == -1)
-		throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
+
+	// if there is a body, we need to put the body in the stdin
+	if (this->_requestCgi->_request->_body._fd != -1) // Start from the beginning of the body, if there is one
+		if (lseek(this->_requestCgi->_request->_body._fd, 0, SEEK_SET) == -1)
+			throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
 
 	// // SHOW BODY
 	// std::cout << "SHOOOOOOOOOWWWWWWWW BODY" << std::endl;
@@ -131,8 +135,9 @@ void CgiExecutor::_execute(void)
 		throw std::invalid_argument("[CgiExecutor::_execute] fork failed");
 	if (this->_pid == 0)
 	{
-		if (dup2(this->_requestCgi->_request->_body._fd, STDIN_FILENO) == -1)
-			throw ChildProcessException();
+		if (this->_requestCgi->_request->_body._fd != -1) // Listen to the body, if there is one
+			if (dup2(this->_requestCgi->_request->_body._fd, STDIN_FILENO) == -1)
+				throw ChildProcessException();
 		if (dup2(this->_body._fd, STDOUT_FILENO) == -1)
 			throw ChildProcessException();
 		execve(this->_argv[0], this->_argv, this->_envp);

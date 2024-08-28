@@ -179,7 +179,7 @@ void	Request::_parseMethod(void)
 	size_t	i = 0;
 	size_t	rawSize = this->_rawRequest.size();
 	bool	found = false;
-	while (i < rawSize && this->_rawRequest[i])
+	while (i < rawSize)
 	{
 		if (this->_rawRequest[i] == ' ')
 		{
@@ -212,7 +212,7 @@ void	Request::_parseUri(void)
 	size_t	i = 0;
 	size_t	rawSize = this->_rawRequest.size();
 	bool	found = false;
-	while (i < rawSize && this->_rawRequest[i])
+	while (i < rawSize)
 	{
 		if (this->_uri.empty() && (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t'))
 		{
@@ -265,7 +265,7 @@ void	Request::_parseHttpVersion(void)
 	size_t	i = 0;
 	size_t	rawSize = this->_rawRequest.size();
 	bool	found = false;
-	while (i < rawSize && this->_rawRequest[i])
+	while (i < rawSize)
 	{
 		if (this->_httpVersion.empty() && (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t'))
 		{
@@ -387,7 +387,7 @@ void	Request::_parseHeadersKey(void)
 	size_t	i = 0;
 	size_t	rawSize = this->_rawRequest.size();
 	bool	found = false;
-	while (i < rawSize && this->_rawRequest[i])
+	while (i < rawSize)
 	{
 		if (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t')
 			return (this->setError(400));
@@ -396,7 +396,9 @@ void	Request::_parseHeadersKey(void)
 			found = true;
 			break;
 		}
-		if (!std::isprint(this->_rawRequest[i]))
+		// if (!std::isprint(this->_rawRequest[i]))
+		// 	return (this->setError(400));
+		if (!std::isalnum(this->_rawRequest[i]) && this->_rawRequest[i] != '-' && this->_rawRequest[i] != '_')
 			return (this->setError(400));
 		this->_tmpHeaderKey += this->_rawRequest[i];
 		i++;
@@ -422,7 +424,7 @@ void	Request::_parseHeadersValue(void)
 	size_t	i = 0;
 	size_t	rawSize = this->_rawRequest.size();
 	bool	found = false;
-	while (i < rawSize && this->_rawRequest[i])
+	while (i < rawSize)
 	{
 		// skip space and tab
 		if (this->_tmpHeaderValue.empty() && (this->_rawRequest[i] == ' ' || this->_rawRequest[i] == '\t'))
@@ -472,11 +474,18 @@ void	Request::_parseBody(void)
 	if (this->isChunked())
 		return (this->_parseChunkedBody());
 
-	if (this->_body._write(this->_rawRequest.substr(0, (u_int64_t)this->_contentLength - this->_body._size)) == -1)
+	if (this->_body._write(this->_rawRequest) == -1)
 		return (this->setError(500));
-	this->_rawRequest.erase(0, (u_int64_t)this->_contentLength - this->_body._size);
+	this->_rawRequest.clear();
+	if (this->_body._size > (u_int64_t)this->_server->getClientMaxBodySize()) // Check the client max body size
+		return (this->setError(413));
 	if (this->_body._size == (u_int64_t)this->_contentLength)
 		return (this->_setState(Request::BODY_END));
+	// if (this->_body._write(this->_rawRequest.substr(0, (u_int64_t)this->_contentLength - this->_body._size)) == -1)
+	// 	return (this->setError(500));
+	// this->_rawRequest.erase(0, (u_int64_t)this->_contentLength - this->_body._size);
+	// if (this->_body._size == (u_int64_t)this->_contentLength)
+	// 	return (this->_setState(Request::BODY_END));
 }
 
 /*
@@ -542,6 +551,12 @@ void	Request::_setState(e_parse_state state)
 	if (this->_state == Request::BODY_INIT)
 	{
 		this->_setHeaderState(); // Set the header state
+		if (this->_state == Request::FINISH)
+			return ;
+		std::cout << C_YELLOW << "SALUT LES AMIIIISS" << C_RESET << std::endl;
+		
+		if (this->_method != "POST" && this->_method != "PUT")
+			return(this->_cgi._isCGI ? this->_setState(Request::CGI_INIT) : this->_setState(Request::FINISH));
 		this->setTimeout(REQUEST_DEFAULT_BODY_TIMEOUT);
 		this->_defineBodyDestination();
 	}
@@ -574,8 +589,6 @@ void	Request::_setHeaderState(void)
 		return ;
 	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1 || this->_checkCgi() == -1) // || this->_checkCGI() == -1)
 		return ;
-	if (this->_method != "POST" && this->_method != "PUT")
-		this->_setState(Request::FINISH);
 }
 
 /*
@@ -812,22 +825,34 @@ int	Request::_checkCgi(void)
 */
 void	Request::_defineBodyDestination(void)
 {
-	if (1 == 0) // TODO: Condition to see if its an upload
+	// if (1 == 0) // TODO: Condition to see if its an upload
+	if (!this->_cgi._isCGI && (this->_method == "POST" || this->_method == "PUT"))
 	{
-		this->_body._path = this->_path; // TODO : Check if the path is correct
-		this->_body._isTmp = false;
-		this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-		if (this->_body._fd == -1)
+		// if application/octet-stream
+		if (this->_headers.find("Content-Type") != this->_headers.end() && this->_headers["Content-Type"] == "application/octet-stream")
 		{
-			Logger::log(Logger::ERROR, "[_defineBodyDestination] Error opening file: %s", this->_body._path.c_str());
-			this->setError(500); // TODO: Check the error code
+			this->_body._path = this->_location ? this->_location->getRoot() : this->_server->getRoot();
+			this->_body._path += "/upload_";
+			if (Utils::createFileRandomSuffix(this->_body._path, this->_body._fd) == -1)
+				this->setError(403); // TODO: Check the error code
+			this->_body._isTmp = false;
 		}
+		else
+			this->setError(415);
+		// this->_body._path = this->_path; // TODO : Check if the path is correct
+		// this->_body._path = this->_location->getRoot() + this->_path;
+		// this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		// if (this->_body._fd == -1)
+		// {
+		// 	Logger::log(Logger::ERROR, "[_defineBodyDestination] Error opening file: %s", this->_body._path.c_str());
+		// 	this->setError(403); // TODO: Check the error code
+		// }
 	}
 	else
 	{
-		this->_body._isTmp = true;
 		if (Utils::createTmpFile(this->_body._path, this->_body._fd) == -1)
 			this->setError(500); // TODO: Check the error code
+		this->_body._isTmp = true;
 	}
 
 }

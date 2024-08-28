@@ -18,6 +18,22 @@ int	Utils::createTmpFile(std::string &path, int &fd)
 	return (0);
 }
 
+int Utils::createFileRandomSuffix(std::string &path, int &fd)
+{
+	path += "XXXXXX";
+	std::vector<char> tmpPath(path.begin(), path.end());
+	tmpPath.push_back('\0');
+
+	fd = mkstemp(&tmpPath[0]);
+	if (fd == -1)
+	{
+		Logger::log(Logger::ERROR, "[Utils::createTmpFile] Failed to create temporary file");
+		return (-1);
+	}
+	path.assign(tmpPath.begin(), tmpPath.end() - 1);
+	return (0);
+}
+
 
 
 
