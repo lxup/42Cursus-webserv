@@ -61,7 +61,6 @@ void	Client::handleRequest( int epollFD )
 
 	std::string str(buffer, bytesRead);
 	this->_request->parse(str);
-	// this->_request->parse(buffer);
 
 	if (this->_request->getState() == Request::FINISH)
 		modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);

@@ -1,5 +1,28 @@
 #include "Utils.hpp"
 
+
+int	Utils::createTmpFile(std::string &path, int &fd)
+{
+	// path += "XXXXXX";
+	path = "/tmp/webserv_XXXXXX";
+	std::vector<char> tmpPath(path.begin(), path.end());
+	tmpPath.push_back('\0');
+
+	fd = mkstemp(&tmpPath[0]);
+	if (fd == -1)
+	{
+		Logger::log(Logger::ERROR, "[Utils::createTmpFile] Failed to create temporary file");
+		return (-1);
+	}
+	path.assign(tmpPath.begin(), tmpPath.end() - 1);
+	return (0);
+}
+
+
+
+
+
+
 /* UTILS */
 
 void printMsg(std::ostream &os, const char *msg, ...)
@@ -455,7 +478,7 @@ std::string listDirectory(std::string path, std::string root){
 }
 
 
-std::string uint64ToString(uint64_t value) {
+std::string uint64ToString(u_int64_t value) {
     std::ostringstream oss;
     oss << value;
     return oss.str();

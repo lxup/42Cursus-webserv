@@ -23,6 +23,12 @@
 #include "ConfigParser.hpp"
 #include "ErrorPage.hpp"
 
+class Utils
+{
+  public:
+    static int  createTmpFile(std::string &path, int &fd);
+};
+
 
 
 
@@ -35,7 +41,7 @@ std::vector<std::string> split(std::string s, std::string delimiter);
 std::string unsignedIntToString(unsigned int value);
 std::string intToString(int value);
 std::string	getExtension(const std::string &path, bool includeDot = true);
-std::string uint64ToString(uint64_t value);
+std::string uint64ToString(u_int64_t value);
 std::string convertToLowercase(const std::string& str);
 int protectedCall(int ret, std::string msg, bool isFatal = true);
 

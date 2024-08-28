@@ -1,26 +1,16 @@
 #include "CgiHandler.hpp"
 #include "Webserv.hpp"
 
-CgiHandler::CgiHandler(Response* response, Request* request) : _response(response), _request(request), _env(), _output(), _contentLength(0), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpIn(NULL), _tmpOut(NULL), _fdIn(-1), _fdOut(-1), _state(CgiHandler::INIT), _parseState(CgiHandler::P_INIT), _lastActivity(time(NULL))
+CgiHandler::CgiHandler(Response* response, Request* request) : _response(response), _request(request), _env(), _output(), _contentLength(0), _pid(-1), _envp(NULL), _StdinBackup(-1), _StdoutBackup(-1), _tmpOut(NULL), _fdOut(-1), _state(CgiHandler::INIT), _parseState(CgiHandler::P_INIT), _lastActivity(time(NULL))
 {
 }
 
 CgiHandler::~CgiHandler(void)
 {
-	if (this->_tmpIn != NULL)
-	{
-		fclose(this->_tmpIn);
-		this->_tmpIn = NULL;
-	}
 	if (this->_tmpOut != NULL)
 	{
 		fclose(this->_tmpOut);
 		this->_tmpOut = NULL;
-	}
-	if (this->_fdIn != -1)
-	{
-		close(this->_fdIn);
-		this->_fdIn = -1;
 	}
 	if (this->_fdOut != -1)
 	{
@@ -129,7 +119,7 @@ void		CgiHandler::init(void)
 	this->_env["REMOTE_ADDR"] = this->_request->getClient()->getSocket()->getIp();
 	this->_env["REMOTE_IDENT"] = this->_request->getHeaders()["Authorization"];
 	this->_env["REMOTE_USER"] = this->_request->getHeaders()["Authorization"];
-	this->_env["CONTENT_LENGTH"] = intToString(this->_request->getBodySize());
+	this->_env["CONTENT_LENGTH"] = uint64ToString(this->_request->_body._size);
 	this->_env["CONTENT_TYPE"] = this->_request->getHeaders()["Content-Type"];
 }
 
@@ -160,16 +150,37 @@ void	CgiHandler::execute(void)
 	this->_StdinBackup = dup(STDIN_FILENO);
 	this->_StdoutBackup = dup(STDOUT_FILENO);
 
-	this->_tmpIn = tmpfile();
+	// this->_tmpIn = tmpfile();
 	this->_tmpOut = tmpfile();
-	this->_fdIn = fileno(this->_tmpIn);
+	// this->_fdIn = fileno(this->_tmpIn);
 	this->_fdOut = fileno(this->_tmpOut);
-	if (this->_fdIn == -1 || this->_fdOut == -1)
+	if (this->_fdOut == -1)
 		throw std::invalid_argument("Error with tmpfile");
+	// this->_fdIn = this->_request->_body._fd;
+	// if (this->_fdIn == -1 || this->_fdOut == -1)
+	// 	throw std::invalid_argument("Error with tmpfile");
 	
-	if (write(this->_fdIn, this->_request->getBody().c_str(), this->_request->getBodySize()) == -1)
-		throw std::invalid_argument("Error with write");
-	if (lseek(this->_fdIn, 0, SEEK_SET) == -1)
+	// if (write(this->_fdIn, this->_request->getBody().c_str(), this->_request->getBodySize()) == -1)
+	// 	throw std::invalid_argument("Error with write");
+	if (lseek(this->_request->_body._fd, 0, SEEK_SET) == -1)
+		throw std::invalid_argument("Error with lseek");
+
+	std::cout << "SHOOOOOOOOOWWWWWWWW BODY" << std::endl;
+	// SHOW BODY
+	char	buffer[CGI_READ_BUFFER_SIZE] = {0};
+	int ret = 1;
+	while (ret > 0)
+	{
+		memset(buffer, 0, CGI_READ_BUFFER_SIZE);
+		ret = read(this->_request->_body._fd, buffer, CGI_READ_BUFFER_SIZE - 1);
+		if (ret == -1)
+			throw std::invalid_argument("Error with read");
+		std::string bufferStr(buffer, ret);
+		std::cout << "buffer: " << bufferStr << std::endl;
+	}
+	// END SHOW BODY
+
+	if (lseek(this->_request->_body._fd, 0, SEEK_SET) == -1)
 		throw std::invalid_argument("Error with lseek");
 
 	this->_pid = fork();
@@ -177,7 +188,7 @@ void	CgiHandler::execute(void)
 		throw std::invalid_argument("Error with fork");
 	if (this->_pid == 0)
 	{
-		if (dup2(this->_fdIn, STDIN_FILENO) == -1)
+		if (dup2(this->_request->_body._fd, STDIN_FILENO) == -1)
 			throw ChildProcessException();
 		if (dup2(this->_fdOut, STDOUT_FILENO) == -1)
 			throw ChildProcessException();

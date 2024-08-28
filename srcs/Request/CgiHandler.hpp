@@ -42,15 +42,13 @@ class CgiHandler
 		std::string							_tmpHeaderKey;
 		std::string							_tmpHeaderValue;
 		std::string							_body;
-		uint64_t							_contentLength;
+		u_int64_t							_contentLength;
 		pid_t								_pid;
 		char								**_envp;
 		char								**_argv;
 		int									_StdinBackup;
 		int									_StdoutBackup;
-		FILE								*_tmpIn;
 		FILE								*_tmpOut;
-		long								_fdIn;
 		long								_fdOut;
 		e_cgi_state							_state;
 		e_cgi_parse_state					_parseState;
@@ -85,7 +83,6 @@ class CgiHandler
 
 		e_cgi_state getState(void) const { return _state; }
 		e_cgi_parse_state getParseState(void) const { return _parseState; }
-		long	getFdIn(void) const { return _fdIn; }
 		long	getFdOut(void) const { return _fdOut; }
 		int getPid(void) const { return _pid; }
 

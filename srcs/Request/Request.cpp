@@ -29,8 +29,12 @@ std::string	Request::getParseStateStr(e_parse_state state) const
 			return "HEADERS_PARSE_END";
 		case HEADERS_END:
 			return "HEADERS_END";
-		case BODY:
-			return "BODY";
+		case BODY_INIT:
+			return "BODY_INIT";
+		case BODY_PROCESS:
+			return "BODY_PROCESS";
+		case BODY_END:
+			return "BODY_END";
 		case FINISH:
 			return "FINISH";
 		default:
@@ -38,7 +42,7 @@ std::string	Request::getParseStateStr(e_parse_state state) const
 	}
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1),  _chunkSize(-1), _timeout(0), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(this), _isChunked(false), _cgi(this), _contentLength(-1),  _chunkSize(-1), _timeout(0), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 {
 	this->_initServer();
 }
@@ -360,7 +364,7 @@ void	Request::_parseHeadersKey(void)
 			this->_rawRequest.erase(0, 1);
 			if (!this->_tmpHeaderKey.empty())
 				return (this->setError(400));
-			return (this->_setState(Request::BODY));
+			return (this->_setState(Request::BODY_INIT));
 		}
 		if (this->_rawRequest.size() < 2)
 			return ;
@@ -369,7 +373,7 @@ void	Request::_parseHeadersKey(void)
 			this->_rawRequest.erase(0, 2);
 			if (!this->_tmpHeaderKey.empty())
 				return (this->setError(400));
-			return (this->_setState(Request::BODY));
+			return (this->_setState(Request::BODY_INIT));
 		}
 		return (this->setError(400));
 	}
@@ -453,20 +457,19 @@ void	Request::_parseHeadersValue(void)
 */
 void	Request::_parseBody(void)
 {
-	if (this->_state < Request::BODY)
+	if (this->_state < Request::BODY_INIT)
 		return (Logger::log(Logger::DEBUG, "Headers not parsed yet"));
-	if (this->_state > Request::BODY)
+	if (this->_state > Request::BODY_INIT)
 		return (Logger::log(Logger::DEBUG, "Body already parsed"));
 
 	if (this->isChunked())
 		return (this->_parseChunkedBody());
 
-	std::string newContent = this->_rawRequest.substr(0, this->_contentLength - this->_bodySize);
-	this->_body += newContent;
-	this->_bodySize += newContent.size();
-	this->_rawRequest.erase(0, this->_contentLength - this->_bodySize);
-	if ((int)_bodySize == this->_contentLength)
-		return (this->_setState(Request::FINISH));
+	if (this->_body._write(this->_rawRequest.substr(0, (u_int64_t)this->_contentLength - this->_body._size)) == -1)
+		return (this->setError(500));
+	this->_rawRequest.erase(0, (u_int64_t)this->_contentLength - this->_body._size);
+	if (this->_body._size == (u_int64_t)this->_contentLength)
+		return (this->_setState(Request::BODY_END));
 }
 
 /*
@@ -494,7 +497,7 @@ void Request::_parseChunkedBody(void)
 			}
 			this->_rawRequest.erase(0, pos + 2);
 			if (this->_chunkSize == 0)
-				return (this->_setState(Request::FINISH));
+				return (this->_setState(Request::BODY_END));
 			Logger::log(Logger::DEBUG, "[_parseChunkedBody] Chunk size: %d", this->_chunkSize);
 		}
 		size_t pos = this->_rawRequest.find("\r\n");
@@ -513,11 +516,12 @@ void Request::_parseChunkedBody(void)
 		// }
 		// else
 			// this->_body += newContent;
-		this->_body += this->_rawRequest.substr(0, this->_chunkSize);
-		this->_bodySize += this->_chunkSize;
+		// this->_body += this->_rawRequest.substr(0, this->_chunkSize); // URGENT!
+		if (this->_body._write(this->_rawRequest.substr(0, this->_chunkSize)) == -1)
+			return (this->setError(500));
 		this->_rawRequest.erase(0, this->_chunkSize + 2);
 		this->_chunkSize = -1;
-		if (this->_bodySize > (size_t)this->_server->getClientMaxBodySize()) // Check the client max body size
+		if (this->_body._size > (u_int64_t)this->_server->getClientMaxBodySize()) // Check the client max body size
 			return (this->setError(413));
 	}
 }
@@ -535,18 +539,28 @@ void	Request::_setState(e_parse_state state)
 		return (Logger::log(Logger::DEBUG, "[_setState] Request already in this state"));
 
 	Logger::log(Logger::DEBUG, "[_setState] Request state changed from %s to %s with state code: %d", this->getParseStateStr(this->_state).c_str(), this->getParseStateStr(state).c_str(), this->_stateCode);
-
-	if (state == Request::BODY)
-	{
-		this->setTimeout(REQUEST_DEFAULT_BODY_TIMEOUT);
-		this->_setHeaderState(); // Set the header state
-	}
-	else if (state == Request::FINISH)
-		this->_timeout = 0;
-	if (this->_state == Request::FINISH)
-		return ;
-	
 	this->_state = state;
+
+	if (this->_state == Request::BODY_INIT)
+	{
+		this->_setHeaderState(); // Set the header state
+		this->setTimeout(REQUEST_DEFAULT_BODY_TIMEOUT);
+		this->_defineBodyDestination();
+	}
+	else if (this->_state == Request::BODY_END)
+	{
+		if (this->_cgi._isCGI)
+			this->_setState(Request::CGI_INIT);
+		else
+			this->_setState(Request::FINISH);
+	}
+	else if (this->_state == Request::CGI_INIT)
+	{
+		this->_cgi._start();
+		// return (this->_setState(Request::FINISH));
+	}
+	else if (this->_state == Request::FINISH)
+		this->_timeout = 0;
 }
 
 /*
@@ -556,9 +570,8 @@ void	Request::_setHeaderState(void)
 {
 	if (this->_findServer() == -1 || this->_findLocation() == -1)
 		return ;
-	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1) // || this->_checkCGI() == -1)
+	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1 || this->_checkCgi() == -1) // || this->_checkCGI() == -1)
 		return ;
-	
 	if (this->_method != "POST" && this->_method != "PUT")
 		this->_setState(Request::FINISH);
 }
@@ -690,45 +703,6 @@ int	Request::_findLocation(void)
 }
 
 /*
-** @brief Find the filename
-**
-** @return The filename
-*/
-// std::string	Request::_findFilename(void)
-// {
-// 	std::string filename;
-// 	// search in headers
-// 	if (this->_headers.find("Content-Disposition") != this->_headers.end())
-// 	{
-// 		std::string contentDisposition = this->_headers["Content-Disposition"];
-// 		size_t pos = contentDisposition.find("filename=");
-// 		if (pos != std::string::npos)
-// 		{
-// 			filename = contentDisposition.substr(pos + 9);
-// 			pos = filename.find(";");
-// 			if (pos != std::string::npos)
-// 				filename = filename.substr(0, pos);
-// 		}
-// 	}
-// 	// search in query
-// 	else if (this->_query.find("filename") != this->_query.end())
-// 		filename = this->_query["filename"];
-// 	// search in path
-// 	else
-// 	{
-// 		size_t pos = this->_path.find_last_of('/');
-// 		filename = this->_path.substr(pos + 1);
-// 	}
-
-// 	if (filename.empty())
-// 		filename = this->_getRandomFilename();
-	
-// 	this->_file.setPath(REQUEST_DEFAULT_UPLOAD_PATH + this->_path + filename);
-
-// 	return (filename);
-// }
-
-/*
 ** --------------------------------- CHECKERS ---------------------------------
 */
 
@@ -809,6 +783,54 @@ int	Request::_checkPathsMatch(const std::string &path, const std::string &parent
 }
 
 /*
+** @brief Check the CGI
+**
+** @return 0 if the check is successful, -1 otherwise
+*/
+int	Request::_checkCgi(void)
+{
+	if (this->_location == NULL)
+		return (0);
+	std::vector<std::string> allPathsLocations = this->_getAllPathsLocation();
+	for (size_t i = 0; i < allPathsLocations.size(); i++){
+		for (std::map<std::string, std::string>::const_iterator it = this->_location->getCGI().begin(); it != this->_location->getCGI().end(); ++it)
+			if (getExtension(allPathsLocations[i]) == it->first)
+				if (fileExist(allPathsLocations[i]))
+					return (this->setCgi(true, allPathsLocations[i], it->second), 0);
+	}
+	return (0);
+}
+
+/*
+** ---------------------------------- BODY -------------------------------------
+*/
+
+/*
+** @brief Define the body destination
+*/
+void	Request::_defineBodyDestination(void)
+{
+	if (1 == 0) // TODO: Condition to see if its an upload
+	{
+		this->_body._path = this->_path; // TODO : Check if the path is correct
+		this->_body._isTmp = false;
+		this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+		if (this->_body._fd == -1)
+		{
+			Logger::log(Logger::ERROR, "[_defineBodyDestination] Error opening file: %s", this->_body._path.c_str());
+			this->setError(500); // TODO: Check the error code
+		}
+	}
+	else
+	{
+		this->_body._isTmp = true;
+		if (Utils::createTmpFile(this->_body._path, this->_body._fd) == -1)
+			this->setError(500); // TODO: Check the error code
+	}
+
+}
+
+/*
 ** --------------------------------- TIMEOUT -----------------------------------
 */
 
@@ -869,4 +891,55 @@ void	Request::_initServer(void)
 		return ;
 	}
 	this->_server = &servers->front();
+}
+
+/*
+** --------------------------------- TOOLS ---------------------------------
+*/
+
+std::vector<std::string> Request::_getAllPathsLocation(void)
+{
+	if (this->_location == NULL)
+		return std::vector<std::string>();
+
+	std::vector<std::string> allPathsLocations;
+	std::string path = this->_path;
+	std::string root = this->_location->getRoot();
+	std::string alias = this->_location->getAlias();
+	std::vector<std::string> indexes = this->_location->getIndexes();
+	bool isAlias = false;
+
+
+	if (root.empty())
+		root = this->_server->getRoot();
+
+	if (!alias.empty())
+	{
+		root = alias;
+		isAlias = true;
+	}
+
+	// cas ou la requete demande un fichier direct
+	if (path[path.size() - 1] != '/'){
+		if (isAlias)
+			path = path.substr(this->_location->getPath().size());
+		allPathsLocations.push_back(root + path);
+	}
+
+	for (size_t i = 0; i < indexes.size(); i++)
+	{
+		std::string index = indexes[i];
+		if (path == "/"){
+			path = root + "/" + index;
+		}
+		else if (isAlias){
+			path = root + "/" + index;
+		}
+		else{
+			path = root + path + index;
+		}
+		allPathsLocations.push_back(path);
+	}
+
+	return allPathsLocations;
 }

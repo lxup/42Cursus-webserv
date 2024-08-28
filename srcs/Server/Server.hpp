@@ -20,7 +20,7 @@
 #define INACTIVITY_TIMEOUT 1 // seconds
 
 //#define TIMEOUT_CGI_CHECK_INTERVAL 1 // seconds
-#define TIMEOUT_CGI 1 // seconds
+#define TIMEOUT_CGI 100 // seconds
 
 // define step for server 
 enum ServerState
