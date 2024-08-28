@@ -409,6 +409,25 @@ void Response::handleDeleteRequest(void)
 	this->setState(Response::FINISH);
 }
 
+/*
+* @brief handle the PUT request
+*/
+void Response::handlePutRequest(void)
+{
+	std::string jsonBody = "{\n";
+	jsonBody += "\"message\": \"File uploaded successfully.\",\n";
+	jsonBody += "\"filename\": \"" + _request->_body.getPath() + "\",\n";
+	jsonBody += "\"size\": " + uint64ToString(_request->_body.getSize()) + "\n";
+	jsonBody += "}\n";
+
+	_response = "HTTP/1.1 200 OK\r\n";
+	_response += "Content-Type: application/json\r\n";
+	_response += "Content-Length: " + intToString(jsonBody.size()) + "\r\n";
+	_response += "\r\n";
+	_response += jsonBody;
+	this->setState(Response::FINISH);
+}
+
 // MAIN RESPONSE ==============================
 /**
  * @brief main function to return the response of the request _request
@@ -452,8 +471,8 @@ int Response::generateResponse(int epollFD)
 		handlePostRequest();
 	else if (_request->getMethod() == "DELETE")
 		handleDeleteRequest();
-	// else if (_request->getMethod() == "DELETE")
-	// 	return (this->setError(405), 0);
+	else if (_request->getMethod() == "PUT")
+		handlePutRequest();
 	// else if (_request->getMethod() == "PUT")
 	// 	return (this->setError(405), 0);
 	else

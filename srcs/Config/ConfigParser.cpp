@@ -117,6 +117,7 @@ std::vector<std::string>	ConfigParser::_getSupportedMethods(void)
 	methods.push_back("GET");
 	methods.push_back("POST");
 	methods.push_back("DELETE");
+	methods.push_back("PUT");
 	return (methods);
 }
 

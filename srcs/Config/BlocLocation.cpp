@@ -54,8 +54,10 @@ void BlocLocation::addAllowedMethods(std::vector<std::string> &tokens)
 			met = POST;
 		else if (token == "DELETE")
 			met = DELETE;
-		// else
-		// 	Logger::log(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		else if (token == "PUT")
+			met = PUT;
+		else
+			Logger::log(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		if (std::find(_allowedMethods.begin(), _allowedMethods.end(), met) != _allowedMethods.end())
 			Logger::log(Logger::FATAL, "Dupplicate method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		_allowedMethods.push_back(met);
@@ -277,6 +279,10 @@ void BlocLocation::printLocation(void)
             std::cout << "POST";
         else if (*it == DELETE)
             std::cout << "DELETE";
+		else if (*it == PUT)
+			std::cout << "PUT";
+		else
+			std::cout << "UNKNOWN";
         std::cout << std::endl;
     }
 
@@ -298,6 +304,8 @@ e_Methods	BlocLocation::converStrToMethod(const std::string &method)
 		return (POST);
 	if (method == "DELETE")
 		return (DELETE);
+	if (method == "PUT")
+		return (PUT);
 	else 
 		return (UNKNOWN);
 }

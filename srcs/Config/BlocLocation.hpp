@@ -16,6 +16,7 @@ enum e_Methods
 	GET,
 	POST,
 	DELETE,
+	PUT,
 	UNKNOWN
 };
 

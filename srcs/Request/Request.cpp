@@ -553,8 +553,6 @@ void	Request::_setState(e_parse_state state)
 		this->_setHeaderState(); // Set the header state
 		if (this->_state == Request::FINISH)
 			return ;
-		std::cout << C_YELLOW << "SALUT LES AMIIIISS" << C_RESET << std::endl;
-		
 		if (this->_method != "POST" && this->_method != "PUT")
 			return(this->_cgi._isCGI ? this->_setState(Request::CGI_INIT) : this->_setState(Request::FINISH));
 		this->setTimeout(REQUEST_DEFAULT_BODY_TIMEOUT);
@@ -828,25 +826,44 @@ void	Request::_defineBodyDestination(void)
 	// if (1 == 0) // TODO: Condition to see if its an upload
 	if (!this->_cgi._isCGI && (this->_method == "POST" || this->_method == "PUT"))
 	{
-		// if application/octet-stream
-		if (this->_headers.find("Content-Type") != this->_headers.end() && this->_headers["Content-Type"] == "application/octet-stream")
+
+		// if content type is multipart/form-data set error 415
+		if (this->_headers.find("Content-Type") != this->_headers.end() && this->_headers["Content-Type"] == "multipart/form-data")
+			return (this->setError(415));
+		// if (this->_headers.find("Content-Type") != this->_headers.end() && this->_headers["Content-Type"] == "application/octet-stream")
+		// {
 		{
 			this->_body._path = this->_location ? this->_location->getRoot() : this->_server->getRoot();
-			this->_body._path += "/upload_";
-			if (Utils::createFileRandomSuffix(this->_body._path, this->_body._fd) == -1)
-				this->setError(403); // TODO: Check the error code
+			this->_body._path += this->_path;
+			if (this->_headers.find("Filename") != this->_headers.end())
+			{
+				this->_body._path += "/" + this->_headers["Filename"];
+				if (this->_method == "POST" && fileExist(this->_body._path))
+					this->setError(403);
+				this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+				if (this->_body._fd == -1)
+					this->setError(403); // TODO: Check the error code
+			}
+			// search in query string filename
+			else if (this->_query.find("filename=") != std::string::npos)
+			{
+				this->_body._path += "/" + this->_query.substr(this->_query.find("filename=") + 9);
+				if (this->_method == "POST" && fileExist(this->_body._path))
+					this->setError(403);
+				this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+				if (this->_body._fd == -1)
+					this->setError(403); // TODO: Check the error code
+			}
+			else
+			{
+				this->_body._path += "/upload_";
+				if (Utils::createFileRandomSuffix(this->_body._path, this->_body._fd) == -1)
+					this->setError(403); // TODO: Check the error code
+			}
 			this->_body._isTmp = false;
 		}
-		else
-			this->setError(415);
-		// this->_body._path = this->_path; // TODO : Check if the path is correct
-		// this->_body._path = this->_location->getRoot() + this->_path;
-		// this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-		// if (this->_body._fd == -1)
-		// {
-		// 	Logger::log(Logger::ERROR, "[_defineBodyDestination] Error opening file: %s", this->_body._path.c_str());
-		// 	this->setError(403); // TODO: Check the error code
-		// }
+		// else
+		// 	this->setError(415);
 	}
 	else
 	{
