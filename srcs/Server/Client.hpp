@@ -46,9 +46,6 @@ class Client
 		time_t getLastActivity() const { return _lastActivity; }
 		void updateLastActivity() { _lastActivity = time(NULL); }
 
-		// Is
-		bool	isCgiReady(int epollFD);
-
 		// Checkers
 		void	checkCgi(void);
 

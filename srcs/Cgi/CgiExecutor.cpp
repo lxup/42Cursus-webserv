@@ -110,12 +110,13 @@ void CgiExecutor::_execute(void)
 
 	// SHOW BODY
 	std::cout << "SHOOOOOOOOOWWWWWWWW BODY" << std::endl;
-	char	buffer[CGI_READ_BUFFER_SIZE] = {0};
+	int bufferSize = 100;
+	char	buffer[bufferSize] = {0};
 	int ret = 1;
 	while (ret > 0)
 	{
-		memset(buffer, 0, CGI_READ_BUFFER_SIZE);
-		ret = read(this->_requestCgi->_request->_body._fd, buffer, CGI_READ_BUFFER_SIZE - 1);
+		memset(buffer, 0, bufferSize);
+		ret = read(this->_requestCgi->_request->_body._fd, buffer, bufferSize - 1);
 		if (ret == -1)
 			throw std::invalid_argument("[CgiExecutor::_execute] read failed");
 		std::string bufferStr(buffer, ret);
@@ -139,7 +140,7 @@ void CgiExecutor::_execute(void)
 	}
 	else
 	{
-		// char	buffer[CGI_READ_BUFFER_SIZE] = {0};
+		// char	buffer[bufferSize] = {0};
 		// waitpid(-1, NULL, 0);
 
 		// if (lseek(this->_body._fd, 0, SEEK_SET) == -1)
@@ -147,8 +148,8 @@ void CgiExecutor::_execute(void)
 		// int ret = 1;
 		// while (ret > 0)
 		// {
-		// 	memset(buffer, 0, CGI_READ_BUFFER_SIZE);
-		// 	ret = read(this->_body._fd, buffer, CGI_READ_BUFFER_SIZE - 1);
+		// 	memset(buffer, 0, bufferSize);
+		// 	ret = read(this->_body._fd, buffer, bufferSize - 1);
 		// 	if (ret == -1)
 		// 		throw std::invalid_argument("[CgiExecutor::_execute] read failed");
 		// 	std::string bufferStr(buffer, ret);

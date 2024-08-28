@@ -127,6 +127,7 @@ void Server::handleEvent(epoll_event *events, int i){
 		if (event & EPOLLOUT){
 			this->_clients[fd]->updateLastActivity();
 			this->_clients[fd]->checkCgi();
+			std::cout << C_RED << "REQUEST STATE : " << Request::getParseStateStr(this->_clients[fd]->getRequest()->getState()) << C_RESET << std::endl;
 			if (this->_clients[fd]->getRequest() && this->_clients[fd]->getRequest()->getState() == Request::FINISH)
 				this->_clients[fd]->handleResponse(this->_epollFD);
 		}

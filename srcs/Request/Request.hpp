@@ -51,7 +51,7 @@ class Request
 			CGI_END,
 			FINISH
 		};
-		std::string	getParseStateStr(e_parse_state state) const;
+		static std::string	getParseStateStr(e_parse_state state);
 	private:
 		Client*								_client;
 		BlocServer*							_server;
@@ -145,7 +145,7 @@ class Request
 		int 			getStateCode(void) const { return _stateCode; }
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool 			isChunked(void) const { return _isChunked; }
-		int 			getState(void) const { return _state; }
+		e_parse_state	getState(void) const { return _state; }
 		int 			getContentLength(void) const { return _contentLength; }
 		int 			getChunkSize(void) const { return _chunkSize; }
 		time_t			getTimeout(void) const { return _timeout; }

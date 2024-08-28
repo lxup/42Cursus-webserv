@@ -6,7 +6,7 @@
 
 // }
 
-std::string	Request::getParseStateStr(e_parse_state state) const
+std::string	Request::getParseStateStr(e_parse_state state)
 {
 	switch (state)
 	{
@@ -515,15 +515,6 @@ void Request::_parseChunkedBody(void)
 			this->setError(400);
 			return (Logger::log(Logger::ERROR, "[_parseChunkedBody] Chunk size does not match"));
 		}
-		// std::string newContent = this->_rawRequest.substr(0, this->_chunkSize);
-		// if (this->_file.getFile()->is_open())
-		// {
-		// 	if (!(this->_file.getFile()->write(newContent.c_str(), newContent.size())))
-		// 		return (this->_uploadFailed());
-		// }
-		// else
-			// this->_body += newContent;
-		// this->_body += this->_rawRequest.substr(0, this->_chunkSize); // URGENT!
 		if (this->_body._write(this->_rawRequest.substr(0, this->_chunkSize)) == -1)
 			return (this->setError(500));
 		this->_rawRequest.erase(0, this->_chunkSize + 2);
@@ -560,16 +551,18 @@ void	Request::_setState(e_parse_state state)
 			this->_setState(Request::CGI_INIT);
 		else
 			this->_setState(Request::FINISH);
-		modifySocketEpoll(g_server.getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
 	}
 	else if (this->_state == Request::CGI_INIT)
 	{
+		modifySocketEpoll(g_server.getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
 		this->setTimeout(REQUEST_DEFAULT_CGI_TIMEOUT);
 		this->_cgi._start();
-		// return (this->_setState(Request::FINISH));
 	}
 	else if (this->_state == Request::FINISH)
+	{
 		this->_timeout = 0;
+		modifySocketEpoll(g_server.getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
+	}
 }
 
 /*

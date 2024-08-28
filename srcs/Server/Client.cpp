@@ -73,7 +73,8 @@ void	Client::handleRequest( int epollFD )
 void Client::handleResponse(int epollFD)
 {
 	// this->_response->checkCgi();
-	this->_response->generateResponse(epollFD);
+	if (this->_response->generateResponse(epollFD) == -1)
+		return ;
 
 	Logger::log(Logger::DEBUG, "Response to sent: \n%s", this->_response->getResponse().c_str());
 	
@@ -112,23 +113,6 @@ void Client::reset(void)
 /*
 ** --------------------------------- IS ---------------------------------
 */
-
-/**
- * @brief Check if got a cgi
- * 	
- * @return true if got a cgi ready, false otherwise
- */
-bool Client::isCgiReady(int epollFD)
-{
-	if (this->_response == NULL)
-		return false;
-	if (!this->_response->isCGI()){
-		return false;
-	}
-	if (this->_response->handleCGI(epollFD) != -1)
-		return false;
-	return true;
-}
 
 /**
  * @brief Check if got a cgi
