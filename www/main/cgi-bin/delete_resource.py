@@ -2,7 +2,6 @@
 
 import os
 import urllib.parse
-import sys
 
 # En-têtes HTTP requis
 print("Content-Type: text/plain; charset=utf-8\r\n\r\n")

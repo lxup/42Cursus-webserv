@@ -50,7 +50,7 @@ html_content = f"""
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Informations de l'Utilisateur</title>
+    <title>Upload</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
@@ -71,6 +71,7 @@ html_content = f"""
 <body>
     <div class="container">
 				<h2> {value} </h2>
+				<a href="/">Back home</a>
     </div>
 </body>
 </html>

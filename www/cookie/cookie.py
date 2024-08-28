@@ -6,11 +6,8 @@ import uuid
 import cgi
 import time
 
-isNewCLient = False
-# En-tête HTTP pour indiquer que le contenu qui suit est du HTML
-print("Content-Type: text/html; charset=utf-8")  # En-tête HTTP
+print("Content-Type: text/html; charset=utf-8")
 
-# Activer le mode débogage pour afficher les erreurs sur la page
 cgitb.enable()
 
 def get_new_user_theme(user_id):
@@ -18,74 +15,59 @@ def get_new_user_theme(user_id):
     newTheme = form.getvalue("theme")
     if (newTheme is None):
         newTheme = get_user_theme(user_id)
-    try: # Écrire le thème utilisateur dans le fichier
+    try:
         with open(f"./www/cookie/database/{user_id}.txt", "w") as file:
             file.write(newTheme)
     except Exception as e:
         print(f"Erreur lors de l'écriture du fichier de thème : {e}")
     return newTheme 
 
-# Fonction pour récupérer le thème de l'utilisateur depuis le fichier
 def get_user_theme(user_id):
     try:
-        with open(f"./www/cookie/database/{user_id}.txt", "r") as file:  # Chemin vers le répertoire des thèmes utilisateur
+        with open(f"./www/cookie/database/{user_id}.txt", "r") as file:
             theme = file.read().strip()
             return theme if theme in ["light", "dark"] else "light"
     except FileNotFoundError:
-        return "light"  # Valeur par défaut si le fichier n'existe pas
+        return "light"
     except Exception as e:
         print(f"Erreur lors de la lecture du fichier de thème : {e}")
         return "light"
 
-# Fonction qui génère un ID unique
 def generateId():
     return str(uuid.uuid4())
 
 def generateExpirationDate():
-    # Calculer l'heure d'expiration : 30 jours (30 * 24 * 60 * 60 secondes)
     expiration_time = time.time() + 60 * 60 * 24 * 30
-    # Formater la date d'expiration en format GMT
     formatted_time = time.strftime("%a, %d-%b-%Y %H:%M:%S GMT", time.gmtime(expiration_time))
-    #print(f"Expires: {formatted_time}\r\n")
     return formatted_time
 
 def createNewCookie():
     user_id = generateId()
     expiration_date = generateExpirationDate()
-    # En-tête Set-Cookie correctement formaté
     cookieLine = "Set-Cookie: session_id=" + user_id + "; Expires=" + expiration_date + "; Path=/\r\n"
     print(cookieLine)
-    #print(cookieLine)
     with open(f"./www/cookie/database/{user_id}.txt", "w") as file:
         file.write("light")
     return user_id
 
-# Récupérer les cookies de la variable d'environnement
 cookies = os.environ.get('HTTP_COOKIE', '')
 user_id = None
 
-# Si le cookie est vide, on crée un cookie et un fichier pour stocker le thème
 if cookies == "":
     user_id = createNewCookie()
 else:
-    # Analyser les cookies pour trouver l'ID de session
     for cookie in cookies.split(';'):
         name, value = cookie.strip().split('=', 1)
         if name == "session_id":
             user_id = value
             break
 
-# Si l'ID utilisateur n'est pas trouvé, initialiser avec une valeur par défaut
 if user_id is None:
     user_id = createNewCookie()
 
-# Récupérer le thème de l'utilisateur
-#user_theme = get_user_theme(user_id)
 
-#changer le thème si l'utilisateur a soumis le formulaire
 user_theme = get_new_user_theme(user_id)
 
-# Définir le style en fonction du thème
 if user_theme == "dark":
     background_color = "#333"
     text_color = "#f0f0f0"
@@ -101,7 +83,6 @@ light_selected = "selected" if user_theme == "light" else ""
 dark_selected = "selected" if user_theme == "dark" else ""
 
 
-# Contenu HTML avec le thème utilisateur
 html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -167,8 +148,14 @@ html_content = f"""
     </div>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+<script>
+
+	
+				const jsConfetti = new JSConfetti()
+				jsConfetti.addConfetti()
+
+</script>
 </html>
 """
-if (isNewCLient == False):
-  print("\r\n")
+
 print(html_content)
