@@ -108,23 +108,23 @@ void CgiExecutor::_execute(void)
 	if (lseek(this->_requestCgi->_request->_body._fd, 0, SEEK_SET) == -1)
 		throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
 
-	// SHOW BODY
-	std::cout << "SHOOOOOOOOOWWWWWWWW BODY" << std::endl;
-	int bufferSize = 100;
-	char	buffer[bufferSize] = {0};
-	int ret = 1;
-	while (ret > 0)
-	{
-		memset(buffer, 0, bufferSize);
-		ret = read(this->_requestCgi->_request->_body._fd, buffer, bufferSize - 1);
-		if (ret == -1)
-			throw std::invalid_argument("[CgiExecutor::_execute] read failed");
-		std::string bufferStr(buffer, ret);
-		std::cout << "buffer: " << bufferStr << std::endl;
-	}
-	if (lseek(this->_requestCgi->_request->_body._fd, 0, SEEK_SET) == -1)
-		throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
-	// END SHOW BODY
+	// // SHOW BODY
+	// std::cout << "SHOOOOOOOOOWWWWWWWW BODY" << std::endl;
+	// int bufferSize = 100;
+	// char	buffer[bufferSize] = {0};
+	// int ret = 1;
+	// while (ret > 0)
+	// {
+	// 	memset(buffer, 0, bufferSize);
+	// 	ret = read(this->_requestCgi->_request->_body._fd, buffer, bufferSize - 1);
+	// 	if (ret == -1)
+	// 		throw std::invalid_argument("[CgiExecutor::_execute] read failed");
+	// 	std::string bufferStr(buffer, ret);
+	// 	std::cout << "buffer: " << bufferStr << std::endl;
+	// }
+	// if (lseek(this->_requestCgi->_request->_body._fd, 0, SEEK_SET) == -1)
+	// 	throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
+	// // END SHOW BODY
 	
 	this->_pid = fork();
 	if (this->_pid == -1)

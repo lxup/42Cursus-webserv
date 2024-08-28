@@ -106,7 +106,7 @@ void Server::handleEvent(epoll_event *events, int i){
 	try {
 
 		if (event & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)) // Error with the file descriptor
-			throw ClientDisconnectedException();
+			throw Client::DisconnectedException();
 		if (event & EPOLLIN){
 			if (this->_clients.find(fd) == this->_clients.end()) // New client connection
 				_handleClientConnection(fd);
@@ -121,20 +121,18 @@ void Server::handleEvent(epoll_event *events, int i){
 				// if (this->_clients[fd]->isCgiReady(this->_epollFD)) // Check if the CGI is ready
 				// 	modifySocketEpoll(this->_epollFD, fd, EPOLLOUT);
 				// else
-					this->_clients[fd]->handleRequest(this->_epollFD);
+					this->_clients[fd]->handleRequest();
 			}
 		}
 		if (event & EPOLLOUT){
 			this->_clients[fd]->updateLastActivity();
 			this->_clients[fd]->checkCgi();
-			std::cout << C_RED << "REQUEST STATE : " << Request::getParseStateStr(this->_clients[fd]->getRequest()->getState()) << C_RESET << std::endl;
 			if (this->_clients[fd]->getRequest() && this->_clients[fd]->getRequest()->getState() == Request::FINISH)
 				this->_clients[fd]->handleResponse(this->_epollFD);
 		}
 	} catch (ChildProcessException &e) { // Child process error (CGI)
-		std::cout << C_RED << "CGI ERROR" << C_RESET << std::endl;
 		throw ChildProcessException();
-	} catch (ClientDisconnectedException &e) { // Client disconnected
+	} catch (Client::DisconnectedException &e) { // Client disconnected
 		this->_handleClientDisconnection(fd);
 	} catch (const std::exception &e) { // Other exceptions
 		Logger::log(Logger::ERROR, "[Server::handleEvent] Error with client %d : %s", fd, e.what());
@@ -154,13 +152,15 @@ void	Server::_checkTimeouts(time_t currentTime)
 	while (it != this->_clients.end())
 	{
 		it->second->getRequest()->checkTimeout();
-		// if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
-		// {
-		// 	Logger::log(Logger::DEBUG, "[Server::_checkTimeouts] Client %d timed out", it->first);
-		// 	deleteSocketEpoll(this->_epollFD, it->first);
-		// 	delete it->second;
-		// 	this->_clients.erase(it++);
-		// }
+		if (currentTime - it->second->getLastActivity() > INACTIVITY_TIMEOUT)
+		{
+			Logger::log(Logger::DEBUG, "[Server::_checkTimeouts] Client %d timed out", it->first);
+			deleteSocketEpoll(this->_epollFD, it->first);
+			delete it->second;
+			this->_clients.erase(it++);
+		}
+		else
+			++it;
 		// else if (it->second->getResponse()->getCgiHandler() != NULL && (currentTime - it->second->getResponse()->getCgiHandler()->getLastActivity() > TIMEOUT_CGI))
 		// {
 		// 	Logger::log(Logger::DEBUG, "[Server::_checkTimeouts] CGI Timeout on client %d", it->first);
@@ -169,7 +169,6 @@ void	Server::_checkTimeouts(time_t currentTime)
 		// 	it->second->getResponse()->clearCgi();
 		// }
 		// else
-			++it;
 	}
 }
 

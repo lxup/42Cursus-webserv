@@ -26,39 +26,36 @@ class Client
 		time_t					_lastActivity;
 
 	public:
-		// Client(void);
 		Client(int fd, Socket* socket);
 		~Client(void);
 
 		/* HANDLE */
-		void	handleRequest( int epollFD );
-		void handleResponse(int epollFD);
+		void		handleRequest(void);
+		void 		handleResponse(int epollFD);
 		
-		void reset(void);
+		void 		reset(void);
 
 		/* GETTERS */
-		int getFd(void) const { return _fd; }
-		Request* getRequest(void) const { return _request; }
-		Socket* getSocket(void) const { return _socket; }
-		Response* getResponse(void) const { return _response; }
+		int 		getFd(void) const { return _fd; }
+		Request* 	getRequest(void) const { return _request; }
+		Socket*		getSocket(void) const { return _socket; }
+		Response*	getResponse(void) const { return _response; }
 
 		// timeout
-		time_t getLastActivity() const { return _lastActivity; }
-		void updateLastActivity() { _lastActivity = time(NULL); }
+		time_t 		getLastActivity() const { return _lastActivity; }
+		void		updateLastActivity() { _lastActivity = time(NULL); }
 
 		// Checkers
-		void	checkCgi(void);
+		void		checkCgi(void);
 
-};
-
-class ClientDisconnectedException : public std::exception
-{
-	public:
-		virtual const char* what() const throw()
+		class DisconnectedException : public std::exception
 		{
-			return "Client disconnected";
-		}
+			public:
+				virtual const char* what() const throw()
+				{
+					return "Client disconnected";
+				}
+		};
 };
-
 
 #endif // CLIENT_HPP

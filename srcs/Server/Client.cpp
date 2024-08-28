@@ -4,10 +4,6 @@
 ** --------------------------------- PRIVATE METHODS ---------------------------
 */
 
-// Client::Client(void) : _fd(-1), _socket(NULL), _request(new Request(this)), _response(new Response(this->getRequest()))
-// {
-// }
-
 Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(new Response(this)), _lastActivity(time(NULL))
 {
 	Logger::log(Logger::DEBUG, "[Client] Initializing client with fd %d", fd);
@@ -37,7 +33,7 @@ Client::~Client(void)
  * @brief Handle the request of the client
  * 
  */
-void	Client::handleRequest( int epollFD )
+void	Client::handleRequest(void)
 {
 	Logger::log(Logger::DEBUG, "[handleRequest] Handling request from client %d", this->_fd);
 	
@@ -54,17 +50,13 @@ void	Client::handleRequest( int epollFD )
 	else if (bytesRead < 0)
 		throw std::runtime_error("Error with recv function"); // TODO: throw exception or send 500 error to client
 	else if (bytesRead == 0)
-		throw ClientDisconnectedException();
+		throw Client::DisconnectedException();
 	
 	if (this->_request->getState() == Request::FINISH)
 		return (Logger::log(Logger::DEBUG, "[handleRequest] Request already finished"));
 
 	std::string str(buffer, bytesRead);
 	this->_request->parse(str);
-
-	(void)epollFD;
-	// if (this->_request->getState() == Request::FINISH)
-	// 	modifySocketEpoll(epollFD, this->_fd, RESPONSE_FLAGS);
 }
 
 /**
@@ -72,8 +64,7 @@ void	Client::handleRequest( int epollFD )
  */
 void Client::handleResponse(int epollFD)
 {
-	// this->_response->checkCgi();
-	if (this->_response->generateResponse(epollFD) == -1)
+	if (this->_response->generateResponse(epollFD) == -1) // Reponse not ready
 		return ;
 
 	Logger::log(Logger::DEBUG, "Response to sent: \n%s", this->_response->getResponse().c_str());
@@ -90,7 +81,7 @@ void Client::handleResponse(int epollFD)
 	if (this->getResponse()->getState() == Response::FINISH)
 	{
 		if (this->_request->getStateCode() != Request::FINISH)
-			throw ClientDisconnectedException();
+			throw Client::DisconnectedException();
 		Logger::log(Logger::DEBUG, "Response sent to client %d", this->getFd());
 		this->reset();
 		modifySocketEpoll(epollFD, this->getFd(), REQUEST_FLAGS);
