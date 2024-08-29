@@ -39,6 +39,13 @@ BlocServer &BlocServer::operator=(const BlocServer &other)
 }
 
 // ============ UTILS ============
+void BlocServer::setClientMaxBodySize(std::string clientMaxBodySize)
+{
+	_clientMaxBodySize = Utils::strToUll(clientMaxBodySize);
+	_counterView["clientMaxBodySize"]++;
+}
+
+
 bool BlocServer::isStartBlocLocation(std::vector<std::string>& tokens)
 {
 	return (tokens.size() == 3 && tokens[0] == "location" && tokens[2] == "{");
@@ -192,7 +199,7 @@ bool BlocServer::isValidLineServer(std::vector<std::string>& tokens, std::string
 	else if (key == "root" && tokens.size() == 2)
 		setRoot(tokens[1]);
 	else if (key == "client_max_body_size" && tokens.size() == 2)
-		setClientMaxBodySize(std::atoi(tokens[1].c_str()));
+		setClientMaxBodySize(tokens[1]);
 	else if (key == "error_page" && tokens.size() == 3){
 		addErrorPages(std::atoi(tokens[1].c_str()), tokens[2]);
 	}else

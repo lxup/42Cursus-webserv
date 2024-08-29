@@ -12,7 +12,7 @@
 # include "BlocLocation.hpp"
 # include "ListenConfig.hpp"
 
-# define BS_DEFAULT_CLIENT_MAX_BODY_SIZE 1048576
+# define BS_DEFAULT_CLIENT_MAX_BODY_SIZE 1048576 // 1MB
 
 class BlocLocation;
 class ListenConfig;
@@ -25,7 +25,7 @@ private:
 	std::vector<std::string> _serverNames;
 	std::vector<std::string> _indexes;
 	std::string _root;
-	size_t _clientMaxBodySize;
+	unsigned long long _clientMaxBodySize;
 	std::vector<BlocLocation> _locations;
 	std::map<int, std::string> _errorPages;
 
@@ -59,7 +59,7 @@ public:
 	// const std::vector<BlocLocation> &getLocations() const { return _locations; }
 	std::vector<BlocLocation>* getLocations() { return &_locations; }
 	const std::string &getRoot() const { return _root; }
-	size_t getClientMaxBodySize() const { return _clientMaxBodySize; }
+	u_int64_t getClientMaxBodySize() const { return _clientMaxBodySize; }
 	const std::map<std::string, ListenConfig> &getListens() const { return _listens; }
 	const std::vector<std::string> &getIndexes() const { return _indexes; }
 
@@ -68,11 +68,7 @@ public:
 
 
 	// Setters
-	void setClientMaxBodySize(unsigned int clientMaxBodySize)
-	{
-		_clientMaxBodySize = clientMaxBodySize;
-		_counterView["clientMaxBodySize"]++;
-	}
+	void setClientMaxBodySize(std::string clientMaxBodySize);
 	void setRoot(const std::string &root)
 	{
 		_root = root;

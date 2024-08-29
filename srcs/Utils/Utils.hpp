@@ -18,7 +18,6 @@
 #include <filesystem>
 
 
-
 #include "Logger.hpp"
 #include "ConfigParser.hpp"
 #include "ErrorPage.hpp"
@@ -30,6 +29,7 @@ class Utils
     static int  createFileRandomSuffix(std::string &path, int &fd);
     static int  urlDecode(std::string &str);
     static char hexToChar(char c);
+	 static unsigned long long strToUll(std::string clientMaxBodySize);
 };
 
 
@@ -54,6 +54,7 @@ bool isEmptyFile();
 std::string getErrorMessage(int code);
 std::string intToHexa(ssize_t num);
 std::string getMimeType(const std::string &path);
+
 
 // epoll utils
 void addSocketEpoll(int epollFD, int sockFD, uint32_t flags);

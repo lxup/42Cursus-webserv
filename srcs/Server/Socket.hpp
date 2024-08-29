@@ -9,6 +9,9 @@
 # include "Utils.hpp"
 # include "BlocServer.hpp"
 
+#define BACKLOGS 100
+
+
 class Socket
 {
 	private:
