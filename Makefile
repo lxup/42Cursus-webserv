@@ -62,53 +62,73 @@ OBJ_PATH		=	.obj
 
 CXXFLAGS		+=	-I$(INC_PATH)
 
+CXXFLAGS		+=	-MMD -MP
+
 # CXXFLAGS		+=	-pedantic
 
 # ** #
 #                                   SOURCES                                    #
 # ** #
 
+# MAIN
+MAIN			=	main
 
+# LOGGER
+LOGGER_PATH		=	$(SRC_PATH)/Logger
+LOGGER			=	Logger
 
-HEADERS			=	$(addprefix $(INC_PATH)/, $(addsuffix .hpp, \
-					Webserv \
-					Utils \
-					Logger \
-					ArgsManager \
+# CONFIG
+CONFIG_PATH		=	$(SRC_PATH)/Config
+CONFIG			=	ArgsManager \
 					ConfigParser \
 					BlocServer \
 					BlocLocation \
-					Server \
-					Socket \
-					Client \
-					Request \
 					ListenConfig \
 					ErrorPage \
-					Response \
-					CgiHandler \
-					))
 
-SRCS 			=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, \
-					main \
-					Utils \
-					Logger \
-					ArgsManager \
-					ConfigParser \
-					BlocServer \
-					BlocLocation \
-					Server \
+# SERVER
+SERVER_PATH		=	$(SRC_PATH)/Server
+SERVER			=	Server \
 					Socket \
 					Client \
-					Request \
-					ListenConfig \
-					ErrorPage \
-					Response \
+
+# REQUEST
+REQUEST_PATH	=	$(SRC_PATH)/Request
+REQUEST			=	Request \
+					RequestCgi \
+					RequestBody \
+
+# RESPONSE
+RESPONSE_PATH	=	$(SRC_PATH)/Response
+RESPONSE		=	Response
+
+# CGI
+CGI_PATH		=	$(SRC_PATH)/Cgi
+CGI				=	CgiExecutor \
 					CgiHandler \
-					))
+					
+
+# UTILS
+UTILS_PATH		=	$(SRC_PATH)/Utils
+UTILS			=	Utils
+
+SRCS			+=	$(addprefix $(SRC_PATH)/, $(addsuffix .cpp, $(MAIN))) \
+					$(addprefix $(LOGGER_PATH)/, $(addsuffix .cpp, $(LOGGER))) \
+					$(addprefix $(CONFIG_PATH)/, $(addsuffix .cpp, $(CONFIG))) \
+					$(addprefix $(SERVER_PATH)/, $(addsuffix .cpp, $(SERVER))) \
+					$(addprefix $(REQUEST_PATH)/, $(addsuffix .cpp, $(REQUEST))) \
+					$(addprefix $(RESPONSE_PATH)/, $(addsuffix .cpp, $(RESPONSE))) \
+					$(addprefix $(CGI_PATH)/, $(addsuffix .cpp, $(CGI))) \
+					$(addprefix $(UTILS_PATH)/, $(addsuffix .cpp, $(UTILS)))
+
+CLASSES			=	$(LOGGER_PATH) $(CONFIG_PATH) $(SERVER_PATH) $(REQUEST_PATH) $(RESPONSE_PATH) $(CGI_PATH) $(UTILS_PATH)
+
+CXXFLAGS		+=	$(addprefix -I, $(CLASSES))
 
 OBJS			=	$(SRCS:%.cpp=$(OBJ_PATH)/%.o)
 
 DEPS			=	$(OBJS:.o=.d)
+
 
 # ** #
 #                                    RULES                                     #
@@ -116,11 +136,11 @@ DEPS			=	$(OBJS:.o=.d)
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(HEADERS)
+$(NAME): $(OBJS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 	@echo "\n${GREEN}> $(NAME) was successfuly compiled 🎉${END}"
 
-$(OBJ_PATH)/%.o: %.cpp $(HEADERS)
+$(OBJ_PATH)/%.o: %.cpp
 			@mkdir -p $(dir $@)
 			@printf "${BLUE}>Generating $(NAME) objects... %-33.33s\r${END}" $@
 			@$(CXX) $(CXXFLAGS) -c $< -o $@

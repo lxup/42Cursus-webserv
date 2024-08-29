@@ -1,10 +1,10 @@
 #include "Webserv.hpp"
 
-Server server;
+Server g_server;
 int ConfigParser::countLineFile = 0;
 
 void signalHandler(int signum) {
-	server.stop();
+	g_server.stop();
 	Logger::log(Logger::DEBUG, "interrupt signal (%d) received.", signum);
 }
 
@@ -19,23 +19,13 @@ int main(int ac, char **av)
 	signal(SIGINT, signalHandler);
 	try{
 		// 1- Parsing
-		server.getConfigParser().parse(args.getConfigFilePath());
-		server.getConfigParser().printServers();
-		// 2- Initialisation et lancement du Server
-		server.init();
-		server.run();
-	}
-	catch (const std::exception &e){
+		g_server.getConfigParser().parse(args.getConfigFilePath());
+		if (Logger::getLogDebugState())
+			g_server.getConfigParser().printServers();
+		g_server.init();
+		g_server.run();
+	} catch (const std::exception &e){
 		return (EXIT_FAILURE);
 	}
-	// catch (const WebservException &e){
-	// 	Logger::log(e.getLogLevel(), e.what());
-	// 	return (EXIT_FAILURE);
-	// }
-
-
-
-	// args.summary();
-
 	return (EXIT_SUCCESS);
 }

@@ -172,3 +172,35 @@ footer{
 	font-weight: 700;
 	cursor: pointer;
 }
+
+.bonus .wrapper{
+	background: var(--luxe-gold, linear-gradient(121deg, #7D4702 -1.51%, #FDD265 57.83%, #683E08 102.06%));
+	color: #121212;
+}
+
+.bonus .button{
+	background-color: #121212;
+	color: white;
+}
+
+.bonus .subtitle{
+	color: #121212;
+}
+
+
+.titleSection{
+	width: 100%;
+	font-weight: 400;
+	font-size: 1.3rem;
+	margin-bottom: 2rem;
+}
+
+.titleSection h2{
+	background: var(--luxe-gold, linear-gradient(95deg, #212526 -0.51%, #ccd9e070 220.06%));
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent; /* Cela remplace -webkit-text-fill-color pour une meilleure compatibilité */
+	display: inline; /* S'assure que le fond suit le texte */
+
+}
+

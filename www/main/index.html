@@ -3,13 +3,18 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+	<title>Webserv</title>
 	<link rel="stylesheet" href="style.css">
+	<link rel="icon" href="/favicon.svg" type="image/svg">
 </head>
 <body>
 	<section class="wrapperAll container">
 		<h1 class="title">WEBSERV</h1>
 		<div class="bigLine"></div>
+
+
+		<div class="titleSection"><h2>Portfolios</h2></div>
+
 		<section class="portfolios">
 			<div class="wrapper" id="raf">
 				<h2 class="subtitle">Toukoum 🚀</h2>
@@ -24,13 +29,16 @@
 				<a href="/xmesky" class="link"><div class="button">Try</div></a>
 			</div>
 			<div class="wrapper" id="louis">
-				<h2 class="subtitle">Juiiceee 🏆</h2>
+				<h2 class="subtitle">Juiceee 🏆</h2>
 				<div class="line"></div>
-				<p>Display Juiiceee Portfolio to the route /toukoum</p>
-				<a href="/juiiceee" class="link"><div class="button">Try</div></a>
+				<p>Display Juiceee Portfolio to the route /Juiceee</p>
+				<a href="/juiceee" class="link"><div class="button">Try</div></a>
 			</div>
 		</section>
+
+
 		<div class="bigLine"></div>
+		<div class="titleSection"><h2>Mandatory</h2></div>
 
 		<section class="features">
 			<div class="wrapper">
@@ -39,44 +47,42 @@
 				<p>Try a simple Get Method to display GET.html </p>
 				<a href="./GET.html" class="link"><div class="button">Try</div></a>
 			</div>
+
 			<div class="wrapper">
 				<h2 class="subtitle">POST</h2>
 				<div class="line"></div>
 				<p>Try Post Method</p>
-				<a href="#" class="link"><div class="button">Try</div></a>
+				<a href="./POST.html" class="link"><div class="button">Try</div></a>
 			</div>
+
 			<div class="wrapper">
 				<h2 class="subtitle">DELETE</h2>
 				<div class="line"></div>
 				<p>Try Delete Method</p>
-				<a href="#" class="link"><div class="button">Try</div></a>
+				<a href="./delete.html" class="link"><div class="button">Try</div></a>
 			</div>
-
-
-
-
-
-
 
 			<div class="wrapper">
-				<h2 class="subtitle">Custom Error Pages</h2>
+				<h2 class="subtitle">UPLOAD</h2>
 				<div class="line"></div>
-				<p>Display custom 404 Error Pages</p>
-				<a href="./FalseCustom404.html" class="link"><div class="button">Try</div></a>
+				<p>Upload a File on Server</p>
+				<a href="./upload.html" class="link"><div class="button">Try</div></a>
 			</div>
+
 			<div class="wrapper">
-				<h2 class="subtitle">Redirection</h2>
+				<h2 class="subtitle">DOWNLOAD</h2>
 				<div class="line"></div>
-				<p>Go to <u>youtube.com</u> with 301 Redirection</p>
-				<a href="/youtube" class="link"><div class="button">Try</div></a>
+				<p>Get back the files you just uploaded</p>
+				<a href="/download" class="link"><div class="button">Try</div></a>
 			</div>
+
 			<div class="wrapper">
-				<h2 class="subtitle">Alias</h2>
+				<h2 class="subtitle">FILETRANSFERT</h2>
 				<div class="line"></div>
-				<p>Display banane.html with alias path</p>
-				<a href="/alias" class="link"><div class="button">Try</div></a>
+				<p>Upload, download and delete files</p>
+				<a href="/filetransfert" class="link"><div class="button">Try</div></a>
 			</div>
-			
+
 
 			<div class="wrapper">
 				<h2 class="subtitle">List Directory</h2>
@@ -87,33 +93,96 @@
 			
 			
 			<div class="wrapper">
+				<h2 class="subtitle">Redirection</h2>
+				<div class="line"></div>
+				<p>Go to <u>youtube.com</u> with 301 Redirection</p>
+				<a href="/youtube" class="link"><div class="button">Try</div></a>
+			</div>
+
+			<div class="wrapper">
+				<h2 class="subtitle">Custom Error Pages</h2>
+				<div class="line"></div>
+				<p>Display custom 404 Error Pages</p>
+				<a href="./FalseCustom404.html" class="link"><div class="button">Try</div></a>
+			</div>
+			<div class="wrapper">
+				<h2 class="subtitle">Alias</h2>
+				<div class="line"></div>
+				<p>Display banane.html with alias path</p>
+				<a href="/alias" class="link"><div class="button">Try</div></a>
+			</div>
+		
+
+			<div class="wrapper">
+				<h2 class="subtitle">BODY MAX SIZE</h2>
+				<div class="line"></div>
+				<p>Send a POST request with body bigger than <u>client_max_body_size</u></p>
+				<a href="./bodySize" class="link"><div class="button">Try</div></a>
+			</div>
+
+		</section>
+
+		<div class="bigLine"></div>
+		<div class="titleSection"><h2>Bonus</h2></div>
+
+		<section class="features bonus">
+
+		<div class="wrapper">
+			<h2 class="subtitle">LOGIN</h2>
+			<div class="line"></div>
+			<p>Create an account, log in, and write private notes</p>
+			<a href="/login" class="link"><div class="button">Try</div></a>
+		</div>
+
+			<div class="wrapper">
 				<h2 class="subtitle">CGI PYTHON</h2>
 				<div class="line"></div>
-				<p>Execute a simple CGI php script</p>
-				<a href="/list" class="link"><div class="button">Try</div></a>
+				<p>Execute a simple CGI python script</p>
+				<a href="python-cgi.html" class="link"><div class="button">Try</div></a>
 			</div>
-			
 
 			<div class="wrapper">
 				<h2 class="subtitle">CGI PHP</h2>
 				<div class="line"></div>
-				<p>Execute a simple CGI python script</p>
-				<a href="/list" class="link"><div class="button">Try</div></a>
+				<p>Execute a simple CGI php script</p>
+				<a href="php-cgi.html" class="link"><div class="button">Try</div></a>
 			</div>
 			
+
 			<div class="wrapper">
-				<h2 class="subtitle">UPLOAD FILE</h2>
+				<h2 class="subtitle">CGI BASH</h2>
 				<div class="line"></div>
-				<p>Upload and Download a File on Server</p>
-				<a href="/upload" class="link"><div class="button">Try</div></a>
+				<p>Execute a simple CGI bash script</p>
+				<a href="bash-cgi.html" class="link"><div class="button">Try</div></a>
 			</div>
-			
 
+			<div class="wrapper">
+				<h2 class="subtitle">UPLOAD - CGI</h2>
+				<div class="line"></div>
+				<p>Upload files with CGI</p>
+				<a href="cgi-upload.html" class="link"><div class="button">Try</div></a>
+			</div>
 
+			<div class="wrapper">
+				<h2 class="subtitle">DOWNLOAD - CGI</h2>
+				<div class="line"></div>
+				<p>Download File with CGI</p>
+				<a href="cgi-download.html" class="link"><div class="button">Try</div></a>
+			</div>
 
+			<div class="wrapper">
+				<h2 class="subtitle">DELETE - CGI</h2>
+				<div class="line"></div>
+				<p>Delete File with CGI</p>
+				<a href="cgi-delete.html" class="link"><div class="button">Try</div></a>
+			</div>
 
-
-
+			<div class="wrapper">
+				<h2 class="subtitle">COOKIES</h2>
+				<div class="line"></div>
+				<p>Set light/dark theme with cookies</p>
+				<a href="/cookie" class="link"><div class="button">Try</div></a>
+			</div>
 		</section>
 		<div class="bigLine"></div>
 		<footer>
