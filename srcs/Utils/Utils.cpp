@@ -100,7 +100,7 @@ unsigned long long Utils::strToUll(std::string clientMaxBodySize){
 	std::stringstream ss(clientMaxBodySize); // Use std::stringstream instead of stringstream
 	ss >> size;
 
-	if (ss.fail() || !ss.eof() || size < 0)
+	if (ss.fail() || !ss.eof())
 	{
 		return (BS_DEFAULT_CLIENT_MAX_BODY_SIZE);
 	}
