@@ -27,6 +27,7 @@ class RequestBody
 		int	_write(const std::string &data);
 	public:
 		RequestBody(void);
+		RequestBody(bool isTmp);
 		RequestBody(const RequestBody &src);
 		~RequestBody(void);
 

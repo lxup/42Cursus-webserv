@@ -4,6 +4,10 @@ RequestBody::RequestBody(void) : _fd(-1), _isTmp(false), _size(0)
 {
 }
 
+RequestBody::RequestBody(bool isTmp) : _fd(-1), _isTmp(isTmp), _size(0)
+{
+}
+
 RequestBody::RequestBody(const RequestBody &src)
 {
 	*this = src;

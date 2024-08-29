@@ -1,6 +1,6 @@
 #include "CgiExecutor.hpp"
 
-CgiExecutor::CgiExecutor(RequestCgi *requestCgi) : _requestCgi(requestCgi), _envp(NULL), _argv(NULL), _pid(-1), _StdinBackup(-1), _StdoutBackup(-1)
+CgiExecutor::CgiExecutor(RequestCgi *requestCgi) : _requestCgi(requestCgi), _envp(NULL), _argv(NULL), _body(true), _pid(-1), _StdinBackup(-1), _StdoutBackup(-1)
 {
 }
 
@@ -33,17 +33,6 @@ CgiExecutor::~CgiExecutor(void)
 		close(this->_StdoutBackup);
 		this->_StdoutBackup = -1;
 	}
-	// if (this->_tmpOut)
-	// {
-	// 	fclose(this->_tmpOut);
-	// 	this->_tmpOut = NULL;
-	// }
-	// if (this->_fdOut != -1)
-	// {
-	// 	close(this->_fdOut);
-	// 	this->_fdOut = -1;
-	// }
-
 }
 
 CgiExecutor &CgiExecutor::operator=(const CgiExecutor &src)
@@ -145,21 +134,6 @@ void CgiExecutor::_execute(void)
 	}
 	else
 	{
-		// char	buffer[bufferSize] = {0};
-		// waitpid(-1, NULL, 0);
-
-		// if (lseek(this->_body._fd, 0, SEEK_SET) == -1)
-		// 	throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
-		// int ret = 1;
-		// while (ret > 0)
-		// {
-		// 	memset(buffer, 0, bufferSize);
-		// 	ret = read(this->_body._fd, buffer, bufferSize - 1);
-		// 	if (ret == -1)
-		// 		throw std::invalid_argument("[CgiExecutor::_execute] read failed");
-		// 	std::string bufferStr(buffer, ret);
-		// 	std::cout << "buffer: " << bufferStr << std::endl;
-		// }
 		this->_requestCgi->_request->_setState(Request::CGI_PROCESS);
 	}
 
