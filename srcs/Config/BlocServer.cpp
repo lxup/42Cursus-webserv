@@ -56,7 +56,7 @@ void BlocServer::addListen(std::string &token)
 	ListenConfig listen(token);
 	
 	if (_listens.find(listen.getIpPortJoin()) != _listens.end())
-		Logger::log(Logger::FATAL, "Dupplicate listen in server context: %s", token.c_str());
+		Logger::log(Logger::FATAL, "Duplicate listen in server context: %s", token.c_str());
 
 	_listens[listen.getIpPortJoin()] = listen;
 }
@@ -136,7 +136,7 @@ void BlocServer::checkDoubleLine()
 
 	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 		if (it->second > 1)
-			Logger::log(Logger::FATAL, "Dupplicate line in server context: %s", it->first.c_str());
+			Logger::log(Logger::FATAL, "Duplicate line in server context: %s", it->first.c_str());
 }
 
 
@@ -150,7 +150,7 @@ void BlocServer::checkDoubleLocation()
 		for (it2 = it + 1; it2 != _locations.end(); ++it2)
 		{
 			if (it->getPath() == it2->getPath())
-				Logger::log(Logger::FATAL, "Dupplicate location: \"%s\" in file: %s", it->getPath().c_str(), _filename.c_str());
+				Logger::log(Logger::FATAL, "Duplicate location: \"%s\" in file: %s", it->getPath().c_str(), _filename.c_str());
 		}
 	}
 }

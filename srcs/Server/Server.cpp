@@ -214,11 +214,11 @@ void Server::run(void)
 void	Server::setState(int state)
 {
 	if (state == S_STATE_INIT)
-		Logger::log(Logger::INFO, "Server is initializing...");
+		Logger::log(Logger::INFO, "Parsing completed");
 	else if (state == S_STATE_READY)
-		Logger::log(Logger::INFO, "Server is ready to run...");
+		Logger::log(Logger::INFO, "Server is ready to run");
 	else if (state == S_STATE_RUN)
-		Logger::log(Logger::INFO, "Server is running...");
+		Logger::log(Logger::INFO, "Server is running");
 	else if (state == S_STATE_STOP)
 		Logger::log(Logger::INFO, "Server is stopping...");
 	this->_state = state;

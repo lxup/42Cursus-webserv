@@ -57,6 +57,6 @@
 // #include "Socket.hpp"
 // #include "ListenConfig.hpp"
 
-extern Server g_server;
+extern Server* g_server;
 
 #endif // WEBSERV_HPP

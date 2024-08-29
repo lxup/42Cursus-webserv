@@ -46,7 +46,7 @@ CgiExecutor &CgiExecutor::operator=(const CgiExecutor &src)
 
 void CgiExecutor::_init(void)
 {
-	Logger::log(Logger::DEBUG, "[CgiExecutor::_init] Start CGI Handler V2");
+	Logger::log(Logger::DEBUG, "[CgiExecutor::_init] Start CGI Executor");
 	Logger::log(Logger::DEBUG, "[CgiExecutor::_init] Path: %s", this->_requestCgi->_path.c_str());
 	Logger::log(Logger::DEBUG, "[CgiExecutor::_init] ExecPath: %s", this->_requestCgi->_execPath.c_str());
 
@@ -54,8 +54,7 @@ void CgiExecutor::_init(void)
 	this->_env["SERVER_SOFTWARE"] = "webserv/1.0";
 	this->_env["SERVER_NAME"] = this->_requestCgi->_request->_headers["Host"];
 	this->_env["SERVER_PROTOCOL"] = this->_requestCgi->_request->_httpVersion;
-	this->_env["SERVER_PORT"] = this->_requestCgi->_request->_client->getSocket()->getPort();
-
+	this->_env["SERVER_PORT"] = intToString(this->_requestCgi->_request->_client->getSocket()->getPort());
 	this->_env["REDIRECT_STATUS"] = "200";
 	this->_env["REQUEST_METHOD"] = this->_requestCgi->_request->_method;
 	this->_env["GATEWAY_INTERFACE"] = "CGI/1.1";
@@ -75,24 +74,12 @@ void CgiExecutor::_init(void)
 
 void CgiExecutor::_execute(void)
 {
-	Logger::log(Logger::DEBUG, "[CgiExecutor::_execute] Start CGI Handler V2");
+	Logger::log(Logger::DEBUG, "[CgiExecutor::_execute] Start CGI Executor");
 	this->_envp = this->_envToChar();
-	// print envp
-	// for (size_t i = 0; this->_envp[i]; i++)
-	// 	std::cout << "envp[" << i << "]: " << this->_envp[i] << std::endl;
 	this->_argv = this->_buildArgv();
-	// TODO: maybe check if envp and argv are not NULL
-
 	this->_StdinBackup = dup(STDIN_FILENO);
 	this->_StdoutBackup = dup(STDOUT_FILENO);
 
-	// Build the output body
-	// this->_tmpOut = tmpfile();
-	// if (this->_tmpOut == NULL)
-	// 	throw std::invalid_argument("[CgiExecutor::_execute] tmpfile failed");
-	// this->_fdOut = fileno(this->_tmpOut);
-	// if (this->_fdOut == -1)
-	// 	throw std::invalid_argument("[CgiExecutor::_execute] fileno failed");
 	if (Utils::createTmpFile(this->_body._path, this->_body._fd) == -1)
 		throw std::invalid_argument("[CgiExecutor::_execute] createTmpFile failed");
 
@@ -100,25 +87,7 @@ void CgiExecutor::_execute(void)
 	if (this->_requestCgi->_request->_body._fd != -1) // Start from the beginning of the body, if there is one
 		if (lseek(this->_requestCgi->_request->_body._fd, 0, SEEK_SET) == -1)
 			throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
-
-	// // SHOW BODY
-	// std::cout << "SHOOOOOOOOOWWWWWWWW BODY" << std::endl;
-	// int bufferSize = 100;
-	// char	buffer[bufferSize] = {0};
-	// int ret = 1;
-	// while (ret > 0)
-	// {
-	// 	memset(buffer, 0, bufferSize);
-	// 	ret = read(this->_requestCgi->_request->_body._fd, buffer, bufferSize - 1);
-	// 	if (ret == -1)
-	// 		throw std::invalid_argument("[CgiExecutor::_execute] read failed");
-	// 	std::string bufferStr(buffer, ret);
-	// 	std::cout << "buffer: " << bufferStr << std::endl;
-	// }
-	// if (lseek(this->_requestCgi->_request->_body._fd, 0, SEEK_SET) == -1)
-	// 	throw std::invalid_argument("[CgiExecutor::_execute] lseek failed");
-	// // END SHOW BODY
-	
+			
 	this->_pid = fork();
 	if (this->_pid == -1)
 		throw std::invalid_argument("[CgiExecutor::_execute] fork failed");

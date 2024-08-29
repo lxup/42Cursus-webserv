@@ -117,7 +117,7 @@ std::string Logger::_formater(Logger::LogLevel level, const char *msg, std::stri
 		formatedMsg += Logger::getLogLevelColor(level);
 	formatedMsg += "[" + Logger::getLogLevelStr(level) + "]\t";
 	formatedMsg += time + " : " + msg;
-	if ((level == Logger::ERROR || level == Logger::FATAL) && errno != 0)
+	if ((level == Logger::FATAL) && errno != 0)
 		formatedMsg += ": " + static_cast<std::string>(std::strerror(errno));
 	if (colored == true)
 		formatedMsg += C_RESET;
@@ -189,7 +189,6 @@ void Logger::log(Logger::LogLevel level, const char *msg, ...)
 	// Handling error
 	if (size < 0)
 	{
-		// TODO: Handle error
 		return;
 	}
 
@@ -210,6 +209,7 @@ void Logger::log(Logger::LogLevel level, const char *msg, ...)
 	// Print the log
 
 	Logger::_printLog(level, buffer.data(), timeBuffer);
+
 	if (Logger::getLogFileState() == true)
 		Logger::_writeLogInFile(level, buffer.data(), timeBuffer);
 	

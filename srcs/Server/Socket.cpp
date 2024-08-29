@@ -6,7 +6,7 @@ Socket::Socket(void) : _fd(-1)
 
 Socket::Socket(std::string ip, unsigned int port, std::vector<BlocServer>* servers)
 {
-	Logger::log(Logger::DEBUG, "Initializing socket on %s:%d", ip.c_str(), port);
+	Logger::log(Logger::INFO, "Initializing socket on %s:%d", ip.c_str(), port);
 	this->_ip = ip;
 	this->_port = port;
 	this->_fd = protectedCall(socket(AF_INET, SOCK_STREAM, 0), "socket");

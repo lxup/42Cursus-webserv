@@ -115,6 +115,7 @@ std::vector<std::string> Response::getAllPathsLocation()
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
+		std::string bkpPath = path;
 		if (path == "/"){
 			path = root + "/" + index;
 		}
@@ -125,6 +126,7 @@ std::vector<std::string> Response::getAllPathsLocation()
 			path = root + path + index;
 		}
 		allPathsLocations.push_back(path);
+		path = bkpPath;
 	}
 
 	return allPathsLocations;
@@ -152,7 +154,7 @@ std::vector<std::string> Response::getAllPathsServer(void)
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
-
+		std::string bkpPath = path;
 		if (path == "/")
 		{
 			path = root + "/" + index;
@@ -162,6 +164,7 @@ std::vector<std::string> Response::getAllPathsServer(void)
 			path = root + path + index;
 		}
 		allPaths.push_back(path);
+		path = bkpPath;
 	}
 
 	return allPaths;

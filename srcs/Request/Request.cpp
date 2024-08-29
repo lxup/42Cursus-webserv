@@ -1,11 +1,6 @@
 #include "Request.hpp"
 #include "Webserv.hpp"
 
-// Request::Request(void) : _client(NULL), _server(NULL), _location(NULL), _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _body(""), _bodySize(0), _isChunked(false), _contentLength(-1), _chunkSize(-1), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
-// {
-
-// }
-
 std::string	Request::getParseStateStr(e_parse_state state)
 {
 	switch (state)
@@ -61,8 +56,6 @@ Request::Request(const Request &src)
 
 Request::~Request(void)
 {
-	// if (this->_file.getFile()->is_open())
-	// 	this->_file.getFile()->close();
 }
 
 Request &Request::operator=(const Request &rhs)
@@ -102,9 +95,8 @@ void	Request::parse(const std::string &rawRequest)
 {
 	if (this->_state == Request::FINISH)
 		return ;
-	if (this->_state == Request::INIT)
-	{
-		Logger::log(Logger::TRACE, "\"%.*s\"", 25, rawRequest.substr(0, rawRequest.find("\n")).c_str());
+	if (this->_state == Request::INIT){
+		Logger::log(Logger::TRACE, "%.*s", 25, rawRequest.substr(0, rawRequest.find("\n")).c_str());
 		this->_initTimeout();
 	}
 	
@@ -116,9 +108,6 @@ void	Request::parse(const std::string &rawRequest)
 	}
 	this->_rawRequest += rawRequest;
 
-	// Logger::log(Logger::ERROR, "ACTUAL BODY SIZE: %zu", this->_bodySize);
-	// Logger::log(Logger::ERROR, "RAW REQUEST SIZE: %zu", this->_rawRequest.length());
-	// Logger::log(Logger::ERROR, "EXPECTED NEW BODY SIZE: %zu", this->_bodySize + this->_rawRequest.size());
 	Logger::log(Logger::DEBUG, "Parsing request: %s", this->_rawRequest.c_str());
 
 	this->_parseRequestLine();
@@ -240,21 +229,6 @@ void	Request::_parseUri(void)
 		Logger::log(Logger::DEBUG, "URI: %s", this->_uri.c_str());
 		return (this->_setState(Request::REQUEST_LINE_HTTP_VERSION));
 	}
-	// size_t pos = this->_rawRequest.find(" ");
-	// if (pos == std::string::npos)
-	// {
-	// 	this->_uri += this->_rawRequest;
-	// 	this->_rawRequest.clear();
-	// 	return ;
-	// }
-	// this->_uri += this->_rawRequest.substr(0, pos);
-	// this->_rawRequest.erase(0, pos + 1);
-
-	// this->_uri.erase(std::remove_if(this->_uri.begin(), this->_uri.end(), ::isspace), this->_uri.end());
-
-	// Logger::log(Logger::DEBUG, "URI: %s", this->_uri.c_str());
-	// this->_setState(Request::REQUEST_LINE_HTTP_VERSION);
-	// this->_processUri();
 }
 
 /*
@@ -282,9 +256,6 @@ void	Request::_parseHttpVersion(void)
 		i++;
 	}
 	this->_rawRequest.erase(0, i);
-	// std::cout << C_YELLOW << "FOUND: " << found << C_RESET << std::endl;
-	// std::cout << C_YELLOW << "RAW REQUEST: '" << this->_rawRequest << "'" << C_RESET << std::endl;
-	// std::cout << C_YELLOW << "HTTP VERSION: '" << this->_httpVersion << "'" << C_RESET << std::endl;
 	if (found)
 	{
 		if (this->_httpVersion.empty())
@@ -294,22 +265,6 @@ void	Request::_parseHttpVersion(void)
 			return (this->setError(505));
 		this->_setState(Request::REQUEST_LINE_END);
 	}
-	// size_t pos = this->_rawRequest.find("\r\n");
-	// if (pos == std::string::npos)
-	// {
-	// 	this->_httpVersion += this->_rawRequest;
-	// 	this->_rawRequest.clear();
-	// 	return ;
-	// }
-	// this->_httpVersion += this->_rawRequest.substr(0, pos);
-	// this->_rawRequest.erase(0, pos + 2);
-
-	// this->_httpVersion.erase(std::remove_if(this->_httpVersion.begin(), this->_httpVersion.end(), ::isspace), this->_httpVersion.end());
-
-	// Logger::log(Logger::DEBUG, "HTTP Version: %s", this->_httpVersion.c_str());
-	// if (Server::isHttpVersionSupported(this->_httpVersion) == false)
-	// 	return (this->setError(505));
-	// this->_setState(Request::HEADERS);
 }
 
 
@@ -458,13 +413,6 @@ void	Request::_parseHeadersValue(void)
 }
 
 
-/*
-** @brief Parse the body
-**
-** @param iss : The input stream
-** @param line : The current line
-** @param step : The current step
-*/
 void	Request::_parseBody(void)
 {
 	if (this->_state < Request::BODY_INIT)
@@ -482,19 +430,10 @@ void	Request::_parseBody(void)
 		return (this->setError(413));
 	if (this->_body._size == this->_contentLength)
 		return (this->_setState(Request::BODY_END));
-	// if (this->_body._write(this->_rawRequest.substr(0, (u_int64_t)this->_contentLength - this->_body._size)) == -1)
-	// 	return (this->setError(500));
-	// this->_rawRequest.erase(0, (u_int64_t)this->_contentLength - this->_body._size);
-	// if (this->_body._size == (u_int64_t)this->_contentLength)
-	// 	return (this->_setState(Request::BODY_END));
 }
 
 /*
 ** @brief Parse the chunked body
-**
-** @param iss : The input stream
-** @param line : The current line
-** @param step : The current step
 */
 void Request::_parseChunkedBody(void)
 {
@@ -568,14 +507,14 @@ void	Request::_setState(e_parse_state state)
 	}
 	else if (this->_state == Request::CGI_INIT)
 	{
-		modifySocketEpoll(g_server.getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
+		modifySocketEpoll(g_server->getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
 		this->setTimeout(REQUEST_DEFAULT_CGI_TIMEOUT);
 		this->_cgi._start();
 	}
 	else if (this->_state == Request::FINISH)
 	{
 		this->_timeout = 0;
-		modifySocketEpoll(g_server.getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
+		modifySocketEpoll(g_server->getEpollFD(), this->_client->getFd(), RESPONSE_FLAGS);
 	}
 }
 
@@ -586,7 +525,7 @@ void	Request::_setHeaderState(void)
 {
 	if (this->_findServer() == -1 || this->_findLocation() == -1)
 		return ;
-	if (this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkMethod() == -1 || this->_checkCgi() == -1) // || this->_checkCGI() == -1)
+	if (this->_checkMethod() == -1 || this->_checkTransferEncoding() == -1 || this->_checkClientMaxBodySize() == -1 || this->_checkCgi() == -1) // || this->_checkCGI() == -1)
 		return ;
 }
 
@@ -671,20 +610,7 @@ int	Request::_findServer(void)
 			}
 		}
 	}
-	// if (serverFound == NULL) // If the server is not found, set the first BlocServer
-	// {
-	// 	if (servers->empty())
-	// 	{
-	// 		Logger::log(Logger::ERROR, "[_findServer] No server found");
-	// 		this->setError(500);
-	// 		return (-1);
-	// 	}
-	// 	serverFound = &servers->front();
-	// }
-	// this->_server = serverFound;
 	return (1);
-	
-	// Logger::log(Logger::DEBUG, "[_findServer] Server found: %s", this->_server->getServerNames().front().c_str());
 }
 
 /*
@@ -827,18 +753,14 @@ int	Request::_checkCgi(void)
 */
 void	Request::_defineBodyDestination(void)
 {
-	// if (1 == 0) // TODO: Condition to see if its an upload
 	if (!this->_cgi._isCGI && (this->_method == "POST" || this->_method == "PUT"))
 	{
 
-		// if content type is multipart/form-data set error 415
 		if (this->_headers.find("Content-Type") != this->_headers.end() && this->_headers["Content-Type"] == "multipart/form-data")
 			return (this->setError(415));
-		// if (this->_headers.find("Content-Type") != this->_headers.end() && this->_headers["Content-Type"] == "application/octet-stream")
-		// {
 		bool isPathDir = this->_path.size() > 1 && this->_path[this->_path.size() - 1] == '/';
 		{
-			this->_body._path = this->_location ? this->_location->getRoot() : this->_server->getRoot();
+			this->_body._path = (this->_location && !this->_location->getRoot().empty()) ? this->_location->getRoot() : this->_server->getRoot();
 			if (!isPathDir)
 			{
 				this->_body._path += this->_path;
@@ -846,7 +768,7 @@ void	Request::_defineBodyDestination(void)
 					this->setError(403);
 				this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 				if (this->_body._fd == -1)
-					this->setError(403); // TODO: Check the error code
+					this->setError(403);
 			}
 			else
 			{
@@ -856,36 +778,24 @@ void	Request::_defineBodyDestination(void)
 					this->_body._path += "/" + this->_headers["Filename"];
 					if (this->_method == "POST" && fileExist(this->_body._path))
 						this->setError(403);
-					std::cout << C_RED << "OUTPUT PATH: " << this->_body._path << C_RESET << std::endl;
 					this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 					if (this->_body._fd == -1)
-						this->setError(403); // TODO: Check the error code
+						this->setError(403);
 				}
-				// else if (this->_query.find("filename=") != std::string::npos)
-				// {
-				// 	this->_body._path += "/" + this->_query.substr(this->_query.find("filename=") + 9);
-				// 	if (this->_method == "POST" && fileExist(this->_body._path))
-				// 		this->setError(403);
-				// 	this->_body._fd = open(this->_body._path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-				// 	if (this->_body._fd == -1)
-				// 		this->setError(403); // TODO: Check the error code
-				// }
 				else
 				{
 					this->_body._path += "/upload_";
 					if (Utils::createFileRandomSuffix(this->_body._path, this->_body._fd) == -1)
-						this->setError(403); // TODO: Check the error code
+						this->setError(403);
 				}
 			}
 			this->_body._isTmp = false;
 		}
-		// else
-		// 	this->setError(415);
 	}
 	else
 	{
 		if (Utils::createTmpFile(this->_body._path, this->_body._fd) == -1)
-			this->setError(500); // TODO: Check the error code
+			this->setError(500);
 		this->_body._isTmp = true;
 	}
 
@@ -925,7 +835,6 @@ void	Request::checkTimeout(void)
 		}
 		else
 			this->setError(408);
-		// modifySocketEpoll(epollfd, this->_client->getFd(), RESPONSE_FLAGS);
 	}
 }
 
@@ -997,6 +906,7 @@ std::vector<std::string> Request::_getAllPathsLocation(void)
 	for (size_t i = 0; i < indexes.size(); i++)
 	{
 		std::string index = indexes[i];
+		std::string bkpPath = path;
 		if (path == "/"){
 			path = root + "/" + index;
 		}
@@ -1007,6 +917,7 @@ std::vector<std::string> Request::_getAllPathsLocation(void)
 			path = root + path + index;
 		}
 		allPathsLocations.push_back(path);
+		path = bkpPath;
 	}
 
 	return allPathsLocations;

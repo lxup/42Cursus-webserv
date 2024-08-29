@@ -33,6 +33,7 @@ public:
 		TRACE,
 		DEBUG,
 	};
+	// logInstance
 
 	/* MAIN */
 	static void log(LogLevel level, const char *msg, ...);

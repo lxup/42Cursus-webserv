@@ -244,7 +244,6 @@ void	CgiHandler::_parseHeadersValue(void)
 		if (this->_headers.find(this->_tmpHeaderKey) != this->_headers.end())
 			return (this->_response->setError(500));
 		this->_headers[convertToLowercase(this->_tmpHeaderKey)] = this->_tmpHeaderValue;
-		std::cout << "Header value: " << this->_headers[convertToLowercase(this->_tmpHeaderKey)] << std::endl;
 		this->_tmpHeaderKey.clear();
 		this->_tmpHeaderValue.clear();
 		this->_setState(CgiHandler::HEADERS_PARSE_END);
@@ -273,60 +272,6 @@ void	CgiHandler::_parseBody(void)
 }
 
 /*
-** @brief Parse the headers of the CGI
-**
-** @return void
-*/
-// void	CgiHandler::_parseHeaders(void)
-// {
-// 	std::cout << C_CYAN << "Output: " << this->_output << C_RESET << std::endl;
-// 	size_t pos = this->_output.find("\r\n\r\n");
-// 	if (pos != std::string::npos)
-// 	{
-// 		std::string headers = this->_output.substr(0, pos + 2);
-// 		this->_output= this->_output.substr(pos + 4);
-// 		// trim whitespace output
-// 		// this->_output.erase(remove_if(this->_output.begin(), this->_output.end(), ::isspace), this->_output.end());
-
-// 		std::istringstream iss(headers);
-// 		std::string line;
-// 		while (std::getline(iss, line, '\n'))
-// 		{
-// 			if (line.empty())
-// 				continue;
-// 			// check if there is a \r at the end of the line
-// 			if (line[line.size() - 1] != '\r')
-// 				throw IntException(502); // TODO: check if it's should be considered as an error
-// 			line.erase(line.size() - 1);
-// 			size_t colonPos = line.find(":");
-// 			if (colonPos == std::string::npos)
-// 				throw IntException(502); // TODO: check if it's should be considered as an error
-// 			std::string key = line.substr(0, colonPos);
-// 			std::string value = line.substr(colonPos + 1);
-
-// 			key.erase(std::remove_if(key.begin(), key.end(), ::isspace), key.end());
-// 			value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
-
-// 			if (key == "Status")
-// 			{
-// 				int statusInt = atoi(value.c_str());
-// 				this->_request->setStateCode(statusInt);
-// 				if (statusInt >= 400)
-// 					throw IntException(statusInt);
-// 			}
-// 			else
-// 				this->_headers[key] = value;
-// 		}
-// 		this->_checkHeaders();
-// 	}
-// 	else
-// 	{
-// 		Logger::log(Logger::ERROR, "No headers found in CGI response");
-// 		throw IntException(502); // TODO: check if it's the right error code
-// 	}
-// }
-
-/*
 ** --------------------------------- CHECKER ---------------------------------
 */
 
@@ -338,7 +283,7 @@ void	CgiHandler::_parseBody(void)
 int	CgiHandler::_checkHeaders(void)
 {
 	if (this->_headers.empty())
-		return (this->_response->setError(502), -1); // TODO: check if it's the right error code
+		return (this->_response->setError(502), -1);
 	if (this->_headers.find("status") != this->_headers.end())
 	{
 		int statusInt = atoi(this->_headers["status"].c_str());

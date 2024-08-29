@@ -59,7 +59,7 @@ void BlocLocation::addAllowedMethods(std::vector<std::string> &tokens)
 		else
 			Logger::log(Logger::FATAL, "Invalid method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		if (std::find(_allowedMethods.begin(), _allowedMethods.end(), met) != _allowedMethods.end())
-			Logger::log(Logger::FATAL, "Dupplicate method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
+			Logger::log(Logger::FATAL, "Duplicate method: \"%s\" in file: %s:%d", token.c_str(), _filename.c_str(), ConfigParser::countLineFile);
 		_allowedMethods.push_back(met);
 	}
 }
@@ -88,7 +88,7 @@ void BlocLocation::addCgiExtension(std::vector<std::string> &token)
 {
 
 	if (_cgiExtension.find(token[1]) != _cgiExtension.end())
-		Logger::log(Logger::FATAL, "Dupplicate cgi extension: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
+		Logger::log(Logger::FATAL, "Duplicate cgi extension: \"%s\" in file: %s:%d", token[1].c_str(), _filename.c_str(), ConfigParser::countLineFile);
 	_cgiExtension[token[1]] = token[2];
 }
 
@@ -134,7 +134,7 @@ void BlocLocation::checkDoubleLine()
 
 	for (it = _counterView.begin(); it != _counterView.end(); ++it)
 		if (it->second > 1)
-			Logger::log(Logger::FATAL, "Dupplicate line in location context: %s", it->first.c_str());
+			Logger::log(Logger::FATAL, "Duplicate line in location context: %s", it->first.c_str());
 
 	// checker si root est present, alias ne doit pas l'etre et inversement
 	if (_counterView["root"] > 0 && _counterView["alias"] > 0)

@@ -432,7 +432,27 @@ std::string getMimeType(const std::string &path)
 	mimeTypes[".txt"] = "text/plain";
 	mimeTypes[".pdf"] = "application/pdf";
 	mimeTypes[".zip"] = "application/zip";
-	// todo ajouter d'autre extension
+	mimeTypes[".tar"] = "application/x-tar";
+	mimeTypes[".gz"] = "application/gzip";
+	mimeTypes[".mp3"] = "audio/mpeg";
+	mimeTypes[".mp4"] = "video/mp4";
+	mimeTypes[".avi"] = "video/x-msvideo";
+	mimeTypes[".mpeg"] = "video/mpeg";
+	mimeTypes[".webm"] = "video/webm";
+	mimeTypes[".ogg"] = "video/ogg";
+	mimeTypes[".ico"] = "image/x-icon";
+	mimeTypes[".webp"] = "image/webp";
+	mimeTypes[".woff"] = "font/woff";
+	mimeTypes[".woff2"] = "font/woff2";
+	mimeTypes[".ttf"] = "font/ttf";
+	mimeTypes[".otf"] = "font/otf";
+	mimeTypes[".eot"] = "application/vnd.ms-fontobject";
+	mimeTypes[".csv"] = "text/csv";
+	mimeTypes[".xml"] = "application/xml";
+	mimeTypes[".xhtml"] = "application/xhtml+xml";
+	mimeTypes[".webmanifest"] = "application/manifest+json";
+	mimeTypes[".ico"] = "image/x-icon";
+	mimeTypes[".mkv"] = "video/x-matroska";
 
 	std::string::size_type idx = path.rfind('.');
 	if (idx != std::string::npos)
@@ -443,7 +463,7 @@ std::string getMimeType(const std::string &path)
 			return mimeTypes[ext];
 		}
 	}
-	return "application/octet-stream"; // Type par défaut si l'extension est inconnue
+	return "application/octet-stream";
 }
 
 
@@ -479,8 +499,6 @@ std::string buildPage(std::vector<std::string> files, std::string path, std::str
  * @brief fonction qui clean le path
  * ex: /Users/toukoum/42/webserv/././www/../www/../
  * -> /Users/toukoum/42/webserv/
- * 
- * 
  */
 void cleanPath(std::string& path){
 	 if (path[0] != '/')
