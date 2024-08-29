@@ -446,7 +446,7 @@ void	Request::_parseHeadersValue(void)
 	{
 		if (this->_tmpHeaderValue.empty())
 			return (this->setError(400));
-		this->_tmpHeaderValue.erase(std::remove_if(this->_tmpHeaderValue.begin(), this->_tmpHeaderValue.end(), ::isspace), this->_tmpHeaderValue.end());
+		// this->_tmpHeaderValue.erase(std::remove_if(this->_tmpHeaderValue.begin(), this->_tmpHeaderValue.end(), ::isspace), this->_tmpHeaderValue.end());
 		if (this->_headers.find(this->_tmpHeaderKey) != this->_headers.end())
 			return (this->setError(400));
 		Logger::log(Logger::DEBUG, "Header value: %s", this->_tmpHeaderValue.c_str());

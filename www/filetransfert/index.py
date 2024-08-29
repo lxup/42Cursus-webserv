@@ -259,11 +259,19 @@ def main():
 					}}
 					else{{
 						alert('Failed to upload file');
+						var previousRow = document.getElementById("upload-file-" + name);
+						if (previousRow){{
+							previousRow.remove();
+						}}
 					}}
 				}};
 
 				xhr.onerror = function(){{
 					alert('Failed to upload file');
+					var previousRow = document.getElementById("upload-file-" + name);
+					if (previousRow){{
+						previousRow.remove();
+					}}
 				}};
 
 				xhr.send(fileInput.files[0]);

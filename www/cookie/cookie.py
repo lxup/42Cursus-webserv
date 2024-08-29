@@ -149,10 +149,8 @@ html_content = f"""
 </body>
 <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
 <script>
-
-	
 				const jsConfetti = new JSConfetti()
-				jsConfetti.addConfetti()
+                jsConfetti.addConfetti({{ confettiNumber: 1 }})
 
 </script>
 </html>

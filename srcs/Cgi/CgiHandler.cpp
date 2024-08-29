@@ -240,11 +240,11 @@ void	CgiHandler::_parseHeadersValue(void)
 	{
 		if (this->_tmpHeaderValue.empty())
 			return (this->_response->setError(500));
-		this->_tmpHeaderValue.erase(std::remove_if(this->_tmpHeaderValue.begin(), this->_tmpHeaderValue.end(), ::isspace), this->_tmpHeaderValue.end());
+		// this->_tmpHeaderValue.erase(std::remove_if(this->_tmpHeaderValue.begin(), this->_tmpHeaderValue.end(), ::isspace), this->_tmpHeaderValue.end());
 		if (this->_headers.find(this->_tmpHeaderKey) != this->_headers.end())
 			return (this->_response->setError(500));
-		Logger::log(Logger::DEBUG, "Header value: %s", this->_tmpHeaderValue.c_str());
 		this->_headers[convertToLowercase(this->_tmpHeaderKey)] = this->_tmpHeaderValue;
+		std::cout << "Header value: " << this->_headers[convertToLowercase(this->_tmpHeaderKey)] << std::endl;
 		this->_tmpHeaderKey.clear();
 		this->_tmpHeaderValue.clear();
 		this->_setState(CgiHandler::HEADERS_PARSE_END);
