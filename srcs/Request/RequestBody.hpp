@@ -17,11 +17,11 @@ class RequestBody
 	friend class CgiHandler;
 	friend class CgiExecutor;
 	private:
-		std::string		_path;
+		std::string			_path;
 		// std::ofstream	_stream;
-		int				_fd;
-		bool			_isTmp;
-		u_int64_t		_size;
+		int					_fd;
+		bool				_isTmp;
+		unsigned long long	_size;
 
 		/* PRIVATE HELPERS */
 		int	_write(const std::string &data);
@@ -34,10 +34,10 @@ class RequestBody
 		RequestBody &operator=(const RequestBody &src);
 
 		/* GETTERS */
-		std::string	getPath(void) const { return this->_path; }
-		int			getFd(void) const { return this->_fd; }
-		bool		isTmp(void) const { return this->_isTmp; }
-		u_int64_t	getSize(void) const { return this->_size; }
+		std::string			getPath(void) const { return this->_path; }
+		int					getFd(void) const { return this->_fd; }
+		bool				isTmp(void) const { return this->_isTmp; }
+		unsigned long long	getSize(void) const { return this->_size; }
 
 
 };

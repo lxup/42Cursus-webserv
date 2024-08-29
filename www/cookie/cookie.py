@@ -6,6 +6,12 @@ import uuid
 import cgi
 import time
 
+def check_path(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+check_path("./www/cookie/database")
+
 print("Content-Type: text/html; charset=utf-8")
 
 cgitb.enable()
@@ -15,9 +21,6 @@ def get_new_user_theme(user_id):
     newTheme = form.getvalue("theme")
     if (newTheme is None):
         newTheme = get_user_theme(user_id)
-    #verifier si le dossier database existe
-    if not os.path.exists("./www/cookie/database"):
-        os.makedirs("./www/cookie/database")
     try:
         with open(f"./www/cookie/database/{user_id}.txt", "w") as file:
             file.write(newTheme)

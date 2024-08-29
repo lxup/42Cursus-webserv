@@ -71,7 +71,7 @@ class Request
 		std::string							_tmpHeaderValue;
 		bool								_isChunked;
 		RequestCgi							_cgi;
-		int									_contentLength;
+		unsigned long long					_contentLength;
 		int									_chunkSize;
 		time_t								_timeout;
 		e_parse_state						_state;
@@ -147,7 +147,7 @@ class Request
 		std::map<std::string, std::string> getHeaders(void) const { return _headers; }
 		bool 			isChunked(void) const { return _isChunked; }
 		e_parse_state	getState(void) const { return _state; }
-		int 			getContentLength(void) const { return _contentLength; }
+		unsigned long long			getContentLength(void) const { return _contentLength; }
 		int 			getChunkSize(void) const { return _chunkSize; }
 		time_t			getTimeout(void) const { return _timeout; }
 		/* SETTERS */

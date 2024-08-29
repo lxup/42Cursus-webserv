@@ -59,7 +59,7 @@ public:
 	// const std::vector<BlocLocation> &getLocations() const { return _locations; }
 	std::vector<BlocLocation>* getLocations() { return &_locations; }
 	const std::string &getRoot() const { return _root; }
-	u_int64_t getClientMaxBodySize() const { return _clientMaxBodySize; }
+	unsigned long long getClientMaxBodySize() const { return _clientMaxBodySize; }
 	const std::map<std::string, ListenConfig> &getListens() const { return _listens; }
 	const std::vector<std::string> &getIndexes() const { return _indexes; }
 

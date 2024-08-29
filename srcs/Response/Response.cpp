@@ -376,7 +376,7 @@ void Response::handlePostRequest(void)
 	std::string jsonBody = "{\n";
 	jsonBody += "\"message\": \"File uploaded successfully.\",\n";
 	jsonBody += "\"filename\": \"" + _request->_body.getPath() + "\",\n";
-	jsonBody += "\"size\": " + uint64ToString(_request->_body.getSize()) + "\n";
+	jsonBody += "\"size\": " + Utils::ullToStr(_request->_body.getSize()) + "\n";
 	jsonBody += "}\n";
 
 	_response = "HTTP/1.1 200 OK\r\n";
@@ -418,7 +418,7 @@ void Response::handlePutRequest(void)
 	std::string jsonBody = "{\n";
 	jsonBody += "\"message\": \"File uploaded successfully.\",\n";
 	jsonBody += "\"filename\": \"" + _request->_body.getPath() + "\",\n";
-	jsonBody += "\"size\": " + uint64ToString(_request->_body.getSize()) + "\n";
+	jsonBody += "\"size\": " + Utils::ullToStr(_request->_body.getSize()) + "\n";
 	jsonBody += "}\n";
 
 	_response = "HTTP/1.1 200 OK\r\n";

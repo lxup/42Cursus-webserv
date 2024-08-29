@@ -49,7 +49,7 @@ std::string	Request::getParseStateStr(e_parse_state state)
 	}
 }
 
-Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _isChunked(false), _cgi(this), _contentLength(-1),  _chunkSize(-1), _timeout(0), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
+Request::Request(Client *client) : _client(client), _server(NULL), _location(NULL),  _rawRequest(""), _method(""), _uri(""), _path(""), _httpVersion(""), _isChunked(false), _cgi(this), _contentLength(0),  _chunkSize(-1), _timeout(0), _state(Request::INIT), _stateCode(REQUEST_DEFAULT_STATE_CODE)
 {
 	this->_initServer();
 }
@@ -478,9 +478,9 @@ void	Request::_parseBody(void)
 	if (this->_body._write(this->_rawRequest) == -1)
 		return (this->setError(500));
 	this->_rawRequest.clear();
-	if (this->_body._size > (u_int64_t)this->_server->getClientMaxBodySize()) // Check the client max body size
+	if (this->_body._size > this->_server->getClientMaxBodySize()) // Check the client max body size
 		return (this->setError(413));
-	if (this->_body._size == (u_int64_t)this->_contentLength)
+	if (this->_body._size == this->_contentLength)
 		return (this->_setState(Request::BODY_END));
 	// if (this->_body._write(this->_rawRequest.substr(0, (u_int64_t)this->_contentLength - this->_body._size)) == -1)
 	// 	return (this->setError(500));
@@ -756,7 +756,7 @@ int	Request::_checkClientMaxBodySize(void)
 		std::istringstream iss(this->_headers["Content-Length"]);
 		iss >> this->_contentLength;
 	}
-	if (this->_contentLength > (int)this->_server->getClientMaxBodySize())
+	if (this->_contentLength > this->_server->getClientMaxBodySize())
 	{
 		Logger::log(Logger::ERROR, "[_checkClientMaxBodySize] Content-Length too big, max body size: %d, content length: %d", this->_server->getClientMaxBodySize(), this->_contentLength);
 		this->setError(413);

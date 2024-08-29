@@ -29,7 +29,8 @@ class Utils
     static int  createFileRandomSuffix(std::string &path, int &fd);
     static int  urlDecode(std::string &str);
     static char hexToChar(char c);
-	 static unsigned long long strToUll(std::string clientMaxBodySize);
+	  static unsigned long long strToUll(std::string clientMaxBodySize);
+    static std::string ullToStr(unsigned long long ull);
 };
 
 

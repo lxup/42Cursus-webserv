@@ -307,7 +307,8 @@ void BlocServer::printServer(void)
     printListens();
     printVector("Indexes", _indexes);
     printPair("Root", _root);
-    printInt("Client max body size", _clientMaxBodySize);
+    // printInt("Client max body size", _clientMaxBodySize);
+	std::cout << "Client max body size: " << Utils::ullToStr(_clientMaxBodySize) << std::endl;
     printMap("Error pages", _errorPages);
 
     if (_locations.empty()){

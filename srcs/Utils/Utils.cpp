@@ -1,19 +1,5 @@
 #include "Utils.hpp"
 
-unsigned long long Utils::strToUll(std::string clientMaxBodySize){
-	unsigned long long size = BS_DEFAULT_CLIENT_MAX_BODY_SIZE;
-	
-	std::stringstream ss(clientMaxBodySize); // Use std::stringstream instead of stringstream
-	ss >> size;
-
-	if (ss.fail() || !ss.eof() || size < 0)
-	{
-		return (BS_DEFAULT_CLIENT_MAX_BODY_SIZE);
-	}
-	return size;
-
-}
-
 /*
 ** @brief Create a temporary file
 **
@@ -100,6 +86,37 @@ char	Utils::hexToChar(char c)
 	if (c >= 'a' && c <= 'f')
 		return (c - 'a' + 10);
 	return (0);
+}
+
+/*
+** @brief Convert a string to an unsigned long long
+**
+** @param clientMaxBodySize : The string to convert
+** @return The unsigned long long
+*/
+unsigned long long Utils::strToUll(std::string clientMaxBodySize){
+	unsigned long long size = BS_DEFAULT_CLIENT_MAX_BODY_SIZE;
+	
+	std::stringstream ss(clientMaxBodySize); // Use std::stringstream instead of stringstream
+	ss >> size;
+
+	if (ss.fail() || !ss.eof() || size < 0)
+	{
+		return (BS_DEFAULT_CLIENT_MAX_BODY_SIZE);
+	}
+	return (size);
+}
+
+/*
+** @brief Convert an unsigned long long to a string
+**
+** @param ull : The unsigned long long to convert
+** @return The string
+*/
+std::string Utils::ullToStr(unsigned long long ull){
+	std::ostringstream oss;
+	oss << ull;
+	return (oss.str());
 }
 
 

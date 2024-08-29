@@ -68,7 +68,7 @@ void CgiExecutor::_init(void)
 	this->_env["REMOTE_ADDR"] = this->_requestCgi->_request->_client->getSocket()->getIp();
 	this->_env["REMOTE_IDENT"] = this->_requestCgi->_request->_headers["Authorization"];
 	this->_env["REMOTE_USER"] = this->_requestCgi->_request->_headers["Authorization"];
-	this->_env["CONTENT_LENGTH"] = uint64ToString(this->_requestCgi->_request->_body._size);
+	this->_env["CONTENT_LENGTH"] = Utils::ullToStr(this->_requestCgi->_request->_body._size);
 	this->_env["CONTENT_TYPE"] = this->_requestCgi->_request->_headers["Content-Type"];
 	this->_env["HTTP_COOKIE"] = this->_requestCgi->_request->_headers["Cookie"];
 }
