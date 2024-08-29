@@ -118,7 +118,7 @@ std::string Logger::_formater(Logger::LogLevel level, const char *msg, std::stri
 	formatedMsg += "[" + Logger::getLogLevelStr(level) + "]\t";
 	formatedMsg += time + " : " + msg;
 	if ((level == Logger::ERROR || level == Logger::FATAL) && errno != 0)
-		formatedMsg += ": " + static_cast<std::string>(std::strerror(errno)); // TODO : FIX ERNO HERE
+		formatedMsg += ": " + static_cast<std::string>(std::strerror(errno));
 	if (colored == true)
 		formatedMsg += C_RESET;
 
@@ -150,12 +150,10 @@ void Logger::_writeLogInFile(Logger::LogLevel level, const char *msg, std::strin
 	// Create directory if not exist
 	if (mkdir("logs", 0777) == -1 && errno != EEXIST)
 	{
-		// TODO: Handle error
 		std::cerr << "Error: " << std::strerror(errno) << std::endl;
 		return;
 	}
 	int file = open(("logs/" + Logger::getLogFileName()).c_str(), O_CREAT | O_WRONLY | O_APPEND, 0666);
-	// TODO: Handle file error
 	std::string log = Logger::_formater(level, msg, time, false);
 	write(file, log.c_str(), log.size());
 	write(file, "\n", 1);

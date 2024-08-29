@@ -135,7 +135,6 @@ std::vector<std::string> Response::getAllPathsLocation()
  * @example if the request is /index.html and the root is /var/www/html,
  * the path of the ressource is /var/www/html/index.html
 
- * TODO: gerer de tester tout les indexes
  */
 
 std::vector<std::string> Response::getAllPathsServer(void)

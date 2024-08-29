@@ -36,6 +36,8 @@ def createNewCookie():
     user_id = generateId()
     expiration_date = generateExpirationDate()
     print(f"Set-Cookie: id={user_id}; Expires={expiration_date}; Path=/\r\n")
+    if not os.path.exists("./www/login/database"):
+        os.makedirs("./www/login/database")
     with open(f"./www/login/database/{user_id}.txt", "w") as file:
         file.write(f"{name}\n{password}")
     return user_id

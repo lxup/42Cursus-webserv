@@ -15,6 +15,9 @@ def get_new_user_theme(user_id):
     newTheme = form.getvalue("theme")
     if (newTheme is None):
         newTheme = get_user_theme(user_id)
+    #verifier si le dossier database existe
+    if not os.path.exists("./www/cookie/database"):
+        os.makedirs("./www/cookie/database")
     try:
         with open(f"./www/cookie/database/{user_id}.txt", "w") as file:
             file.write(newTheme)
@@ -121,16 +124,16 @@ html_content = f"""
       }}
       
       #theme {{
-				margin-top: 1rem;
-				padding: 5px 20px;
+            margin-top: 1rem;
+            padding: 5px 20px;
         background-color: {text_color};
         border-radius: 3px;
         font-weight: semibold;
         color: {background_color};
-			}}
+         }}
       
       #theme option {{
-				display: flex;
+            display: flex;
       }}    
     </style>
 </head>
@@ -149,7 +152,7 @@ html_content = f"""
 </body>
 <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
 <script>
-				const jsConfetti = new JSConfetti()
+            const jsConfetti = new JSConfetti()
                 jsConfetti.addConfetti({{ confettiNumber: 1 }})
 
 </script>

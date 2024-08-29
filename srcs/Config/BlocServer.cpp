@@ -221,7 +221,7 @@ BlocServer BlocServer::getServerConfig(std::ifstream &configFile)
 			continue;
 		tokens = split(line, " ");
 		key = tokens[0];
-		if (key[0] == '}'){
+		if (key[0] == '}' && key.size() == 1 && tokens.size() == 1){
 			isCloseServer = true;
 			break;
 		}

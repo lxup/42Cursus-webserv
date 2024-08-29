@@ -196,11 +196,32 @@ footer{
 }
 
 .titleSection h2{
-	background: var(--luxe-gold, linear-gradient(95deg, #212526 -0.51%, #ccd9e070 220.06%));
+	background: var(--luxe-gold, linear-gradient(95deg, #212526 -0.51%, #62819270 220.06%));
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent; /* Cela remplace -webkit-text-fill-color pour une meilleure compatibilité */
 	display: inline; /* S'assure que le fond suit le texte */
-
 }
 
+
+.logo42{
+
+	height: 50px;
+	left: 0;
+	transform: translate(-60%, -65%);
+	position: absolute;
+}
+
+.mainTitle{
+	/* background-color: red; */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+}
+
+.likeButton{
+	position: fixed;
+	top: 2rem;
+	right: 2rem;
+}

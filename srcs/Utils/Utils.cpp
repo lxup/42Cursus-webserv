@@ -108,7 +108,6 @@ void printMsg(std::ostream &os, const char *msg, ...)
 	// Handling error
 	if (size < 0)
 	{
-		// TODO: Handle error
 		return;
 	}
 

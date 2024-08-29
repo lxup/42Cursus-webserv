@@ -10,6 +10,8 @@ upload_url = "/filetransfert/uploads/"
 # make function to load file list
 def load_files():
 	links = ""
+	if (not os.path.exists(download_path)):
+		os.makedirs(download_path)
 	for file in os.listdir(download_path):
 		if os.path.isfile(os.path.join(download_path, file)):
 				if file[0] != "." and file != "index.py":

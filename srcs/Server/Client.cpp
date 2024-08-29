@@ -48,7 +48,7 @@ void	Client::handleRequest(void)
 		buffer[bytesRead] = '\0';
 	}
 	else if (bytesRead < 0)
-		throw std::runtime_error("Error with recv function"); // TODO: throw exception or send 500 error to client
+		throw std::runtime_error("Error with recv function");
 	else if (bytesRead == 0)
 		throw Client::DisconnectedException();
 	

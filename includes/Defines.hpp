@@ -33,12 +33,9 @@
 #define BG_WHITE "\001\033[47m\002"		  /* - White background */
 #define BG_TRANSPARENT "\001\033[49m\002" /* - Transparent background */
 
-// todo a modifier
-#define BUFFER_SIZE 4096
-#define BACKLOGS 128
 
 #define REQUEST_FLAGS EPOLLIN | EPOLLRDHUP | EPOLLERR // Quand on attend une requete
 #define RESPONSE_FLAGS EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT // Quand la reponse est prete est que l'on a quelque chose a envoyer dans le socket
-#define MAX_EVENTS 10
+#define MAX_EVENTS 100
 
 #endif // DEFINE_HPP
