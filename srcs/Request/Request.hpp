@@ -95,7 +95,7 @@ class Request
 		void	_setHeaderState(void);
 
 		/* PROCESS */
-		void	_processUri(void);
+		int		_processUri(void);
 
 		/* FINDERS */
 		int		_findServer(void);

@@ -14,21 +14,19 @@ def load_files():
 		if os.path.isfile(os.path.join(download_path, file)):
 				if file[0] != "." and file != "index.py":
 					links += f"""
-						<div id="file-{file}" class="link">
-							<div>{file}</div>
-
-							<div class="link-buttons">
-								<a href={upload_url}{file} class="link-button" download>
-									Download
-								</a>
-								<form id="delete-{file}" onsubmit="deleteFile(event)">
-									<button type="submit" class="link-button">
-										Delete
-									</button>
-								</form>
+						<li class="row" id="file-{file}">
+                            <div class="content upload">
+								<i class="fas fa-file-alt"></i>
+								<div class="details">
+								<span class="name">{file}</span>
+								<span class="size">{os.path.getsize(download_path + file)} bytes</span>
+								</div>
 							</div>
-
-						</div>
+							<div>
+								<a href={upload_url}{file} class="link-button" download><i class="fas fa-download" onclick="handleDownload('{file}')"></i></a>
+								<i class="fas fa-trash" onclick="handleDelete('{file}')"></i>
+							</div>
+						</li>
 					"""
 	return links
 
@@ -39,201 +37,256 @@ def main():
 	<html lang="en">
 	<head>
 		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Informations de l'Utilisateur</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
 		<style>
-			@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+			/* Import Google font - Poppins */
+			@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+			*{{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			font-family: "Poppins", sans-serif;
+			}}
+			body{{
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+			background: #f0f0f0;
+			}}
 
-			.container{{
-				--max-width: 1000px;
-				--padding: 1rem;
+			::selection{{
+			color: #fff;
+			background: #6990F2;
+			}}
+			.wrapper{{
+			width: 430px;
+			background: #333;
+			border-radius: 5px;
+			padding: 30px;
+			box-shadow: 7px 7px 12px rgba(0,0,0,0.05);
+			}}
+			.wrapper header{{
+			color: #6990F2;
+			font-size: 27px;
+			font-weight: 600;
+			text-align: center;
+			}}
+			.wrapper form{{
+			height: 167px;
+			display: flex;
+			cursor: pointer;
+			margin: 30px 0;
+			align-items: center;
+			justify-content: center;
+			flex-direction: column;
+			border-radius: 5px;
+			border: 2px dashed #6990F2;
+			}}
+			form :where(i, p){{
+			color: #6990F2;
+			}}
+			form i{{
+			font-size: 50px;
+			}}
+			form p{{
+			margin-top: 15px;
+			font-size: 16px;
+			}}
 
-				width: min(var(--max-width), 100% - (var(--padding) * 1.2));
-				margin-inline: auto;
+			section .row{{
+			margin-bottom: 10px;
+			background: #E9F0FF;
+			list-style: none;
+			padding: 15px 20px;
+			border-radius: 5px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
 			}}
-			body {{
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				height: 100vh;
-				font-family: 'Inter', sans-serif;
-				background-color: #f0f0f0;
+			section .row i{{
+			color: #6990F2;
+			font-size: 30px;
 			}}
-			div {{
-				# font-size: 1.5rem;
-				# font-weight: semibold;
-				# color: #333;
-				# text-align: center;
+			section .details span{{
+			font-size: 14px;
 			}}
-			h2 {{
-				font-size: 2rem;
-				font-weight: semibold;
-				color: #333;
-				text-align: center;
+			.progress-area .row .content{{
+			width: 100%;
+			margin-left: 15px;
 			}}
-			.button{{
-				border: none;
-				padding: 1rem 3rem;
-				background-color: #333;
-				border-radius: 15px;
-				font-weight: semibold;
-				color: #f0f0f0;
+			.progress-area .details{{
+			display: flex;
+			align-items: center;
+			margin-bottom: 7px;
+			justify-content: space-between;
+			}}
+			.progress-area .content .progress-bar{{
+			height: 6px;
+			width: 100%;
+			margin-bottom: 4px;
+			background: #fff;
+			border-radius: 30px;
+			}}
+			.content .progress-bar .progress{{
+			height: 100%;
+			width: 0%;
+			background: #6990F2;
+			border-radius: inherit;
+			}}
+			.file-area{{
+			max-height: 232px;
+			overflow-y: scroll;
+			}}
+			.file-area.onprogress{{
+			max-height: 150px;
+			}}
+			.file-area::-webkit-scrollbar{{
+			width: 0px;
+			}}
+			.file-area .row .content{{
+			display: flex;
+			align-items: center;
+			}}
+			.file-area .row .details{{
+			display: flex;
+			margin-left: 15px;
+			flex-direction: column;
+			}}
+			.file-area .row .details .size{{
+			color: #404040;
+			font-size: 11px;
+			}}
+			.file-area i.fa-trash, .file-area i.fa-download{{
+				font-size: 20px;
 				cursor: pointer;
 			}}
-			.hidden-input {{
-				display: none;
+			.file-area i.fa-trash{{
+				color: #700000;
 			}}
-			.links {{
-				display: flex;
-				flex-wrap: wrap;
-				justify-content: center;
-				flex-direction: column;
-				background-color: #dedcdc;
-				
-				border: 1rem solid #f0f0f0;
-				border-radius: 30px;
-				padding: 1rem;
+			.file-area i.fa-download{{
+				color: #1d8038;
 			}}
-			.link {{
-				diplay: flex;
-				justify-content: space-between;
-				align-items: center;
-				padding: 5px 10px;
-				# background-color: #121212;
-				border-radius: 5px;
-				transition: background-color 0.3s;
-			}}
-			.link:hover {{
-				cursor: pointer;
-				background-color: #d3d3d3;
-			}}
-			.link-buttons {{
-				display: flex;
-				align-items: center;
-			}}
-			.link-button {{
-				padding: 5px 10px;
-				background-color: #121212;
-				color: white;
-				text-decoration: none;
-				border-radius: 5px;
-				transition: background-color 0.3s;
-			}}
-
 		</style>
 		<script>
-            function handleFileSelect() {{
-				const fileInput = document.getElementById('fileInput');
-				const filenameInput = document.getElementById('filenameInput');
-				if (fileInput.files.length) {{
-					filenameInput.value = fileInput.files[0].name;
-				}}
-			}}
+			function handleDelete(filename) {{
+				var xhr = new XMLHttpRequest();
+				xhr.open('DELETE', '{upload_url}' + filename, true);
 
-			function deleteFile(event) {{
-				event.stopPropagation();
-				event.preventDefault();
-
-				var form = event.target;
-				var file = form.id.replace('delete-', '');
-
-				fetch('{upload_url}' + file, {{
-					method: 'DELETE'
-				}})
-				.then(response => {{
-					if (response.ok) {{
-						document.getElementById('file-' + file).remove();
-					}}
-					else {{
+				// Event listener for completion
+				xhr.onload = function() {{
+					if (xhr.status === 200) {{
+						document.getElementById('file-' + filename).remove();
+					}} else {{
 						alert('Failed to delete file');
 					}}
-				}})
-				.catch(error => {{
-					alert('Failed to delete file');
-				}});
+				}};
+				xhr.send();
 			}}
 
-			function handleUpload(event) {{
-				event.stopPropagation();
-				event.preventDefault();
-
-				console.log('Uploading file...');
-
-				var form = event.target;
-				var fileInput = form.file;
-				var filename = form.filename.value;
-				var enctype = document.getElementById('enctypeSelect').value;
-				var filenameInput = document.getElementById('filenameInput').value;
-
-				if (filenameInput) {{
-					filename = filenameInput;
+			function handleFileSelect() {{
+				const fileInput = document.getElementById('fileInput');
+				if (fileInput.files.length) {{
+					let filename = fileInput.files[0].name;
+					uploadFile(filename);
 				}}
-				
+			}}
 
-				if (!fileInput.files.length) {{
-					alert('Please select a file to upload');
-					return;
-				}}
+			function uploadFile(name){{
+				progressArea = document.querySelector(".progress-area");
+				uploadedArea = document.querySelector(".file-area");
+				let xhr = new XMLHttpRequest();
+				xhr.open('POST', '{upload_url}' + name, true);
+				xhr.setRequestHeader("Filename", name);
+				xhr.setRequestHeader("Content-Type", "application/octet-stream");
 
-				console.log('Filename:', filename);
-				console.log('File:', fileInput.files[0]);
-				console.log('Encoding:', enctype);
-
-				if (enctype === 'application/octet-stream') {{
-					fetch('{upload_url}' + filename, {{
-						method: 'POST',
-						headers: {{
-							'Filename': filename,
-							'Content-Type': 'application/octet-stream',
-						}},
-						body: fileInput.files[0]
-					}})
-					.then(response => {{
-						if (response.ok) {{
-							alert('File uploaded successfully');
-							window.location.reload();
-						}} else {{
-							alert('Failed to upload file');
+				xhr.upload.onprogress = function(event){{
+					if (event.lengthComputable){{
+						var previousRow = document.getElementById("upload-file-" + name);
+						if (previousRow){{
+							previousRow.remove();
 						}}
-					}})
-					.catch(error => {{
-						alert('Failed to upload file');
-					}});
-				}} else {{
-					alert('Only application/octet-stream encoding is supported for now');
-					return;
-				}}
 
-			}}
+						let row = document.createElement("li");
+						row.classList.add("row");
+						row.id = "upload-file-" + name;
+						row.innerHTML = `
+							<div class="content upload">
+								<i class="fas fa-file-alt"></i>
+								<div class="details">
+									<span class="name">${{name}}</span>
+									<span class="size">${{fileInput.files[0].size}} bytes</span>
+								</div>
+							</div>
+							<div class="progress-area">
+								<div class="content">
+									<div class="details">
+										<span class="name">${{name}}</span>
+										<span class="size">${{fileInput.files[0].size}} bytes</span>
+									</div>
+									<div class="progress-bar">
+										<div class="progress" style="width: ${{(event.loaded / event.total) * 100}}%"></div>
+									</div>
+								</div>
+							</div>
+						`;
+						progressArea.appendChild(row);
+					}}
+				}};
+
+				xhr.onload = function(){{
+					if (xhr.status === 200){{
+						let row = document.createElement("li");
+						row.classList.add("row");
+						row.id = "file-" + name;
+						row.innerHTML = `
+							<div class="content upload">
+								<i class="fas fa-file-alt"></i>
+								<div class="details">
+									<span class="name">${{name}}</span>
+									<span class="size">${{fileInput.files[0].size}} bytes</span>
+								</div>
+							</div>
+							<div>
+								<a href="{upload_url}${{name}}" class="link-button" download><i class="fas fa-download"></i></a>
+								<i class="fas fa-trash" onclick="handleDelete('${{name}}')"></i>
+							</div>
+						`;
+						uploadedArea.appendChild(row);
+						progressArea.innerHTML = "";
+					}}
+					else{{
+						alert('Failed to upload file');
+					}}
+				}};
+
+				xhr.onerror = function(){{
+					alert('Failed to upload file');
+				}};
+
+				xhr.send(fileInput.files[0]);
+				}}
         </script>
 	</head>
 	<body>
-		<div class="container">
-			<h2>FileTransfert</h2>
-			<div>
-				<form id="uploadForm" onsubmit="handleUpload(event)">
-					<label for="filenameInput">File Name:</label>
-					<input id="filenameInput" type="text" name="filename">
-
-					<label for="enctypeSelect">Select Encoding:</label>
-					<select id="enctypeSelect">
-						<option value="application/octet-stream">application/octet-stream</option>
-						<option value="multipart/form-data">multipart/form-data</option>
-					</select>
-
-					<input id="fileInput" type="file" name="file" class="hidden-input" onchange="handleFileSelect()">
-					<button type="button" class="button" onclick="document.getElementById('fileInput').click();">Select File</button>
-					
-					<button type="submit" class="button">Upload File</button>
-				</form>
-            </div>
-            <div class="links">
-                {links}
-            </div>
+		<div class="wrapper">
+			<header>FileTransfert</header>
+			<form action="#" id="uploadForm" onclick="document.getElementById('fileInput').click()">
+			<input id="fileInput" class="file-input" type="file" name="file" hidden onchange="handleFileSelect()">
+			<i class="fas fa-cloud-upload-alt"></i>
+			<p>Browse File to Upload</p>
+			</form>
+			<section class="progress-area"></section>
+			<section class="file-area">
+				{links}
+			</section>
 		</div>
 	</body>
 	</html>
 	"""
-
+	
 	print("Content-Type: text/html\r\n\r\n")
 	print(html_content)
 

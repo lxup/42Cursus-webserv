@@ -1,6 +1,13 @@
 #include "Utils.hpp"
 
 
+/*
+** @brief Create a temporary file
+**
+** @param path : The path of the temporary file
+** @param fd : The file descriptor of the temporary file
+** @return 0 if success, -1 otherwise
+*/
 int	Utils::createTmpFile(std::string &path, int &fd)
 {
 	// path += "XXXXXX";
@@ -18,6 +25,13 @@ int	Utils::createTmpFile(std::string &path, int &fd)
 	return (0);
 }
 
+/*
+** @brief Create a temporary file with a random suffix
+**
+** @param path : The path of the temporary file
+** @param fd : The file descriptor of the temporary file
+** @return 0 if success, -1 otherwise
+*/
 int Utils::createFileRandomSuffix(std::string &path, int &fd)
 {
 	path += "XXXXXX";
@@ -34,6 +48,46 @@ int Utils::createFileRandomSuffix(std::string &path, int &fd)
 	return (0);
 }
 
+/*
+** @brief Decode a URL-encoded string
+**
+** @param str : The URL-encoded string
+** @return 0 if success, -1 otherwise
+*/
+int	Utils::urlDecode(std::string &str)
+{
+	size_t i = 0;
+	while (i < str.size())
+	{
+		if (str[i] == '%')
+		{
+			if (i + 2 >= str.size())
+				return (-1);
+			char c = hexToChar(str[i + 1]) * 16 + hexToChar(str[i + 2]);
+			str[i] = c;
+			str.erase(i + 1, 2);
+		}
+		i++;
+	}
+	return (0);
+}
+
+/*
+** @brief Convert a hexadecimal character to a char
+**
+** @param c : The hexadecimal character
+** @return The char
+*/
+char	Utils::hexToChar(char c)
+{
+	if (c >= '0' && c <= '9')
+		return (c - '0');
+	if (c >= 'A' && c <= 'F')
+		return (c - 'A' + 10);
+	if (c >= 'a' && c <= 'f')
+		return (c - 'a' + 10);
+	return (0);
+}
 
 
 

@@ -235,9 +235,10 @@ void	Request::_parseUri(void)
 		if (this->_uri.empty())
 			return (this->setError(400));
 		// this->_uri.erase(std::remove_if(this->_uri.begin(), this->_uri.end(), ::isspace), this->_uri.end());
+		if (this->_processUri() == -1)
+			return ;
 		Logger::log(Logger::DEBUG, "URI: %s", this->_uri.c_str());
-		this->_processUri();
-		this->_setState(Request::REQUEST_LINE_HTTP_VERSION);
+		return (this->_setState(Request::REQUEST_LINE_HTTP_VERSION));
 	}
 	// size_t pos = this->_rawRequest.find(" ");
 	// if (pos == std::string::npos)
@@ -607,8 +608,10 @@ void	Request::setError(int code)
 /*
 ** @brief Process the URI
 */
-void	Request::_processUri(void)
+int	Request::_processUri(void)
 {
+	if (Utils::urlDecode(this->_uri) == -1)
+		return (this->setError(400), -1);
 	size_t pos = this->_uri.find('?');
 	if (pos != std::string::npos)
 	{
@@ -617,6 +620,7 @@ void	Request::_processUri(void)
 	}
 	else
 		this->_path = this->_uri;
+	return (0);
 }
 
 /*

@@ -18,6 +18,8 @@ Response::Response(Client* client) : _request(client->getRequest()), _cgiHandler
 
 Response::~Response()
 {
+	if (_fileFd != -1)
+		close(_fileFd);
 }
 
 /*
