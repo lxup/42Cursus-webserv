@@ -23,7 +23,7 @@ def load_files():
 								</div>
 							</div>
 							<div>
-								<a href={upload_url}{file} class="link-button" download><i class="fas fa-download" onclick="handleDownload('{file}')"></i></a>
+								<a href="{upload_url}{file}" class="link-button" download><i class="fas fa-download"></i></a>
 								<i class="fas fa-trash" onclick="handleDelete('{file}')"></i>
 							</div>
 						</li>
@@ -63,13 +63,13 @@ def main():
 			}}
 			.wrapper{{
 			width: 430px;
-			background: #333;
-			border-radius: 5px;
+			background: #1E1E1E;
+			border-radius: 20px;
 			padding: 30px;
 			box-shadow: 7px 7px 12px rgba(0,0,0,0.05);
 			}}
 			.wrapper header{{
-			color: #6990F2;
+			color: white;
 			font-size: 27px;
 			font-weight: 600;
 			text-align: center;
@@ -83,10 +83,10 @@ def main():
 			justify-content: center;
 			flex-direction: column;
 			border-radius: 5px;
-			border: 2px dashed #6990F2;
+			border: 2px dashed white;
 			}}
 			form :where(i, p){{
-			color: #6990F2;
+			color: white;
 			}}
 			form i{{
 			font-size: 50px;
