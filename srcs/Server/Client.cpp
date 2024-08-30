@@ -4,15 +4,9 @@
 ** --------------------------------- PRIVATE METHODS ---------------------------
 */
 
-Client::Client(int fd, Socket* socket) : _socket(socket), _request(new Request(this)), _response(new Response(this)), _lastActivity(time(NULL))
+Client::Client(int fd, Socket* socket) : _fd(fd), _socket(socket), _request(new Request(this)), _response(new Response(this)), _lastActivity(time(NULL))
 {
-	Logger::log(Logger::DEBUG, "[Client] Initializing client with fd %d", fd);
-
-	struct sockaddr_in	addr;
-	socklen_t			addrLen = sizeof(addr);
-
-	this->_fd = protectedCall(accept(fd, (struct sockaddr *)&addr, &addrLen), "Error with accept function", false);
-	protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "[Client] Error with fcntl function", false);
+	// Logger::log(Logger::DEBUG, "[Client] Initializing client with fd %d", fd);
 }
 
 Client::~Client(void)

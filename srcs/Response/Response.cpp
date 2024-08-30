@@ -459,15 +459,8 @@ int Response::generateResponse(int epollFD)
 	}
 	Logger::log(Logger::DEBUG, "ITS NOT A CGI");
 
-
 	if (_state != Response::CHUNK)
 		this->setState(Response::PROCESS);
-	// if (this->isCGI())
-	// {
-	// 	Logger::log(Logger::DEBUG, "ITS A CGI");
-	// 	this->handleCGI(epollFD);
-	// 	return ;
-	// }
 
 	if (_request->getMethod() == "GET")
 		handleGetRequest();
@@ -477,21 +470,10 @@ int Response::generateResponse(int epollFD)
 		handleDeleteRequest();
 	else if (_request->getMethod() == "PUT")
 		handlePutRequest();
-	// else if (_request->getMethod() == "PUT")
-	// 	return (this->setError(405), 0);
 	else
 		return (this->setError(405), 0);
 	
 	return (0);
-		// this->_response = "HTTP/1.1 405 Method Not Allowed\r\n";
-	// else if (_request.getMethod == "POST")
-	//     handlePostRequest();
-	// else if (_request.getMethod == "DELETE")
-	//     handleDeleteRequest();
-	// else if (_request.getMethod == "PUT")
-	//     handlePutRequest();
-	// else
-	//     handleOtherRequest();
 }
 
 /*
@@ -544,6 +526,7 @@ int Response::_handleCgi(void)
 	Logger::log(Logger::DEBUG, "[Reponse::_handleCgi] Handling CGI response");
 	if (this->_state == Response::FINISH)
 		return (-1);
+	bool isInit = this->_state == Response::INIT;
 	if (this->_state == Response::INIT)
 	{
 		if (lseek(this->_request->_cgi._cgiHandler->getFdOut(), 0, SEEK_SET) == -1)
@@ -555,7 +538,11 @@ int Response::_handleCgi(void)
 	memset(buffer, 0, RESPONSE_READ_BUFFER_SIZE);
 	ssize_t bytesRead = read(this->_request->_cgi._cgiHandler->getFdOut(), buffer, RESPONSE_READ_BUFFER_SIZE - 1);
 	if (bytesRead == -1)
+	{
+		if (isInit) // if its the first read and nothing was sent, we can send a 500. Otherwise is too late, so we just disconnect the client
+			return (this->setError(500), 0);
 		throw IntException(500);
+	}
 	if (bytesRead == 0)
 	{
 		Logger::log(Logger::DEBUG, "[Reponse::_handleCgi] No more data to read");
@@ -566,8 +553,6 @@ int Response::_handleCgi(void)
 	buffer[bytesRead] = '\0';
 	std::string str(buffer, bytesRead);
 	this->_cgiHandler._parse(str);
-	// std::cout << C_RED << "BUFFER: " << str << C_RESET << std::endl;
-	// exit(0);
 	if (this->_response.empty())
 		return (-1);
 	return (0);

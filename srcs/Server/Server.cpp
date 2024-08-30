@@ -54,9 +54,9 @@ void Server::init(void)
 	std::map<std::string, std::vector<BlocServer> > &servers = this->_configParser.getServers();
 	for (std::map<std::string, std::vector<BlocServer> >::iterator it = servers.begin(); it != servers.end(); ++it)
 	{
-		Socket* socket = new Socket(extractIp(it->first), extractPort(it->first), &it->second);
-		this->_sockets[socket->getFd()] = socket;
-		addSocketEpoll(this->_epollFD, socket->getFd(), REQUEST_FLAGS);
+		int socketFD = protectedCall(socket(AF_INET, SOCK_STREAM, 0), "Error with socket function");
+		this->_sockets[socketFD] = new Socket(socketFD, extractIp(it->first), extractPort(it->first), &it->second);
+		addSocketEpoll(this->_epollFD, socketFD, REQUEST_FLAGS);
 	}
 	this->setState(S_STATE_READY);
 }
@@ -73,10 +73,17 @@ void Server::init(void)
 void	Server::_handleClientConnection(int fd)
 {
 	Logger::log(Logger::DEBUG, "[Server::_handleClientConnection] New client connected on file descriptor %d", fd);
-	Client *client = new Client(fd, this->_sockets[fd]);
-	this->_clients[client->getFd()] = client;
-	addSocketEpoll(this->_epollFD, client->getFd(), REQUEST_FLAGS);
 
+	struct sockaddr_in	addr;
+	socklen_t			addrLen = sizeof(addr);
+
+	// First create the client socket
+	int clientFD = protectedCall(accept(fd, (struct sockaddr *)&addr, &addrLen), "Error with accept function");
+	// Create the new client directly in the map (to be able to clear it if the fcntl fails)
+	this->_clients[clientFD] = new Client(clientFD, this->_sockets[fd]);
+	// Set the client socket to non-blocking. After creating the client because we have to be able to clear the client if the fcntl fails
+	protectedCall(fcntl(clientFD, F_SETFL, O_NONBLOCK), "Error with fcntl function");
+	addSocketEpoll(this->_epollFD, clientFD, REQUEST_FLAGS);
 }
 
 /**
@@ -112,16 +119,7 @@ void Server::handleEvent(epoll_event *events, int i){
 				_handleClientConnection(fd);
 			else{
 				this->_clients[fd]->updateLastActivity();
-				// if (this->_clients[fd]->checkCgi())
-				// {
-				// 	Logger::log(Logger::DEBUG, "[Server::handleEvent] CGI finished on client %d", fd);
-				// 	std::cout << C_RED << "CGI FINIIIIISSSSSHHHHEEEEEDDDDDDDDD" << C_RESET << std::endl;
-				// 	modifySocketEpoll(this->_epollFD, fd, EPOLLOUT);
-				// }
-				// if (this->_clients[fd]->isCgiReady(this->_epollFD)) // Check if the CGI is ready
-				// 	modifySocketEpoll(this->_epollFD, fd, EPOLLOUT);
-				// else
-					this->_clients[fd]->handleRequest();
+				this->_clients[fd]->handleRequest();
 			}
 		}
 		if (event & EPOLLOUT){
@@ -147,7 +145,6 @@ void Server::handleEvent(epoll_event *events, int i){
  */
 void	Server::_checkTimeouts(time_t currentTime)
 {
-	(void)currentTime;
 	std::map<int, Client*>::iterator it = this->_clients.begin();
 	while (it != this->_clients.end())
 	{
@@ -161,14 +158,6 @@ void	Server::_checkTimeouts(time_t currentTime)
 		}
 		else
 			++it;
-		// else if (it->second->getResponse()->getCgiHandler() != NULL && (currentTime - it->second->getResponse()->getCgiHandler()->getLastActivity() > TIMEOUT_CGI))
-		// {
-		// 	Logger::log(Logger::DEBUG, "[Server::_checkTimeouts] CGI Timeout on client %d", it->first);
-		// 	kill(it->second->getResponse()->getCgiHandler()->getPid(), SIGTERM);
-		// 	it->second->getResponse()->setError(504);
-		// 	it->second->getResponse()->clearCgi();
-		// }
-		// else
 	}
 }
 
@@ -189,21 +178,18 @@ void Server::run(void)
 	epoll_event	events[MAX_EVENTS];
 	while (this->getState() == S_STATE_RUN)
 	{
-		// Logger::log(Logger::INFO, "Waiting for connections...");
-		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, 500), "Error with epoll_wait function");
+		int nfds = protectedCall(epoll_wait(this->_epollFD, events, MAX_EVENTS, SERVER_DEFAULT_EPOLL_WAIT), "Error with epoll_wait function");
 		Logger::log(Logger::DEBUG, "[Server::run] There are %d file descriptors ready for I/O after epoll wait", nfds);
 		
 		for (int i = 0; i < nfds; i++)
 			handleEvent(events, i);
 
-
 		time_t currentTime = time(NULL);
-		(void)lastTimeoutCheck;
-		 if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL)
-		 {
+		if (currentTime - lastTimeoutCheck >= TIMEOUT_CHECK_INTERVAL)
+		{
 			this->_checkTimeouts(currentTime);
-		 	lastTimeoutCheck = currentTime;
-		 }
+			lastTimeoutCheck = currentTime;
+		}
 	}
 }
 

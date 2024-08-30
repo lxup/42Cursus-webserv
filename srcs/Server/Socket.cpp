@@ -4,18 +4,13 @@ Socket::Socket(void) : _fd(-1)
 {
 }
 
-Socket::Socket(std::string ip, unsigned int port, std::vector<BlocServer>* servers)
+Socket::Socket(int fd, std::string ip, unsigned int port, std::vector<BlocServer>* servers) : _fd(fd), _ip(ip), _port(port), _servers(servers)
 {
 	Logger::log(Logger::INFO, "Initializing socket on %s:%d", ip.c_str(), port);
-	this->_ip = ip;
-	this->_port = port;
-	this->_fd = protectedCall(socket(AF_INET, SOCK_STREAM, 0), "socket");
-	this->_servers = servers;
-	this->_addr.sin_family = AF_INET;
-	this->_addr.sin_port = htons(port);
-	this->_addr.sin_addr.s_addr = inet_addr(ip.c_str());
-
 	try {
+		this->_addr.sin_family = AF_INET;
+		this->_addr.sin_port = htons(port);
+		this->_addr.sin_addr.s_addr = inet_addr(ip.c_str());
 		protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "fcntl");
 		int optval = 1;
 		protectedCall(setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)), "setsockopt");
@@ -23,10 +18,10 @@ Socket::Socket(std::string ip, unsigned int port, std::vector<BlocServer>* serve
 		protectedCall(listen(this->_fd, BACKLOGS), "listen");
 	}
 	catch (std::exception &e) {
-		protectedCall(close(this->_fd), "close", false);
-		throw std::exception();
+		if (this->_fd != -1)
+			protectedCall(close(this->_fd), "[Socket] Faild to close socket", false);
+		Logger::log(Logger::FATAL, "Failed to initialize socket on %s:%d", ip.c_str(), port);
 	}
-
 }
 
 Socket::Socket(const Socket &src)

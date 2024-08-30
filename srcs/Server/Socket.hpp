@@ -15,14 +15,14 @@
 class Socket
 {
 	private:
+		int							_fd;
 		std::string					_ip;
 		unsigned int				_port;
-		int							_fd;
 		std::vector<BlocServer>*	_servers;
 		struct sockaddr_in			_addr;
 	public:
 		Socket(void);
-		Socket(std::string ip, unsigned int port, std::vector<BlocServer>* servers);
+		Socket(int fd, std::string ip, unsigned int port, std::vector<BlocServer>* servers);
 		Socket(Socket const &src);
 		~Socket(void);
 

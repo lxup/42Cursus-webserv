@@ -16,6 +16,7 @@
 # include "Utils.hpp"
 # include "Request.hpp"
 
+# define SERVER_DEFAULT_EPOLL_WAIT 500
 #define TIMEOUT_CHECK_INTERVAL 5 // seconds
 #define INACTIVITY_TIMEOUT 60 // seconds
 
