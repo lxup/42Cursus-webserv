@@ -580,11 +580,6 @@ std::string listDirectory(std::string path, std::string root){
 		files.push_back(ent->d_name);
 	}
 	closedir(dir);
-	for (std::vector<std::string>::iterator it = files.begin(); it != files.end(); ++it)
-	{
-		std::cout << *it << std::endl;
-	}
-	std::cout << "----------------" << std::endl;
 
 	std::string body = buildPage(files, path, root);
 	std::string header = "HTTP/1.1 200 OK\r\n";

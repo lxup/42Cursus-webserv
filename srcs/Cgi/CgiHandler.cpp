@@ -191,8 +191,6 @@ void	CgiHandler::_parseHeadersKey(void)
 			found = true;
 			break;
 		}
-		// if (!std::isprint(this->_output[i]))
-		// 	return (this->_response->setError(500));
 		if (!std::isalnum(this->_output[i]) && this->_output[i] != '-' && this->_output[i] != '_')
 			return (this->_response->setError(500));
 		this->_tmpHeaderKey += this->_output[i];

@@ -11,12 +11,11 @@ Socket::Socket(int fd, std::string ip, unsigned int port, std::vector<BlocServer
 		this->_addr.sin_family = AF_INET;
 		this->_addr.sin_port = htons(port);
 		this->_addr.sin_addr.s_addr = inet_addr(ip.c_str());
-		protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "fcntl");
+		protectedCall(fcntl(this->_fd, F_SETFL, O_NONBLOCK), "[Socket] Failed to set socket to non-blocking");
 		int optval = 1;
-		protectedCall(setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)), "setsockopt");
-		protectedCall(bind(this->_fd, (struct sockaddr *)&this->_addr, sizeof(this->_addr)), "bind");
-		protectedCall(listen(this->_fd, BACKLOGS), "listen");
-	}
+		protectedCall(setsockopt(this->_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)), "[Socket] Failed to set socket options");
+		protectedCall(bind(this->_fd, (struct sockaddr *)&this->_addr, sizeof(this->_addr)), "[Socket] Failed to bind socket");
+		protectedCall(listen(this->_fd, BACKLOGS), "[Socket] Failed to listen on socket");	}
 	catch (std::exception &e) {
 		if (this->_fd != -1)
 			protectedCall(close(this->_fd), "[Socket] Faild to close socket", false);
