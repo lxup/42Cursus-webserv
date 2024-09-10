@@ -4,7 +4,7 @@
 ![C++](https://img.shields.io/badge/C++-98-blue?style=for-the-badge&logo=appveyor)
 ![HTTP](https://img.shields.io/badge/HTTP-1.1-blue?style=for-the-badge&logo=appveyor)
 
-# Webserv - Serveur Web en C++98
+# Webserv - Serveur Web en C++98 `125/100 ✅`
 
 Ce projet est un serveur HTTP code C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.
 
