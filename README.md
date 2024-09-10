@@ -2,43 +2,53 @@
 
 # Webserv - Serveur Web en C++98
 
+![Webserv](https://img.shields.io/badge/Webserv-HTTP%20Server-blue?style=for-the-badge&logo=appveyor)
+
+![C++](https://img.shields.io/badge/C++-98-blue?style=for-the-badge&logo=appveyor)
+![HTTP](https://img.shields.io/badge/HTTP-1.1-blue?style=for-the-badge&logo=appveyor)
+
+
 `Ce projet est un serveur HTTP code C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.`
+
 
 Pour regarder une demo, voici une video youtube: 
 <a href="https://www.youtube.com/channel/UC9MxXD1D6RRVYAZxeWgCyZA"> <img width=70px src="https://img.shields.io/badge/YouTube-FF0000?style=flat&logo=youtube&logoColor=white"/></a>
 
-![Webserv](./images/webserv.png)
+
+![Webserv](./images/webserv.png){:height="200px" width="200px"}
+
 
 ![Log of the Webserv](./images/log.png)
-
-- [Webserv - Serveur Web en C++98](#webserv---serveur-web-en-c98)
-  - [How to use](#how-to-use)
-  - [Objectif](#objectif)
-  - [Liens Utiles](#liens-utiles)
-  - [Codes de Statut HTTP](#codes-de-statut-http)
-  - [Gestion des BlocServers du fichier de configuration](#gestion-des-blocservers-du-fichier-de-configuration)
-  - [Ressources](#ressources)
-  - [Règles Générales ⚠️](#règles-générales-️)
-  - [Structure des Blocs](#structure-des-blocs)
-  - [Détails des Directives ✅](#détails-des-directives-)
-  - [Exemples de Configuration](#exemples-de-configuration)
-    - [Délimitation des Requêtes HTTP](#délimitation-des-requêtes-http)
 
 
 ## How to use
 
 > ⚠️ **Prérequis**: Fonctionne uniquement sur Linux. Vous devez avoir `make` et `g++` installés sur votre machine.
 
-1. Clonez le dépôt avec ```git clone https://github.com/lxup/42Cursus-webserv.git webserv```
-2. Accédez au dépôt avec `cd webserv`
-3. Exécutez ```make && ./webserv config/good/webserv.conf```
-4. Ouvrez un navigateur et allez sur `http://localhost:3434` ou utilisez `curl http://localhost:3434`
+1. Clonez le dépôt avec 
+```bash
+git clone https://github.com/lxup/42Cursus-webserv.git webserv
+```
+3. Accédez au dépôt avec 
+```bash
+cd webserv
+```
+4. Exécutez 
+```bash
+make && ./webserv config/good/webserv.conf
+```
+
+5. Ouvrez un navigateur et allez sur 
+```bash
+http://localhost:3434
+```
+ou utilisez `curl http://localhost:3434`
 
 Vous pouvez tester de modifier le fichier de configuration, en modifiant par exemple les ports d'ecoute ou les fichiers a servir.
 
 ## Objectif
 
-L'objectif est de comprendre et d'implémenter les fonctionnalités de base d'un serveur HTTP, de la réception de requêtes à la réponse appropriée, en passant par la gestion des différents codes de statut HTTP.
+L'objectif est de comprendre et d'implémenter les fonctionnalités de base d'un serveur HTTP, de la réception de requêtes à la réponse appropriée, en passant par la gestion des différents codes de statut HTTP. Il doit etre `NON BLOQUANT` (en gros on doit pouvoir servir plusieurs clients en meme temps).
 
 <details>
 <summary>🔍 Qu'est-ce que HTTP?</summary>
@@ -55,17 +65,80 @@ En gros quand tu te connectes a youtube.com, tu demandes plein de fichiers a un 
 - [The Method to epoll's Madness](https://copyconstruct.medium.com/the-method-to-epolls-madness-d9d2d6378642) 🥈
 - [Tutoriel Vidéo les méthodes HTTP](https://www.youtube.com/watch?v=bs1WluLpLqE&t=1411s) 🥉
 
-## Codes de Statut HTTP
+## Pipeline de notre WEBSERV
 
-Les codes de statut HTTP indiquent le résultat d'une requête HTTP.
+### 0️⃣ Etape 0: Analyse du Fichier de Configuration
 
-- 🔵 **1xx : Informational** - Requête reçue, traitement en cours.
-- 🟢 **2xx : Success** - Requête reçue, comprise et acceptée avec succès.
-- 🟡 **3xx : Redirect** - Une action supplémentaire doit être effectuée pour compléter la requête.
-- 🔴 **4xx : Client Error** - La requête contient une erreur qui empêche le serveur de la traiter.
-- ⚫️ **5xx : Server Error** - Le serveur a échoué à traiter une requête apparemment valide.
+- Analyser le fichier de configuration pour déterminer les blocs de serveurs et leurs directives.
+- Créer une structure de données pour stocker les informations du fichier de configuration.
+
+
+![Step 0](./images/configFile.png)
+
+> Sur ce schema, on peut voir un exemple de fichier de configuration. <br>
+> Le server va ecouter sur le port 80 <br>
+> Le root du serveur est le dossier /www/site/ <br>
+> Par default, le server va servir le fichier index.html
+
+
+### 1️⃣ Etape 1: Initialisation du Serveur
+
+- Créer un socket pour écouter les connexions entrantes. (listen socket)
+- Créer une instance epoll pour surveiller les sockets.
+- Ajouter le socket d'écoute à l'instance epoll.
+- Attendre les événements d'entrée/sortie sur les sockets. (Avec epoll_wait())
+
+![Step 1](./images/step1.png)
+
+> Sur ce schema, on peut voir le serveur qui ecoute sur le port 80 et qui attend des connexions entrantes.
+> Le listener socket est ajoute a la Pool de epoll et a le numero 3.
+
+### 2️⃣ Etape 2: New Client Connection
+
+- Accepter une nouvelle connexion entrante.
+- Ajouter le nouveau socket à l'instance epoll.
+- Attendre les événements d'entrée/sortie sur les sockets. (Avec epoll_wait())
+
+![Step 2](./images/step2.png)
+
+> Sur ce schema, on peut voir les 3 etape de l'ajout d'un nouveau client. <br>
+> 1- Le client se connecte au serveur sur le listener socket <br>
+> 2- Le serveur accepte la connexion et cree un nouveau socket pour le client <br>
+> 3- Le nouveau socket est ajoute a la pool de epoll et le serveur attend des evenements sur ce socket (mais aussi toujours le listener socket)
+
+
+### 3️⃣ Etape 3: Requête & Response HTTP
+
+Derniere etape (mashalla tro bo le schema)
+- Un socket de connexion est present entre le client et le serveur.
+
+
+![Step 3](./images/step3.png)
+
+
+> Sur ce schema, les 5 etape de la gestion de requete sont present.<br>
+> 1- Le client envoie une requete au serveur sur le socket de connexion (le socket 4)<br>
+> 2- Le serveur recoit la requete et comme il s'agit d'un client deja connu, il parse la requete<br>
+> 3- Le serveur traite la requete, verifiant la validite de la requete, si c'est une requete chunk, un cgi, ... puis il genere une reponse<br>
+> 4- Le genere la reponse en recherchant le fichier demander, en executant un cgi, ...<br>
+> 5- Le serveur envoie la reponse au client sur le socket de connexion
+
+Youpii c'est fini, le client a recu sa reponse et le serveur attend une nouvelle requete.
+
+
+
+
+
+
+
+
+
+
+
 
 ## Gestion des BlocServers du fichier de configuration
+
+Le webserver doit être capable de gérer plusieurs blocs de configuration, chacun correspondant à un serveur virtuel. Chaque bloc de configuration contient des directives spécifiques qui définissent le comportement du serveur.
 
 ![Schema de BlocServers](./images/schemaConf.png)
 
@@ -84,18 +157,17 @@ Pour repertorier tout ces `blocs server`, on a utiliser une map avec comme cle l
 
 ## Ressources
 
-
-
 <details>
+
 <summary> ✅ Fichier de Configuration du Serveur Web</summary>
 
 
 
-Doc et règles pour le fichier de configuration du serveur web. 
+Ceci est la documentation et les règles pour le fichier de configuration du serveur web. 
 Ce sont des règles grandement inspirées de nginx. Nous avons adapté quelques règles à notre convenance.
 
 
-## Règles Générales ⚠️
+### Règles Générales ⚠️
 
 - Les lignes commençant par `#` sont des commentaires. Les commentaires doivent être sur une ligne séparée et ne peuvent pas être mélangés avec une directive.
 - Il est interdit d'avoir deux blocs `location` avec le même chemin (`path`) dans un bloc `server`.
@@ -103,7 +175,7 @@ Ce sont des règles grandement inspirées de nginx. Nous avons adapté quelques 
 - Deux blocs `server` ne peuvent pas avoir le même `server_name`.
 - Deux blocs `server` peuvent partager le même `listen` (`ip:port`).
 
-## Structure des Blocs
+### Structure des Blocs
 
 ```plaintext
 server {
@@ -115,7 +187,7 @@ server {
 }
 ```
 
-## Détails des Directives ✅
+### Détails des Directives ✅
 
 Le tableau ci-dessous résume les directives disponibles dans le fichier de configuration, y compris leur duplicabilité, le nombre de paramètres autorisés, et leurs valeurs par défaut.
 
@@ -136,7 +208,7 @@ Le tableau ci-dessous résume les directives disponibles dans le fichier de conf
 | `cgi_extension`          | `location`      | DUP             | 2                 | none                        | Définit l'extension qui sera mappée à un script CGI.                                                                                                                | `cgi_extension .php /var/www/cgi-bin/php-cgi;`        |
 | `upload_path`            | `location`      | NODUP           | 1                 | `/var/www/upload`           | Définit le répertoire de destination des fichiers uploadés.                                                                                                         | `upload_path /var/www/images;`                        |
 
-## Exemples de Configuration
+### Exemples de Configuration
 
 ```plaintext
 server {
@@ -409,3 +481,16 @@ Une requête HTTP standard se termine soit :
 
 </details>
 
+
+<details>
+<summary> ✅ Codes de Statut HTTP </summary>
+
+Les codes de statut HTTP indiquent le résultat d'une requête HTTP.
+
+- 🔵 **1xx : Informational** - Requête reçue, traitement en cours.
+- 🟢 **2xx : Success** - Requête reçue, comprise et acceptée avec succès.
+- 🟡 **3xx : Redirect** - Une action supplémentaire doit être effectuée pour compléter la requête.
+- 🔴 **4xx : Client Error** - La requête contient une erreur qui empêche le serveur de la traiter.
+- ⚫️ **5xx : Server Error** - Le serveur a échoué à traiter une requête apparemment valide.
+
+</details>
