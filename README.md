@@ -1,20 +1,23 @@
 
 
-# Webserv - Serveur Web en C++98
-
 ![Webserv](https://img.shields.io/badge/Webserv-HTTP%20Server-blue?style=for-the-badge&logo=appveyor)
 ![C++](https://img.shields.io/badge/C++-98-blue?style=for-the-badge&logo=appveyor)
 ![HTTP](https://img.shields.io/badge/HTTP-1.1-blue?style=for-the-badge&logo=appveyor)
 
+# Webserv - Serveur Web en C++98
 
->Ce projet est un serveur HTTP code C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.
+Ce projet est un serveur HTTP code C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.
 
 
-Pour regarder une demo, voici une video youtube: 
+Demonstration: 
 <a href="https://www.youtube.com/channel/UC9MxXD1D6RRVYAZxeWgCyZA"> <img width=70px src="https://img.shields.io/badge/YouTube-FF0000?style=flat&logo=youtube&logoColor=white"/></a>
 
 
-<img src="./images/webserv.png" alt="Webserv" style="width: 200px;"/>
+<p align="center">
+<img src="./images/webserv.png" alt="Webserv" style="width: 300px;"/>
+</p>
+
+<br>
 
 ![Log of the Webserv](./images/log.png)
 
@@ -71,13 +74,14 @@ En gros quand tu te connectes a youtube.com, tu demandes plein de fichiers a un 
 - Créer une structure de données pour stocker les informations du fichier de configuration.
 
 
-![Step 0](./images/configFile.png)
+<p align="center">
+  <img src="./images/configFile.png" alt="Webserv" style="width: 200px;"/>
+</p>
 
-> Sur ce schema, on peut voir un exemple de fichier de configuration. <br>
-> Le server va ecouter sur le port 80 <br>
-> Le root du serveur est le dossier /www/site/ <br>
-> Par default, le server va servir le fichier index.html
-
+> Sur ce schéma, on peut voir un exemple de fichier de configuration. <br>
+> Le server va écouter sur le port 80. <br>
+> Le root du serveur est le dossier /www/site/. <br>
+> Par défaut, le serveur va servir le fichier index.html.
 
 ### 1️⃣ Etape 1: Initialisation du Serveur
 
@@ -86,7 +90,14 @@ En gros quand tu te connectes a youtube.com, tu demandes plein de fichiers a un 
 - Ajouter le socket d'écoute à l'instance epoll.
 - Attendre les événements d'entrée/sortie sur les sockets. (Avec epoll_wait())
 
-![Step 1](./images/step1.png)
+<p align="center">
+  <img src="./images/step1.png" alt="Webserv" style="width: 200px;"/>
+</p>
+
+> Sur ce schéma, on peut voir un exemple de fichier de configuration. <br>
+> Le server va écouter sur le port 80. <br>
+> Le root du serveur est le dossier /www/site/. <br>
+> Par défaut, le serveur va servir le fichier index.html.
 
 > Sur ce schema, on peut voir le serveur qui ecoute sur le port 80 et qui attend des connexions entrantes.
 > Le listener socket est ajoute a la Pool de epoll et a le numero 3.
@@ -97,7 +108,9 @@ En gros quand tu te connectes a youtube.com, tu demandes plein de fichiers a un 
 - Ajouter le nouveau socket à l'instance epoll.
 - Attendre les événements d'entrée/sortie sur les sockets. (Avec epoll_wait())
 
-![Step 2](./images/step2.png)
+<p align="center">
+  <img src="./images/step2.png" alt="Webserv" style="width: 300px;"/>
+</p>
 
 > Sur ce schema, on peut voir les 3 etape de l'ajout d'un nouveau client. <br>
 > 1- Le client se connecte au serveur sur le listener socket <br>
