@@ -3,20 +3,18 @@
 # Webserv - Serveur Web en C++98
 
 ![Webserv](https://img.shields.io/badge/Webserv-HTTP%20Server-blue?style=for-the-badge&logo=appveyor)
-
 ![C++](https://img.shields.io/badge/C++-98-blue?style=for-the-badge&logo=appveyor)
 ![HTTP](https://img.shields.io/badge/HTTP-1.1-blue?style=for-the-badge&logo=appveyor)
 
 
-`Ce projet est un serveur HTTP code C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.`
+>Ce projet est un serveur HTTP code C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.
 
 
 Pour regarder une demo, voici une video youtube: 
 <a href="https://www.youtube.com/channel/UC9MxXD1D6RRVYAZxeWgCyZA"> <img width=70px src="https://img.shields.io/badge/YouTube-FF0000?style=flat&logo=youtube&logoColor=white"/></a>
 
 
-![Webserv](./images/webserv.png){:height="200px" width="200px"}
-
+<img src="./images/webserv.png" alt="Webserv" style="width: 200px;"/>
 
 ![Log of the Webserv](./images/log.png)
 
