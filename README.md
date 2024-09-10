@@ -91,7 +91,7 @@ En gros quand tu te connectes a youtube.com, tu demandes plein de fichiers a un 
 - Attendre les événements d'entrée/sortie sur les sockets. (Avec epoll_wait())
 
 <p align="center">
-  <img src="./images/step1.png" alt="Webserv" style="width: 200px;"/>
+  <img src="./images/step1.png" alt="Webserv" style="width: 300px;"/>
 </p>
 
 > Sur ce schéma, on peut voir un exemple de fichier de configuration. <br>
@@ -109,7 +109,7 @@ En gros quand tu te connectes a youtube.com, tu demandes plein de fichiers a un 
 - Attendre les événements d'entrée/sortie sur les sockets. (Avec epoll_wait())
 
 <p align="center">
-  <img src="./images/step2.png" alt="Webserv" style="width: 300px;"/>
+  <img src="./images/step2.png" alt="Webserv" style="width: 400px;"/>
 </p>
 
 > Sur ce schema, on peut voir les 3 etape de l'ajout d'un nouveau client. <br>
