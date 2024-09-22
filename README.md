@@ -6,11 +6,11 @@
 
 # Webserv - Serveur Web en C++98 `125/100 ✅`
 
-Ce projet est un serveur HTTP code C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.
+Ce projet est un serveur HTTP écrit en C++98 (pour LINUX). Ce serveur est compatible avec le protocole HTTP/1.1.
 
 
 Demonstration: 
-<a href="https://www.youtube.com/channel/UC9MxXD1D6RRVYAZxeWgCyZA"> <img width=70px src="https://img.shields.io/badge/YouTube-FF0000?style=flat&logo=youtube&logoColor=white"/></a>
+<a href="https://youtu.be/V6ArZlHzZ6w"> <img width=70px src="https://img.shields.io/badge/YouTube-FF0000?style=flat&logo=youtube&logoColor=white"/></a>
 
 
 <p align="center">
